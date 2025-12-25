@@ -1,0 +1,74 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Diagnostic reports
+report.*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Compiled build output
+build/
+dist/
+out/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Caches
+.parcel-cache/
+.rollup.cache/
+.esbuild/
+.cache/
+
+# Next.js / Nuxt / SvelteKit / Vite outputs (common)
+.next/
+.nuxt/
+.svelte-kit/
+
+# Environment files
+.env
+.env.*
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+
+# VS Code (keep common project files)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# TernJS port file
+.tern-port
+
+# Vercel/Netlify local config
+.vercel/
+.netlify/
