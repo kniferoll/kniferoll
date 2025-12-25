@@ -79,6 +79,20 @@ export const useKitchenStore = create<KitchenState>()(
             return { error: kitchenError?.message };
           }
 
+          // Add owner to user_kitchens table
+          const { error: membershipError } = await supabase
+            .from("user_kitchens")
+            .insert({
+              user_id: user.id,
+              kitchen_id: kitchen.id,
+              role: "owner",
+            });
+
+          if (membershipError) {
+            set({ loading: false, error: membershipError.message });
+            return { error: membershipError.message };
+          }
+
           // Create stations
           const stationsToInsert = stationNames.map((stationName, index) => ({
             kitchen_id: kitchen.id,
@@ -177,57 +191,27 @@ export const useKitchenStore = create<KitchenState>()(
             localStorage.setItem("kniferoll_device_token", deviceToken);
           }
 
-          // Check if session user already exists for this device + kitchen
-          const { data: existingUser } = await supabase
+          // Upsert session user (constraint on kitchen_id + device_token)
+          const { data: sessionUser, error: userError } = await supabase
             .from("session_users")
-            .select()
-            .eq("kitchen_id", kitchen.id)
-            .eq("device_token", deviceToken)
-            .maybeSingle();
-
-          let sessionUser;
-
-          if (existingUser) {
-            // Update existing session user
-            const { data, error: updateError } = await supabase
-              .from("session_users")
-              .update({
-                name: displayName,
-                last_active: new Date().toISOString(),
-              })
-              .eq("id", existingUser.id)
-              .select()
-              .single();
-
-            if (updateError) {
-              set({ loading: false, error: updateError.message });
-              return { error: updateError.message };
-            }
-            sessionUser = data;
-          } else {
-            // Create new session user
-            const { data, error: insertError } = await supabase
-              .from("session_users")
-              .insert({
+            .upsert(
+              {
                 kitchen_id: kitchen.id,
                 name: displayName,
                 device_token: deviceToken,
                 station_id: null,
                 last_active: new Date().toISOString(),
-              })
-              .select()
-              .single();
+              },
+              {
+                onConflict: "kitchen_id,device_token",
+              }
+            )
+            .select()
+            .single();
 
-            if (insertError) {
-              set({ loading: false, error: insertError.message });
-              return { error: insertError.message };
-            }
-            sessionUser = data;
-          }
-
-          if (!sessionUser) {
-            set({ loading: false, error: "Failed to create session user" });
-            return { error: "Failed to create session user" };
+          if (userError || !sessionUser) {
+            set({ loading: false, error: userError?.message });
+            return { error: userError?.message };
           }
 
           set({

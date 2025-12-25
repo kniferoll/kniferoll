@@ -27,18 +27,17 @@ export function ChefDashboard() {
       return;
     }
 
-    // Load first kitchen owned by this user
+    // Load first kitchen for this user via user_kitchens
     const loadUserKitchen = async () => {
-      const { data: kitchen } = await supabase
-        .from("kitchens")
-        .select("id")
-        .eq("owner_id", user.id)
-        .order("created_at", { ascending: false })
+      const { data: userKitchen } = await supabase
+        .from("user_kitchens")
+        .select("kitchen_id")
+        .eq("user_id", user.id)
         .limit(1)
         .maybeSingle();
 
-      if (kitchen) {
-        await loadKitchen(kitchen.id);
+      if (userKitchen) {
+        await loadKitchen(userKitchen.kitchen_id);
       }
     };
 
