@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export function Landing() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-gray-100 flex flex-col items-center justify-center p-4">
       <div className="max-w-2xl mx-auto text-center">
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
           Kniferoll

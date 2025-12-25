@@ -164,7 +164,7 @@ export function StationView() {
                   {/* Checkbox */}
                   <button
                     onClick={() => handleToggle(item.id)}
-                    className="flex-shrink-0 mt-1"
+                    className="shrink-0 mt-1"
                     style={{ minWidth: "32px", minHeight: "32px" }}
                   >
                     <div
@@ -211,7 +211,7 @@ export function StationView() {
                   {/* Delete button */}
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="flex-shrink-0 text-red-600 hover:text-red-700 p-2"
+                    className="shrink-0 text-red-600 hover:text-red-700 p-2"
                   >
                     <svg
                       className="w-5 h-5"
