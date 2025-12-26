@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Button, FeatureCard } from "../components";
 
 export function Landing() {
   return (
@@ -12,40 +13,34 @@ export function Landing() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-          <Link
-            to="/join"
-            className="px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Join Kitchen
+          <Link to="/join">
+            <Button variant="primary" fullWidth>
+              Join Kitchen
+            </Button>
           </Link>
-          <Link
-            to="/login"
-            className="px-8 py-4 bg-white text-blue-600 text-lg font-semibold rounded-lg border-2 border-blue-600 hover:bg-blue-50 transition-colors"
-          >
-            Chef Login
+          <Link to="/login">
+            <Button variant="secondary" fullWidth>
+              Chef Login
+            </Button>
           </Link>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 text-left">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-3xl mb-3">🗒️</div>
-            <h3 className="font-semibold text-lg mb-2">Digital Prep Lists</h3>
-            <p className="text-gray-600">
-              Ditch the paper. Track prep in real-time.
-            </p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-3xl mb-3">⚡</div>
-            <h3 className="font-semibold text-lg mb-2">Lightning Fast</h3>
-            <p className="text-gray-600">Join a kitchen in under 15 seconds.</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-3xl mb-3">📱</div>
-            <h3 className="font-semibold text-lg mb-2">Works Offline</h3>
-            <p className="text-gray-600">
-              No wifi? No problem. Syncs when you're back.
-            </p>
-          </div>
+          <FeatureCard
+            emoji="🗒️"
+            title="Digital Prep Lists"
+            description="Ditch the paper. Track prep in real-time."
+          />
+          <FeatureCard
+            emoji="⚡"
+            title="Lightning Fast"
+            description="Join a kitchen in under 15 seconds."
+          />
+          <FeatureCard
+            emoji="📱"
+            title="Works Offline"
+            description="No wifi? No problem. Syncs when you're back."
+          />
         </div>
       </div>
     </div>

@@ -1,0 +1,88 @@
+import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
+
+interface AuthFormProps {
+  title: string;
+  subtitle: string;
+  children: ReactNode;
+  onSubmit: (e: React.FormEvent) => Promise<void>;
+  submitButtonText: string;
+  loading?: boolean;
+  error?: string;
+  footerText: string;
+  footerLink: {
+    text: string;
+    to: string;
+  };
+  backLink?: {
+    text: string;
+    to: string;
+  };
+}
+
+export function AuthForm({
+  title,
+  subtitle,
+  children,
+  onSubmit,
+  submitButtonText,
+  loading = false,
+  error,
+  footerText,
+  footerLink,
+  backLink,
+}: AuthFormProps) {
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
+          <p className="text-gray-600">{subtitle}</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-8">
+          <form onSubmit={onSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+
+            {children}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {loading ? "Loading..." : submitButtonText}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              {footerText}{" "}
+              <Link
+                to={footerLink.to}
+                className="text-blue-600 hover:underline font-medium"
+              >
+                {footerLink.text}
+              </Link>
+            </p>
+          </div>
+        </div>
+
+        {backLink && (
+          <div className="mt-6 text-center">
+            <Link
+              to={backLink.to}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              {backLink.text}
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -4,7 +4,13 @@ import { useKitchenStore } from "../stores/kitchenStore";
 import { useAuthStore } from "../stores/authStore";
 import { supabase } from "../lib/supabase";
 import QRCode from "qrcode";
-import { DateCalendar } from "../components/DateCalendar";
+import {
+  DateCalendar,
+  ShiftToggle,
+  StationCard,
+  JoinCodeModal,
+  Button,
+} from "../components";
 import { getTodayLocalDate, toLocalDate } from "../lib/dateUtils";
 
 interface StationProgress {
@@ -182,134 +188,34 @@ export function ChefDashboard() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Shift Toggle and Share Button */}
         <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="inline-flex rounded-lg border border-gray-300 bg-white flex-wrap">
-            {availableShifts.map((shift: string, index: number) => (
-              <button
-                key={shift}
-                onClick={() => setCurrentShift(shift)}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  index === 0 ? "rounded-l-lg" : ""
-                } ${
-                  index === availableShifts.length - 1 ? "rounded-r-lg" : ""
-                } ${
-                  currentShift === shift
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {shift}
-              </button>
-            ))}
-          </div>
+          <ShiftToggle
+            shifts={availableShifts}
+            currentShift={currentShift}
+            onShiftChange={setCurrentShift}
+          />
 
-          <button
-            onClick={() => setShowJoinCode(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
-          >
-            Share Join Code
-          </button>
+          <Button onClick={() => setShowJoinCode(true)}>Share Join Code</Button>
         </div>
 
         {/* Join Code Modal */}
         {showJoinCode && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-            onClick={() => setShowJoinCode(false)}
-          >
-            <div
-              className="bg-white rounded-lg p-8 shadow-xl max-w-md w-full relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setShowJoinCode(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-                aria-label="Close"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                  Team Join Code
-                </h3>
-
-                {/* QR Code */}
-                {qrCodeUrl && (
-                  <div className="bg-white p-6 rounded-lg inline-block mb-6">
-                    <img
-                      src={qrCodeUrl}
-                      alt="Kitchen QR Code"
-                      className="w-75 h-75"
-                    />
-                  </div>
-                )}
-
-                {/* Code */}
-                <p className="text-sm text-gray-600 mb-2">
-                  Or enter code manually:
-                </p>
-                <p className="text-4xl font-bold text-blue-600 tracking-widest mb-6">
-                  {currentKitchen.join_code}
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  Scan QR code or visit kniferoll.io/join
-                </p>
-              </div>
-            </div>
-          </div>
+          <JoinCodeModal
+            joinCode={currentKitchen.join_code}
+            qrCodeUrl={qrCodeUrl}
+            onClose={() => setShowJoinCode(false)}
+          />
         )}
 
         {/* Station Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {progress.map((station) => (
-            <button
+            <StationCard
               key={station.stationId}
+              name={station.stationName}
+              completed={station.completed}
+              total={station.total}
               onClick={() => navigate(`/station/${station.stationId}`)}
-              className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow text-left"
-            >
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {station.stationName}
-              </h3>
-
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl font-bold text-gray-900">
-                  {station.completed}/{station.total}
-                </span>
-                <span className="text-sm text-gray-600">
-                  {station.total > 0
-                    ? `${Math.round(
-                        (station.completed / station.total) * 100
-                      )}%`
-                    : "0%"}
-                </span>
-              </div>
-
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all"
-                  style={{
-                    width:
-                      station.total > 0
-                        ? `${(station.completed / station.total) * 100}%`
-                        : "0%",
-                  }}
-                />
-              </div>
-            </button>
+            />
           ))}
         </div>
 
