@@ -4,6 +4,8 @@ import { usePrepStore } from "../stores/prepStore";
 import { useKitchenStore } from "../stores/kitchenStore";
 import { useRealtimePrepItems } from "../hooks/useRealtimePrepItems";
 import { getDeviceToken } from "../lib/supabase";
+import { DateCalendar } from "../components/DateCalendar";
+import { getTodayLocalDate, toLocalDate } from "../lib/dateUtils";
 
 export function StationView() {
   const { id: stationId } = useParams<{ id: string }>();
@@ -16,7 +18,7 @@ export function StationView() {
     deletePrepItem,
   } = usePrepStore();
   const { stations, sessionUser, currentKitchen } = useKitchenStore();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedDate, setSelectedDate] = useState(getTodayLocalDate());
   const [currentShift, setCurrentShift] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("");
@@ -25,9 +27,8 @@ export function StationView() {
   const station = stations.find((s) => s.id === stationId);
   
   // Get day name for selected date
-  const selectedDateObj = new Date(selectedDate + "T12:00:00");
+  const selectedDateObj = toLocalDate(selectedDate);
   const dayName = selectedDateObj.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
-  const isToday = selectedDate === new Date().toISOString().split("T")[0];
 
   // Check if selected day is closed
   const isClosed = currentKitchen?.closed_days?.includes(dayName) || false;
@@ -40,34 +41,6 @@ export function StationView() {
         ["AM", "PM"]
       : ["AM", "PM"]
   );
-
-  // Date navigation helpers
-  const navigateDate = (days: number) => {
-    let newDate = new Date(selectedDate + "T12:00:00");
-    const increment = days > 0 ? 1 : -1;
-    let daysToMove = Math.abs(days);
-    
-    while (daysToMove > 0) {
-      newDate.setDate(newDate.getDate() + increment);
-      const checkDayName = newDate.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
-      
-      // Only count this day if it's not closed
-      if (!currentKitchen?.closed_days?.includes(checkDayName)) {
-        daysToMove--;
-      }
-    }
-    
-    setSelectedDate(newDate.toISOString().split("T")[0]);
-  };
-
-  const formatSelectedDate = () => {
-    const options: Intl.DateTimeFormatOptions = { 
-      weekday: "short", 
-      month: "short", 
-      day: "numeric" 
-    };
-    return selectedDateObj.toLocaleDateString("en-US", options);
-  };
 
   // Subscribe to real-time updates
   useRealtimePrepItems(stationId);
@@ -142,41 +115,19 @@ export function StationView() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="px-4 py-4">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => navigate(-1)}
               className="text-gray-600 hover:text-gray-900"
             >
               ← Back
             </button>
-            <h1 className="text-2xl font-bold text-gray-900">{station.name}</h1>
+            <DateCalendar
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
+              closedDays={currentKitchen?.closed_days || []}
+            />
             <div className="w-12" /> {/* Spacer for centering */}
-          </div>
-
-          {/* Date Navigation */}
-          <div className="flex items-center justify-center mb-3">
-            <button
-              onClick={() => navigateDate(-1)}
-              className="px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-              aria-label="Previous day"
-            >
-              ←
-            </button>
-            <div className="px-6 py-2 min-w-45 text-center">
-              <div className="text-sm font-semibold text-gray-900">
-                {formatSelectedDate()}
-              </div>
-              {isToday && (
-                <div className="text-xs text-blue-600 font-medium">Today</div>
-              )}
-            </div>
-            <button
-              onClick={() => navigateDate(1)}
-              className="px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-              aria-label="Next day"
-            >
-              →
-            </button>
           </div>
 
           {/* Shift Toggle or Closed Notice */}
@@ -186,12 +137,12 @@ export function StationView() {
                 Kitchen Closed
               </div>
             ) : (
-              <div className="inline-flex rounded-lg border border-gray-300 bg-white">
+              <div className="inline-flex rounded-lg border border-gray-300 bg-white flex-wrap">
                 {availableShifts.map((shift: string, index: number) => (
                   <button
                     key={shift}
                     onClick={() => setCurrentShift(shift)}
-                    className={`px-6 py-2 text-sm font-medium transition-colors ${
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
                       index === 0 ? "rounded-l-lg" : ""
                     } ${
                       index === availableShifts.length - 1 ? "rounded-r-lg" : ""

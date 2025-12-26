@@ -4,6 +4,8 @@ import { useKitchenStore } from "../stores/kitchenStore";
 import { useAuthStore } from "../stores/authStore";
 import { supabase } from "../lib/supabase";
 import QRCode from "qrcode";
+import { DateCalendar } from "../components/DateCalendar";
+import { getTodayLocalDate, toLocalDate } from "../lib/dateUtils";
 
 interface StationProgress {
   stationId: string;
@@ -16,55 +18,22 @@ export function ChefDashboard() {
   const { user, signOut } = useAuthStore();
   const { currentKitchen, stations, loadKitchen } = useKitchenStore();
   const [progress, setProgress] = useState<StationProgress[]>([]);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(getTodayLocalDate());
   const [currentShift, setCurrentShift] = useState("");
   const [showJoinCode, setShowJoinCode] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const navigate = useNavigate();
 
-  const selectedDateObj = new Date(selectedDate + "T12:00:00");
+  const selectedDateObj = toLocalDate(selectedDate);
   const dayName = selectedDateObj
     .toLocaleDateString("en-US", { weekday: "long" })
     .toLowerCase();
-  const isToday = selectedDate === new Date().toISOString().split("T")[0];
 
   // Get available shifts for selected date
   const availableShifts: string[] = currentKitchen?.schedule
     ? (currentKitchen.schedule as any).default ||
       (currentKitchen.schedule as any)[dayName] || ["AM", "PM"]
     : ["AM", "PM"];
-
-  // Date navigation helpers
-  const navigateDate = (days: number) => {
-    let newDate = new Date(selectedDate + "T12:00:00");
-    const increment = days > 0 ? 1 : -1;
-    let daysToMove = Math.abs(days);
-
-    while (daysToMove > 0) {
-      newDate.setDate(newDate.getDate() + increment);
-      const checkDayName = newDate
-        .toLocaleDateString("en-US", { weekday: "long" })
-        .toLowerCase();
-
-      // Only count this day if it's not closed
-      if (!currentKitchen?.closed_days?.includes(checkDayName)) {
-        daysToMove--;
-      }
-    }
-
-    setSelectedDate(newDate.toISOString().split("T")[0]);
-  };
-
-  const formatSelectedDate = () => {
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    };
-    return selectedDateObj.toLocaleDateString("en-US", options);
-  };
 
   useEffect(() => {
     if (!user) {
@@ -193,21 +162,14 @@ export function ChefDashboard() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {currentKitchen.name}
-            </h1>
-            <p className="text-sm text-gray-600">
-              {selectedDateObj.toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
-              {isToday && (
-                <span className="ml-2 text-blue-600 font-medium">(Today)</span>
-              )}
-            </p>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {currentKitchen.name}
+          </h1>
+          <DateCalendar
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            closedDays={currentKitchen?.closed_days || []}
+          />
           <button
             onClick={handleSignOut}
             className="text-sm text-gray-600 hover:text-gray-900"
@@ -218,35 +180,14 @@ export function ChefDashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Date Navigation */}
-        <div className="flex items-center justify-center mb-4">
-          <button
-            onClick={() => navigateDate(-1)}
-            className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-            aria-label="Previous day"
-          >
-            ← Previous
-          </button>
-          <div className="px-6 py-2 min-w-45 text-center font-semibold text-gray-900">
-            {formatSelectedDate()}
-          </div>
-          <button
-            onClick={() => navigateDate(1)}
-            className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-            aria-label="Next day"
-          >
-            Next →
-          </button>
-        </div>
-
-        {/* Shift Toggle */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="inline-flex rounded-lg border border-gray-300 bg-white">
+        {/* Shift Toggle and Share Button */}
+        <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="inline-flex rounded-lg border border-gray-300 bg-white flex-wrap">
             {availableShifts.map((shift: string, index: number) => (
               <button
                 key={shift}
                 onClick={() => setCurrentShift(shift)}
-                className={`px-6 py-2 text-sm font-medium transition-colors ${
+                className={`px-4 py-2 text-sm font-medium transition-colors ${
                   index === 0 ? "rounded-l-lg" : ""
                 } ${
                   index === availableShifts.length - 1 ? "rounded-r-lg" : ""
@@ -263,7 +204,7 @@ export function ChefDashboard() {
 
           <button
             onClick={() => setShowJoinCode(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
           >
             Share Join Code
           </button>
