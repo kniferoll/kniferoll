@@ -28,9 +28,10 @@ export function ChefDashboard() {
     loadKitchen,
     selectedDate,
     setSelectedDate,
+    selectedShift,
+    setSelectedShift,
   } = useKitchenStore();
   const [progress, setProgress] = useState<StationProgress[]>([]);
-  const [currentShift, setCurrentShift] = useState("");
   const [showJoinCode, setShowJoinCode] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const navigate = useNavigate();
@@ -69,17 +70,17 @@ export function ChefDashboard() {
     loadUserKitchen();
   }, [user, navigate, loadKitchen]);
 
-  // Set initial shift when kitchen loads or date changes
+  // Set initial shift when kitchen loads, only if not set or invalid
   useEffect(() => {
     if (currentKitchen && availableShifts.length > 0) {
-      if (!currentShift || !availableShifts.includes(currentShift)) {
-        setCurrentShift(availableShifts[0]);
+      if (!selectedShift || !availableShifts.includes(selectedShift)) {
+        setSelectedShift(availableShifts[0]);
       }
     }
-  }, [currentKitchen, availableShifts, selectedDate]);
+  }, [currentKitchen, availableShifts, selectedShift, setSelectedShift]);
 
   useEffect(() => {
-    if (!currentKitchen || stations.length === 0 || !currentShift) return;
+    if (!currentKitchen || stations.length === 0 || !selectedShift) return;
 
     const fetchProgress = async () => {
       const progressData: StationProgress[] = [];
@@ -90,7 +91,7 @@ export function ChefDashboard() {
           .select("id, completed")
           .eq("station_id", station.id)
           .eq("shift_date", selectedDate)
-          .eq("shift_name", currentShift);
+          .eq("shift_name", selectedShift);
 
         const total = items?.length || 0;
         const completed =
@@ -128,7 +129,7 @@ export function ChefDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentKitchen, stations, currentShift, selectedDate]);
+  }, [currentKitchen, stations, selectedShift, selectedDate]);
 
   // Generate QR code when modal is shown
   useEffect(() => {
@@ -197,8 +198,8 @@ export function ChefDashboard() {
         <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
           <ShiftToggle
             shifts={availableShifts}
-            currentShift={currentShift}
-            onShiftChange={setCurrentShift}
+            currentShift={selectedShift}
+            onShiftChange={setSelectedShift}
           />
 
           <Button onClick={() => setShowJoinCode(true)}>Share Join Code</Button>

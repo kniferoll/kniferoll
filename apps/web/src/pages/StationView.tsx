@@ -1,13 +1,15 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePrepStore } from "../stores/prepStore";
+import { usePrepEntryStore } from "../stores/prepEntryStore";
 import { useKitchenStore } from "../stores/kitchenStore";
+import { useAuthStore } from "../stores/authStore";
 import { useRealtimePrepItems } from "../hooks/useRealtimePrepItems";
 import { getDeviceToken } from "../lib/supabase";
 import {
   DateCalendar,
   ShiftToggle,
-  PrepItemForm,
+  PrepItemEntryForm,
   PrepItemList,
   ProgressBar,
 } from "../components";
@@ -16,26 +18,37 @@ import { toLocalDate } from "../lib/dateUtils";
 export function StationView() {
   const { id: stationId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { prepItems, loadPrepItems, toggleComplete, deletePrepItem } =
+    usePrepStore();
   const {
-    prepItems,
-    loadPrepItems,
-    toggleComplete,
-    addPrepItem,
-    deletePrepItem,
-  } = usePrepStore();
+    suggestions,
+    allRankedSuggestions,
+    quickUnits,
+    addingItem,
+    loadSuggestionsAndUnits,
+    addItemWithUpdates,
+    dismissSuggestionPersistent,
+  } = usePrepEntryStore();
   const {
     stations,
     sessionUser,
     currentKitchen,
     selectedDate,
     setSelectedDate,
+    loadKitchen,
+    selectedShift,
+    setSelectedShift,
   } = useKitchenStore();
-  const [currentShift, setCurrentShift] = useState("");
-  const [newItemDescription, setNewItemDescription] = useState("");
-  const [newItemQuantity, setNewItemQuantity] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuthStore();
 
   const station = stations.find((s) => s.id === stationId);
+
+  // Load kitchen data on refresh if we have kitchen but no stations
+  useEffect(() => {
+    if (currentKitchen?.id && stations.length === 0) {
+      loadKitchen(currentKitchen.id);
+    }
+  }, [currentKitchen?.id, stations.length, loadKitchen]);
 
   // Get day name for selected date
   const selectedDateObj = toLocalDate(selectedDate);
@@ -57,40 +70,58 @@ export function StationView() {
   // Subscribe to real-time updates
   useRealtimePrepItems(stationId);
 
-  // Set initial shift when kitchen loads or date changes
+  // Load suggestions and units when kitchen, station, shift, or date changes
+  useEffect(() => {
+    if (currentKitchen?.id && stationId && selectedShift) {
+      loadSuggestionsAndUnits(
+        currentKitchen.id,
+        stationId,
+        selectedDate,
+        selectedShift
+      );
+    }
+  }, [
+    currentKitchen?.id,
+    stationId,
+    selectedDate,
+    selectedShift,
+    loadSuggestionsAndUnits,
+  ]);
+
+  // Set initial shift when kitchen loads, only if not set or invalid
   useEffect(() => {
     if (currentKitchen && availableShifts.length > 0) {
-      // Reset to first shift when date changes or if current shift isn't available
-      if (!currentShift || !availableShifts.includes(currentShift)) {
-        setCurrentShift(availableShifts[0]);
+      // Only set shift if none selected or if current selection isn't available
+      if (!selectedShift || !availableShifts.includes(selectedShift)) {
+        setSelectedShift(availableShifts[0]);
       }
     }
-  }, [currentKitchen, availableShifts, selectedDate]);
+  }, [currentKitchen, availableShifts, selectedShift, setSelectedShift]);
 
   useEffect(() => {
-    if (!stationId || !currentShift) return;
-    loadPrepItems(stationId, selectedDate, currentShift);
-  }, [stationId, selectedDate, currentShift, loadPrepItems]);
+    if (!stationId || !selectedShift) return;
+    loadPrepItems(stationId, selectedDate, selectedShift);
+  }, [stationId, selectedDate, selectedShift, loadPrepItems]);
 
-  const handleAddItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!stationId || !newItemDescription.trim()) return;
+  const handleAddItem = async (
+    description: string,
+    unitId: string | null,
+    quantity: number | null
+  ) => {
+    if (!stationId || !currentKitchen?.id || !description.trim()) return;
 
-    const deviceToken = getDeviceToken();
+    const userId = sessionUser?.id || getDeviceToken();
 
-    await addPrepItem({
-      station_id: stationId,
-      shift_date: selectedDate,
-      shift_name: currentShift,
-      description: newItemDescription.trim(),
-      quantity_raw: newItemQuantity.trim(),
-      completed: false,
-      created_by: sessionUser?.id || deviceToken,
-    });
-
-    setNewItemDescription("");
-    setNewItemQuantity("");
-    inputRef.current?.focus();
+    await addItemWithUpdates(
+      currentKitchen.id,
+      stationId,
+      selectedDate,
+      selectedShift,
+      description,
+      unitId,
+      quantity,
+      userId
+    );
   };
 
   const handleToggle = async (itemId: string) => {
@@ -101,6 +132,18 @@ export function StationView() {
     if (confirm("Delete this prep item?")) {
       await deletePrepItem(itemId);
     }
+  };
+
+  const handleDismissSuggestion = async (suggestionId: string) => {
+    if (!stationId || !selectedShift) return;
+    const userId = user?.id || sessionUser?.id || getDeviceToken();
+    await dismissSuggestionPersistent(
+      suggestionId,
+      stationId,
+      selectedDate,
+      selectedShift,
+      userId
+    );
   };
 
   if (!station) {
@@ -148,8 +191,8 @@ export function StationView() {
           <div className="flex items-center justify-center">
             <ShiftToggle
               shifts={availableShifts}
-              currentShift={currentShift}
-              onShiftChange={setCurrentShift}
+              currentShift={selectedShift}
+              onShiftChange={setSelectedShift}
               disabled={isClosed}
             />
           </div>
@@ -189,12 +232,14 @@ export function StationView() {
       {!isClosed && (
         <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 p-4 shadow-lg dark:shadow-xl">
           <div className="max-w-3xl mx-auto">
-            <PrepItemForm
-              description={newItemDescription}
-              quantity={newItemQuantity}
-              onDescriptionChange={setNewItemDescription}
-              onQuantityChange={setNewItemQuantity}
-              onSubmit={handleAddItem}
+            <PrepItemEntryForm
+              allSuggestions={allRankedSuggestions}
+              suggestions={suggestions}
+              quickUnits={quickUnits}
+              onAddItem={handleAddItem}
+              onDismissSuggestion={handleDismissSuggestion}
+              disabled={!selectedShift}
+              isLoading={addingItem}
             />
           </div>
         </div>

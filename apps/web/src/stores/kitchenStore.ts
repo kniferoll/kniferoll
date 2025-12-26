@@ -18,6 +18,7 @@ interface KitchenState {
   loading: boolean;
   error: string | null;
   selectedDate: string;
+  selectedShift: string;
 
   // Actions
   createKitchen: (
@@ -33,6 +34,7 @@ interface KitchenState {
   ) => Promise<{ error?: string }>;
   claimStation: (stationId: string) => Promise<{ error?: string }>;
   setSelectedDate: (date: string) => void;
+  setSelectedShift: (shift: string) => void;
   clearKitchen: () => void;
 }
 
@@ -45,6 +47,7 @@ export const useKitchenStore = create<KitchenState>()(
       loading: false,
       error: null,
       selectedDate: getTodayLocalDate(),
+      selectedShift: "",
 
       createKitchen: async (name, stationNames, schedule, closedDays) => {
         set({ loading: true, error: null });
@@ -295,6 +298,10 @@ export const useKitchenStore = create<KitchenState>()(
         set({ selectedDate: date });
       },
 
+      setSelectedShift: (shift: string) => {
+        set({ selectedShift: shift });
+      },
+
       clearKitchen: () => {
         set({
           currentKitchen: null,
@@ -302,6 +309,7 @@ export const useKitchenStore = create<KitchenState>()(
           sessionUser: null,
           error: null,
           selectedDate: getTodayLocalDate(),
+          selectedShift: "",
         });
       },
     }),
@@ -311,6 +319,7 @@ export const useKitchenStore = create<KitchenState>()(
         currentKitchen: state.currentKitchen,
         sessionUser: state.sessionUser,
         selectedDate: state.selectedDate,
+        selectedShift: state.selectedShift,
       }),
     }
   )

@@ -7,6 +7,12 @@ export type DbStation = Database["public"]["Tables"]["stations"]["Row"];
 export type DbPrepItem = Database["public"]["Tables"]["prep_items"]["Row"];
 export type DbSessionUser =
   Database["public"]["Tables"]["session_users"]["Row"];
+export type DbKitchenUnit =
+  Database["public"]["Tables"]["kitchen_units"]["Row"];
+export type DbKitchenItemSuggestion =
+  Database["public"]["Tables"]["kitchen_item_suggestions"]["Row"];
+export type DbUserSuggestionDismissal =
+  Database["public"]["Tables"]["user_suggestion_dismissals"]["Row"];
 
 // App-specific types
 export interface ShiftConfig {
@@ -35,4 +41,22 @@ export interface SessionUser {
   station_id?: string;
   device_token: string;
   last_active: string;
+}
+
+// Prep entry system types
+export type KitchenUnit = DbKitchenUnit;
+
+export interface Suggestion extends DbKitchenItemSuggestion {
+  dismissed?: boolean; // Client-side flag for current session
+}
+
+export interface RecencyScoredSuggestion extends Suggestion {
+  recencyScore: number;
+  weightedScore: number;
+}
+
+export interface PrepItemFormData {
+  description: string;
+  unitId: string | null;
+  quantity: number | null;
 }

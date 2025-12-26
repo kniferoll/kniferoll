@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
+import { useKitchenStore } from "../stores/kitchenStore";
+import type { DbStation } from "@kniferoll/types";
 
 export function useRealtimeStations(kitchenId: string | undefined) {
-  const queryClient = useQueryClient();
-
   useEffect(() => {
     if (!kitchenId) return;
 
@@ -13,14 +12,58 @@ export function useRealtimeStations(kitchenId: string | undefined) {
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "stations",
           filter: `kitchen_id=eq.${kitchenId}`,
         },
-        () => {
-          // Invalidate queries to refetch data
-          queryClient.invalidateQueries({ queryKey: ["stations", kitchenId] });
+        (payload) => {
+          const newStation = payload.new as DbStation;
+          const currentStations = useKitchenStore.getState().stations;
+          const alreadyExists = currentStations.some(
+            (s) => s.id === newStation.id
+          );
+          if (!alreadyExists) {
+            useKitchenStore.setState({
+              stations: [...currentStations, newStation].sort(
+                (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+              ),
+            });
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "stations",
+          filter: `kitchen_id=eq.${kitchenId}`,
+        },
+        (payload) => {
+          const updatedStation = payload.new as DbStation;
+          const currentStations = useKitchenStore.getState().stations;
+          useKitchenStore.setState({
+            stations: currentStations
+              .map((s) => (s.id === updatedStation.id ? updatedStation : s))
+              .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)),
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "stations",
+          filter: `kitchen_id=eq.${kitchenId}`,
+        },
+        (payload) => {
+          const deletedStation = payload.old as DbStation;
+          const currentStations = useKitchenStore.getState().stations;
+          useKitchenStore.setState({
+            stations: currentStations.filter((s) => s.id !== deletedStation.id),
+          });
         }
       )
       .subscribe();
@@ -28,5 +71,5 @@ export function useRealtimeStations(kitchenId: string | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [kitchenId, queryClient]);
+  }, [kitchenId]);
 }
