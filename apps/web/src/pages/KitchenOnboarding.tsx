@@ -240,19 +240,19 @@ export function KitchenOnboarding() {
   }[step];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Progress Bar */}
         <div className="mb-6">
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-600 transition-all duration-300"
+              className="h-full bg-blue-600 dark:bg-blue-700 transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-lg shadow-md dark:shadow-xl p-8">
           {error && (
             <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm mb-6">
               {error}

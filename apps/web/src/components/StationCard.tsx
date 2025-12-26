@@ -18,15 +18,19 @@ export function StationCard({
   return (
     <button
       onClick={onClick}
-      className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow text-left"
+      className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-lg shadow-sm dark:shadow-lg p-6 hover:shadow-md dark:hover:shadow-xl transition-shadow text-left"
     >
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">{name}</h3>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-50 mb-4">
+        {name}
+      </h3>
 
       <div className="flex items-center justify-between mb-2">
-        <span className="text-2xl font-bold text-gray-900">
+        <span className="text-2xl font-bold text-gray-900 dark:text-slate-50">
           {completed}/{total}
         </span>
-        <span className="text-sm text-gray-600">{percentage}%</span>
+        <span className="text-sm text-gray-600 dark:text-slate-400">
+          {percentage}%
+        </span>
       </div>
 
       <ProgressBar completed={completed} total={total} />

@@ -149,12 +149,14 @@ export function ChefDashboard() {
 
   if (!currentKitchen) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">Loading kitchen...</p>
+          <p className="text-gray-600 dark:text-slate-400 mb-4">
+            Loading kitchen...
+          </p>
           <button
             onClick={() => navigate("/kitchen/new")}
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 dark:text-blue-400 hover:underline"
           >
             Or create a new kitchen
           </button>
@@ -164,11 +166,11 @@ export function ChefDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-50">
             {currentKitchen.name}
           </h1>
           <DateCalendar
@@ -178,7 +180,7 @@ export function ChefDashboard() {
           />
           <button
             onClick={handleSignOut}
-            className="text-sm text-gray-600 hover:text-gray-900"
+            className="text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200"
           >
             Sign Out
           </button>
@@ -221,7 +223,7 @@ export function ChefDashboard() {
 
         {stations.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-600">No stations yet</p>
+            <p className="text-gray-600 dark:text-slate-400">No stations yet</p>
           </div>
         )}
       </div>

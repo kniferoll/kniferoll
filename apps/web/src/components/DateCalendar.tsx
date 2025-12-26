@@ -84,16 +84,16 @@ function CalendarGrid({
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm w-80 max-w-[calc(100vw-32px)]">
+    <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-lg w-80 max-w-[calc(100vw-32px)]">
       {/* Header with month/year and navigation */}
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={handlePrevMonth}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
           aria-label="Previous month"
         >
           <svg
-            className="w-5 h-5 text-gray-600"
+            className="w-5 h-5 text-gray-600 dark:text-slate-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -108,16 +108,18 @@ function CalendarGrid({
         </button>
 
         <div className="flex-1 text-center">
-          <h3 className="text-base font-semibold text-gray-900">{monthName}</h3>
+          <h3 className="text-base font-semibold text-gray-900 dark:text-slate-50">
+            {monthName}
+          </h3>
         </div>
 
         <button
           onClick={handleNextMonth}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
           aria-label="Next month"
         >
           <svg
-            className="w-5 h-5 text-gray-600"
+            className="w-5 h-5 text-gray-600 dark:text-slate-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -136,7 +138,7 @@ function CalendarGrid({
       {selectedDate !== formatToDateString(today) && (
         <button
           onClick={handleGoToToday}
-          className="w-full mb-4 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+          className="w-full mb-4 px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors border border-blue-200 dark:border-blue-400"
         >
           Go to Today
         </button>
@@ -147,7 +149,7 @@ function CalendarGrid({
         {weekDays.map((day) => (
           <div
             key={day}
-            className="h-10 flex items-center justify-center text-xs font-semibold text-gray-500"
+            className="h-10 flex items-center justify-center text-xs font-semibold text-gray-500 dark:text-slate-400"
           >
             {day}
           </div>
@@ -182,12 +184,12 @@ function CalendarGrid({
               disabled={isClosed}
               className={`h-10 rounded-lg text-sm font-medium transition-all flex items-center justify-center ${
                 isClosed
-                  ? "text-gray-300 cursor-not-allowed"
+                  ? "text-gray-300 dark:text-slate-600 cursor-not-allowed"
                   : isSelected
-                  ? "bg-blue-600 text-white font-semibold shadow-md"
+                  ? "bg-blue-600 dark:bg-blue-700 text-white font-semibold shadow-md dark:shadow-lg"
                   : isToday
-                  ? "bg-blue-100 text-blue-900 border border-blue-300 hover:bg-blue-200"
-                  : "text-gray-900 hover:bg-gray-100"
+                  ? "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-800"
+                  : "text-gray-900 dark:text-slate-50 hover:bg-gray-100 dark:hover:bg-slate-800"
               }`}
               title={isClosed ? "Kitchen closed" : ""}
             >
@@ -243,10 +245,10 @@ export function DateCalendar({
       {/* Minimal date display button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
       >
         <svg
-          className="w-5 h-5 text-gray-600"
+          className="w-5 h-5 text-gray-600 dark:text-slate-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -259,11 +261,13 @@ export function DateCalendar({
           />
         </svg>
         <div className="text-left">
-          <div className="text-sm font-semibold text-gray-900">
+          <div className="text-sm font-semibold text-gray-900 dark:text-slate-50">
             {formattedDate}
           </div>
           {isToday && (
-            <div className="text-xs text-blue-600 font-medium">Today</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+              Today
+            </div>
           )}
         </div>
       </button>
@@ -271,7 +275,7 @@ export function DateCalendar({
       {/* Dropdown with calendar grid */}
       {isOpen && (
         <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-50 animate-slideDown">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 shadow-lg dark:shadow-xl p-4">
             <CalendarGrid
               selectedDate={selectedDate}
               onDateSelect={(date) => {

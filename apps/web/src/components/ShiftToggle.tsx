@@ -19,7 +19,7 @@ export function ShiftToggle({
 
   if (disabled) {
     return (
-      <div className="px-6 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg border border-gray-300">
+      <div className="px-6 py-2 text-sm font-medium text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 rounded-lg border border-gray-300 dark:border-slate-600">
         Kitchen Closed
       </div>
     );
@@ -30,7 +30,7 @@ export function ShiftToggle({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="inline-flex rounded-lg border border-gray-300 bg-white">
+      <div className="inline-flex rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800">
         {visibleShifts.map((shift, index) => (
           <button
             key={shift}
@@ -43,8 +43,8 @@ export function ShiftToggle({
                 : ""
             } ${
               currentShift === shift
-                ? "bg-blue-600 text-white"
-                : "text-gray-700 hover:bg-gray-50"
+                ? "bg-blue-600 dark:bg-blue-700 text-white"
+                : "text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700"
             }`}
           >
             {shift}
@@ -58,15 +58,15 @@ export function ShiftToggle({
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg border ${
               dropdownOpen || hiddenShifts.includes(currentShift)
-                ? "bg-blue-600 text-white border-blue-600"
-                : "text-gray-700 hover:bg-gray-50 border-gray-300"
+                ? "bg-blue-600 dark:bg-blue-700 text-white border-blue-600 dark:border-blue-700"
+                : "text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 border-gray-300 dark:border-slate-600"
             }`}
           >
             +{hiddenShifts.length} more
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-lg shadow-lg dark:shadow-xl z-10">
               {hiddenShifts.map((shift) => (
                 <button
                   key={shift}
@@ -76,8 +76,8 @@ export function ShiftToggle({
                   }}
                   className={`w-full text-left px-4 py-2 text-sm transition-colors ${
                     currentShift === shift
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-50"
+                      ? "bg-blue-600 dark:bg-blue-700 text-white"
+                      : "text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                   } first:rounded-t-lg last:rounded-b-lg`}
                 >
                   {shift}

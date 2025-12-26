@@ -21,10 +21,12 @@ export function Button({
 }: ButtonProps) {
   const baseStyles = "py-2 px-4 rounded-lg font-semibold transition-colors";
   const variantStyles = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50",
+    primary:
+      "bg-blue-600 dark:bg-blue-700 text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50",
     secondary:
-      "bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50",
-    danger: "bg-red-600 text-white hover:bg-red-700 disabled:opacity-50",
+      "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-2 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700",
+    danger:
+      "bg-red-600 dark:bg-red-700 text-white hover:bg-red-700 dark:hover:bg-red-600 disabled:opacity-50",
   };
   const widthStyle = fullWidth ? "w-full" : "";
 

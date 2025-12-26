@@ -4,7 +4,13 @@ import { usePrepStore } from "../stores/prepStore";
 import { useKitchenStore } from "../stores/kitchenStore";
 import { useRealtimePrepItems } from "../hooks/useRealtimePrepItems";
 import { getDeviceToken } from "../lib/supabase";
-import { DateCalendar, ShiftToggle, PrepItemForm, PrepItemList, ProgressBar } from "../components";
+import {
+  DateCalendar,
+  ShiftToggle,
+  PrepItemForm,
+  PrepItemList,
+  ProgressBar,
+} from "../components";
 import { getTodayLocalDate, toLocalDate } from "../lib/dateUtils";
 
 export function StationView() {
@@ -25,22 +31,23 @@ export function StationView() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const station = stations.find((s) => s.id === stationId);
-  
+
   // Get day name for selected date
   const selectedDateObj = toLocalDate(selectedDate);
-  const dayName = selectedDateObj.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+  const dayName = selectedDateObj
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase();
 
   // Check if selected day is closed
   const isClosed = currentKitchen?.closed_days?.includes(dayName) || false;
 
   // Get available shifts for selected date
-  const availableShifts: string[] = isClosed ? [] : (
-    currentKitchen?.schedule
-      ? (currentKitchen.schedule as any).default ||
-        (currentKitchen.schedule as any)[dayName] ||
-        ["AM", "PM"]
-      : ["AM", "PM"]
-  );
+  const availableShifts: string[] = isClosed
+    ? []
+    : currentKitchen?.schedule
+    ? (currentKitchen.schedule as any).default ||
+      (currentKitchen.schedule as any)[dayName] || ["AM", "PM"]
+    : ["AM", "PM"];
 
   // Subscribe to real-time updates
   useRealtimePrepItems(stationId);
@@ -93,12 +100,14 @@ export function StationView() {
 
   if (!station) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">Station not found</p>
+          <p className="text-gray-600 dark:text-slate-400 mb-4">
+            Station not found
+          </p>
           <button
             onClick={() => navigate("/dashboard")}
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 dark:text-blue-400 hover:underline"
           >
             Back to dashboard
           </button>
@@ -111,14 +120,14 @@ export function StationView() {
   const totalCount = prepItems.length;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-10">
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => navigate(-1)}
-              className="text-gray-600 hover:text-gray-900"
+              className="text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200"
             >
               ← Back
             </button>
@@ -143,7 +152,7 @@ export function StationView() {
           {/* Progress */}
           {totalCount > 0 && (
             <div className="mt-3">
-              <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-slate-400 mb-1">
                 <span>
                   {completedCount} of {totalCount} complete
                 </span>
@@ -158,7 +167,7 @@ export function StationView() {
       {/* Prep Items List */}
       <div className="flex-1 overflow-y-auto px-4 py-6 pb-32">
         {isClosed ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-slate-400">
             <p className="text-lg mb-2">Kitchen is closed on this day</p>
             <p className="text-sm">Select a different date to add prep items</p>
           </div>
@@ -173,7 +182,7 @@ export function StationView() {
 
       {/* Add Item Form - Sticky Bottom */}
       {!isClosed && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 p-4 shadow-lg dark:shadow-xl">
           <div className="max-w-3xl mx-auto">
             <PrepItemForm
               description={newItemDescription}

@@ -21,7 +21,7 @@ export function PrepItemList({
   if (items.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600">No prep items yet</p>
+        <p className="text-gray-600 dark:text-slate-400">No prep items yet</p>
       </div>
     );
   }
@@ -31,24 +31,26 @@ export function PrepItemList({
       {items.map((item) => (
         <div
           key={item.id}
-          className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-3 hover:shadow-md transition-shadow"
+          className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-lg shadow-sm dark:shadow-lg p-4 flex items-center gap-3 hover:shadow-md dark:hover:shadow-xl transition-shadow"
         >
           <input
             type="checkbox"
             checked={item.completed || false}
             onChange={() => onToggle(item.id)}
             disabled={disabled}
-            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 disabled:opacity-50"
+            className="w-5 h-5 text-blue-600 dark:text-blue-500 rounded focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-50"
           />
           <div className="flex-1">
             <p
               className={`${
-                item.completed ? "line-through text-gray-400" : "text-gray-900"
+                item.completed
+                  ? "line-through text-gray-400 dark:text-slate-500"
+                  : "text-gray-900 dark:text-slate-50"
               }`}
             >
               {item.description}
               {item.quantity_raw && (
-                <span className="text-gray-600 ml-2 text-sm">
+                <span className="text-gray-600 dark:text-slate-400 ml-2 text-sm">
                   ({item.quantity_raw})
                 </span>
               )}
@@ -61,7 +63,7 @@ export function PrepItemList({
               }
             }}
             disabled={disabled}
-            className="text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+            className="text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50"
             aria-label="Delete"
           >
             <svg
