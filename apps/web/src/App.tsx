@@ -8,7 +8,7 @@ import { Landing } from "./pages/Landing";
 import { Login } from "./pages/Login";
 import { Signup } from "./pages/Signup";
 import { JoinKitchen } from "./pages/JoinKitchen";
-import { CreateKitchen } from "./pages/CreateKitchen";
+import { KitchenOnboarding } from "./pages/KitchenOnboarding";
 import { ChefDashboard } from "./pages/ChefDashboard";
 import { StationView } from "./pages/StationView";
 
@@ -29,7 +29,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/join" element={<JoinKitchen />} />
         <Route path="/join/:code" element={<JoinKitchen />} />
-        <Route path="/kitchen/new" element={<CreateKitchen />} />
+        <Route path="/kitchen/new" element={<KitchenOnboarding />} />
         <Route path="/dashboard" element={<ChefDashboard />} />
         <Route path="/station/:id" element={<StationView />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -16,12 +16,21 @@ export function ChefDashboard() {
   const { user, signOut } = useAuthStore();
   const { currentKitchen, stations, loadKitchen } = useKitchenStore();
   const [progress, setProgress] = useState<StationProgress[]>([]);
-  const [currentShift, setCurrentShift] = useState("AM");
+  const [currentShift, setCurrentShift] = useState("");
   const [showJoinCode, setShowJoinCode] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const navigate = useNavigate();
 
   const today = new Date().toISOString().split("T")[0];
+  const todayName = new Date()
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase();
+
+  // Get available shifts for today
+  const availableShifts: string[] = currentKitchen?.schedule
+    ? (currentKitchen.schedule as any).default ||
+      (currentKitchen.schedule as any)[todayName] || ["AM", "PM"]
+    : ["AM", "PM"];
 
   useEffect(() => {
     if (!user) {
@@ -46,8 +55,15 @@ export function ChefDashboard() {
     loadUserKitchen();
   }, [user, navigate, loadKitchen]);
 
+  // Set initial shift when kitchen loads
   useEffect(() => {
-    if (!currentKitchen || stations.length === 0) return;
+    if (currentKitchen && !currentShift && availableShifts.length > 0) {
+      setCurrentShift(availableShifts[0]);
+    }
+  }, [currentKitchen, currentShift, availableShifts]);
+
+  useEffect(() => {
+    if (!currentKitchen || stations.length === 0 || !currentShift) return;
 
     const fetchProgress = async () => {
       const progressData: StationProgress[] = [];
@@ -166,26 +182,23 @@ export function ChefDashboard() {
         {/* Shift Toggle */}
         <div className="flex items-center justify-between mb-6">
           <div className="inline-flex rounded-lg border border-gray-300 bg-white">
-            <button
-              onClick={() => setCurrentShift("AM")}
-              className={`px-6 py-2 text-sm font-medium rounded-l-lg transition-colors ${
-                currentShift === "AM"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              AM Shift
-            </button>
-            <button
-              onClick={() => setCurrentShift("PM")}
-              className={`px-6 py-2 text-sm font-medium rounded-r-lg transition-colors ${
-                currentShift === "PM"
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              PM Shift
-            </button>
+            {availableShifts.map((shift: string, index: number) => (
+              <button
+                key={shift}
+                onClick={() => setCurrentShift(shift)}
+                className={`px-6 py-2 text-sm font-medium transition-colors ${
+                  index === 0 ? "rounded-l-lg" : ""
+                } ${
+                  index === availableShifts.length - 1 ? "rounded-r-lg" : ""
+                } ${
+                  currentShift === shift
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {shift}
+              </button>
+            ))}
           </div>
 
           <button

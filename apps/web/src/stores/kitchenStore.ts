@@ -20,7 +20,9 @@ interface KitchenState {
   // Actions
   createKitchen: (
     name: string,
-    stationNames: string[]
+    stationNames: string[],
+    schedule?: { [key: string]: string[] },
+    closedDays?: string[]
   ) => Promise<{ kitchenId?: string; error?: string }>;
   loadKitchen: (id: string) => Promise<void>;
   joinKitchen: (
@@ -40,7 +42,7 @@ export const useKitchenStore = create<KitchenState>()(
       loading: false,
       error: null,
 
-      createKitchen: async (name, stationNames) => {
+      createKitchen: async (name, stationNames, schedule, closedDays) => {
         set({ loading: true, error: null });
 
         try {
@@ -58,6 +60,14 @@ export const useKitchenStore = create<KitchenState>()(
             .substring(2, 8)
             .toUpperCase();
 
+          // Build shifts_config from schedule
+          const shiftsConfig = schedule?.default
+            ? schedule.default.map((name) => ({ name }))
+            : [
+                { name: "AM", start_time: "06:00", end_time: "14:00" },
+                { name: "PM", start_time: "14:00", end_time: "22:00" },
+              ];
+
           // Create kitchen
           const { data: kitchen, error: kitchenError } = await supabase
             .from("kitchens")
@@ -65,10 +75,9 @@ export const useKitchenStore = create<KitchenState>()(
               name,
               owner_id: user.id,
               join_code: joinCode,
-              shifts_config: [
-                { name: "AM", start_time: "06:00", end_time: "14:00" },
-                { name: "PM", start_time: "14:00", end_time: "22:00" },
-              ],
+              shifts_config: shiftsConfig,
+              schedule: schedule || { default: ["Lunch", "Dinner"] },
+              closed_days: closedDays || [],
               plan: "free",
             })
             .select()

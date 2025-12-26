@@ -15,20 +15,35 @@ export function StationView() {
     addPrepItem,
     deletePrepItem,
   } = usePrepStore();
-  const { stations, sessionUser } = useKitchenStore();
-  const [currentShift, setCurrentShift] = useState("AM");
+  const { stations, sessionUser, currentKitchen } = useKitchenStore();
+  const [currentShift, setCurrentShift] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const today = new Date().toISOString().split("T")[0];
+  const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
   const station = stations.find((s) => s.id === stationId);
+
+  // Get available shifts for today
+  const availableShifts: string[] = currentKitchen?.schedule
+    ? (currentKitchen.schedule as any).default ||
+      (currentKitchen.schedule as any)[todayName] ||
+      ["AM", "PM"]
+    : ["AM", "PM"];
 
   // Subscribe to real-time updates
   useRealtimePrepItems(stationId);
 
+  // Set initial shift when kitchen loads
   useEffect(() => {
-    if (!stationId) return;
+    if (currentKitchen && !currentShift && availableShifts.length > 0) {
+      setCurrentShift(availableShifts[0]);
+    }
+  }, [currentKitchen, currentShift, availableShifts]);
+
+  useEffect(() => {
+    if (!stationId || !currentShift) return;
     loadPrepItems(stationId, today, currentShift);
   }, [stationId, today, currentShift, loadPrepItems]);
 
@@ -101,26 +116,23 @@ export function StationView() {
           {/* Shift Toggle */}
           <div className="flex items-center justify-center">
             <div className="inline-flex rounded-lg border border-gray-300 bg-white">
-              <button
-                onClick={() => setCurrentShift("AM")}
-                className={`px-6 py-2 text-sm font-medium rounded-l-lg transition-colors ${
-                  currentShift === "AM"
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                AM
-              </button>
-              <button
-                onClick={() => setCurrentShift("PM")}
-                className={`px-6 py-2 text-sm font-medium rounded-r-lg transition-colors ${
-                  currentShift === "PM"
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                PM
-              </button>
+              {availableShifts.map((shift: string, index: number) => (
+                <button
+                  key={shift}
+                  onClick={() => setCurrentShift(shift)}
+                  className={`px-6 py-2 text-sm font-medium transition-colors ${
+                    index === 0 ? "rounded-l-lg" : ""
+                  } ${
+                    index === availableShifts.length - 1 ? "rounded-r-lg" : ""
+                  } ${
+                    currentShift === shift
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {shift}
+                </button>
+              ))}
             </div>
           </div>
 
