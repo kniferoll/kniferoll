@@ -56,10 +56,12 @@ export function JoinCodeModal({
           )}
 
           {/* Code */}
-          <p className="text-sm text-gray-600 mb-2">Or enter code manually:</p>
-          <p className="text-4xl font-bold text-blue-600 tracking-widest mb-6">
-            {joinCode}
-          </p>
+          <p className="text-sm text-gray-600 mb-4">Or enter code manually:</p>
+          <div className="bg-gray-100 rounded-lg p-6 mb-6 select-all">
+            <p className="text-5xl font-mono font-bold text-blue-600 tracking-wider letter-spacing">
+              {joinCode}
+            </p>
+          </div>
 
           <p className="text-sm text-gray-500">
             Scan QR code or visit kniferoll.io/join

@@ -35,11 +35,11 @@ export function ChefDashboard() {
     .toLocaleDateString("en-US", { weekday: "long" })
     .toLowerCase();
 
-  // Get available shifts for selected date
   const availableShifts: string[] = currentKitchen?.schedule
     ? (currentKitchen.schedule as any).default ||
-      (currentKitchen.schedule as any)[dayName] || ["AM", "PM"]
-    : ["AM", "PM"];
+      (currentKitchen.schedule as any)[dayName] ||
+      []
+    : [];
 
   useEffect(() => {
     if (!user) {

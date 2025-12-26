@@ -37,7 +37,11 @@ export function ShiftToggle({
             onClick={() => onShiftChange(shift)}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               index === 0 ? "rounded-l-lg" : ""
-            } ${index === visibleShifts.length - 1 && hiddenShifts.length === 0 ? "rounded-r-lg" : ""} ${
+            } ${
+              index === visibleShifts.length - 1 && hiddenShifts.length === 0
+                ? "rounded-r-lg"
+                : ""
+            } ${
               currentShift === shift
                 ? "bg-blue-600 text-white"
                 : "text-gray-700 hover:bg-gray-50"

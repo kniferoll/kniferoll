@@ -33,8 +33,12 @@ export function AuthForm({
   backLink,
 }: AuthFormProps) {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="relative min-h-screen bg-white flex flex-col items-center justify-center p-4 overflow-hidden">
+      {/* Gradient background blobs */}
+      <div className="absolute -top-44 -right-60 h-60 w-80 md:right-0 bg-linear-to-b from-[#fff1be] via-[#ee87cb] to-[#b060ff] rotate-[-10deg] rounded-full blur-3xl opacity-40 pointer-events-none" />
+      <div className="absolute -bottom-32 -left-40 h-64 w-80 bg-linear-to-t from-[#b060ff] via-[#ee87cb] to-[#fff1be] rotate-10 rounded-full blur-3xl opacity-30 pointer-events-none" />
+
+      <div className="relative w-full max-w-md z-10">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
           <p className="text-gray-600">{subtitle}</p>

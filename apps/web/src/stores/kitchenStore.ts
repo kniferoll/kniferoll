@@ -54,6 +54,18 @@ export const useKitchenStore = create<KitchenState>()(
             return { error: "Not authenticated" };
           }
 
+          // Validate that schedule has at least one shift (if provided)
+          if (schedule) {
+            const shifts = schedule.default || Object.values(schedule).flat();
+            if (!Array.isArray(shifts) || shifts.length === 0) {
+              set({
+                loading: false,
+                error: "At least one shift must be configured",
+              });
+              return { error: "At least one shift must be configured" };
+            }
+          }
+
           // Generate join code
           const joinCode = Math.random()
             .toString(36)
@@ -62,7 +74,7 @@ export const useKitchenStore = create<KitchenState>()(
 
           // Build shifts_config from schedule
           const shiftsConfig = schedule?.default
-            ? schedule.default.map((name) => ({ name }))
+            ? schedule.default.map((name: string) => ({ name }))
             : [
                 { name: "AM", start_time: "06:00", end_time: "14:00" },
                 { name: "PM", start_time: "14:00", end_time: "22:00" },

@@ -73,8 +73,32 @@ export function JoinKitchen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="relative min-h-screen bg-white flex flex-col items-center justify-center p-4 overflow-hidden">
+      {/* Gradient background blobs */}
+      <div className="absolute -top-44 -right-60 h-60 w-80 md:right-0 bg-linear-to-b from-[#fff1be] via-[#ee87cb] to-[#b060ff] rotate-[-10deg] rounded-full blur-3xl opacity-40 pointer-events-none" />
+      <div className="absolute -bottom-32 -left-40 h-64 w-80 bg-linear-to-t from-[#b060ff] via-[#ee87cb] to-[#fff1be] rotate-10 rounded-full blur-3xl opacity-30 pointer-events-none" />
+
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-4 left-4 z-20 text-gray-600 hover:text-gray-900 transition-colors"
+        aria-label="Go back"
+      >
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      <div className="relative w-full max-w-lg z-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Join Kitchen
