@@ -38,8 +38,22 @@ export function ChefDashboard() {
 
   // Date navigation helpers
   const navigateDate = (days: number) => {
-    const newDate = new Date(selectedDate + "T12:00:00");
-    newDate.setDate(newDate.getDate() + days);
+    let newDate = new Date(selectedDate + "T12:00:00");
+    const increment = days > 0 ? 1 : -1;
+    let daysToMove = Math.abs(days);
+
+    while (daysToMove > 0) {
+      newDate.setDate(newDate.getDate() + increment);
+      const checkDayName = newDate
+        .toLocaleDateString("en-US", { weekday: "long" })
+        .toLowerCase();
+
+      // Only count this day if it's not closed
+      if (!currentKitchen?.closed_days?.includes(checkDayName)) {
+        daysToMove--;
+      }
+    }
+
     setSelectedDate(newDate.toISOString().split("T")[0]);
   };
 

@@ -55,6 +55,11 @@ export function KitchenOnboarding() {
   const [stations, setStations] = useState<string[]>(DEFAULT_STATIONS);
   const [newStation, setNewStation] = useState("");
   const [error, setError] = useState("");
+  const [draggedShiftIndex, setDraggedShiftIndex] = useState<number | null>(
+    null
+  );
+  const [touchDragIndex, setTouchDragIndex] = useState<number | null>(null);
+  const [touchY, setTouchY] = useState<number>(0);
 
   const toggleDay = (day: DayOfWeek) => {
     setClosedDays((prev) =>
@@ -63,9 +68,20 @@ export function KitchenOnboarding() {
   };
 
   const toggleShift = (shift: string) => {
-    setSelectedShifts((prev) =>
-      prev.includes(shift) ? prev.filter((s) => s !== shift) : [...prev, shift]
-    );
+    setSelectedShifts((prev) => {
+      if (prev.includes(shift)) {
+        // Remove the shift
+        return prev.filter((s) => s !== shift);
+      } else {
+        // Add the shift and maintain order: preset shifts in order, then custom shifts
+        const newShifts = [...prev, shift];
+        const presetInOrder = PRESET_SHIFTS.filter((s) =>
+          newShifts.includes(s)
+        );
+        const custom = newShifts.filter((s) => !PRESET_SHIFTS.includes(s));
+        return [...presetInOrder, ...custom];
+      }
+    });
   };
 
   const addCustomShift = () => {
@@ -82,6 +98,63 @@ export function KitchenOnboarding() {
         ? prev[day].filter((s) => s !== shift)
         : [...prev[day], shift],
     }));
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedShiftIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, _index: number) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedShiftIndex === null) return;
+
+    const newShifts = [...selectedShifts];
+    const [draggedItem] = newShifts.splice(draggedShiftIndex, 1);
+    newShifts.splice(dropIndex, 0, draggedItem);
+
+    setSelectedShifts(newShifts);
+    setDraggedShiftIndex(null);
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    setTouchDragIndex(index);
+    setTouchY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchDragIndex === null) return;
+
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - touchY;
+
+    // Determine which item we're over based on position
+    const itemHeight = 70; // Approximate height of each shift item
+    const movement = Math.round(diff / itemHeight);
+
+    if (movement !== 0) {
+      const newIndex = touchDragIndex + movement;
+      if (
+        newIndex >= 0 &&
+        newIndex < selectedShifts.length &&
+        newIndex !== touchDragIndex
+      ) {
+        const newShifts = [...selectedShifts];
+        const [item] = newShifts.splice(touchDragIndex, 1);
+        newShifts.splice(newIndex, 0, item);
+        setSelectedShifts(newShifts);
+        setTouchDragIndex(newIndex);
+        setTouchY(currentY);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchDragIndex(null);
   };
 
   const addStation = () => {
@@ -238,7 +311,9 @@ export function KitchenOnboarding() {
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
                 Which shifts do you run?
               </h2>
-              <p className="text-gray-600 mb-6">Select your standard shifts</p>
+              <p className="text-gray-600 mb-6">
+                Select your shifts, then reorder them below
+              </p>
 
               <div className="flex flex-wrap gap-3 mb-6">
                 {PRESET_SHIFTS.map((shift) => (
@@ -257,24 +332,63 @@ export function KitchenOnboarding() {
                 ))}
               </div>
 
-              {/* Custom shifts */}
-              <div className="space-y-2">
-                {selectedShifts
-                  .filter((s) => !PRESET_SHIFTS.includes(s))
-                  .map((shift) => (
-                    <div key={shift} className="flex items-center gap-2">
-                      <div className="flex-1 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg font-medium">
-                        {shift}
-                      </div>
-                      <button
-                        onClick={() => toggleShift(shift)}
-                        className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+              {/* Selected shifts with drag and drop reordering */}
+              {selectedShifts.length > 0 && (
+                <div className="mb-6">
+                  <p className="text-sm text-gray-700 font-medium mb-3">
+                    Your shifts (drag to reorder):
+                  </p>
+                  <div className="space-y-2">
+                    {selectedShifts.map((shift, index) => (
+                      <div
+                        key={shift}
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDrop={(e) => handleDrop(e, index)}
+                        onTouchStart={(e) => handleTouchStart(e, index)}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                        className={`flex items-center gap-3 bg-blue-50 border-2 rounded-lg p-4 cursor-move touch-none transition-all ${
+                          draggedShiftIndex === index ||
+                          touchDragIndex === index
+                            ? "opacity-50 border-blue-400 scale-105"
+                            : "border-blue-200 hover:border-blue-400 hover:shadow-md"
+                        }`}
                       >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-              </div>
+                        {/* Drag handle icon */}
+                        <div className="text-gray-400">
+                          <svg
+                            className="w-5 h-5"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
+                          </svg>
+                        </div>
+
+                        {/* Order number */}
+                        <div className="w-8 h-8 flex items-center justify-center bg-blue-600 text-white rounded-full font-bold text-sm">
+                          {index + 1}
+                        </div>
+
+                        {/* Shift name */}
+                        <div className="flex-1 font-semibold text-gray-900 text-lg">
+                          {shift}
+                        </div>
+
+                        {/* Remove button */}
+                        <button
+                          onClick={() => toggleShift(shift)}
+                          className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-2 mt-4">
                 <input
