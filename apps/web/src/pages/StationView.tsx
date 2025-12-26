@@ -11,7 +11,7 @@ import {
   PrepItemList,
   ProgressBar,
 } from "../components";
-import { getTodayLocalDate, toLocalDate } from "../lib/dateUtils";
+import { toLocalDate } from "../lib/dateUtils";
 
 export function StationView() {
   const { id: stationId } = useParams<{ id: string }>();
@@ -23,8 +23,13 @@ export function StationView() {
     addPrepItem,
     deletePrepItem,
   } = usePrepStore();
-  const { stations, sessionUser, currentKitchen } = useKitchenStore();
-  const [selectedDate, setSelectedDate] = useState(getTodayLocalDate());
+  const {
+    stations,
+    sessionUser,
+    currentKitchen,
+    selectedDate,
+    setSelectedDate,
+  } = useKitchenStore();
   const [currentShift, setCurrentShift] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("");

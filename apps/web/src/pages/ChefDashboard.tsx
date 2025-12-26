@@ -11,7 +11,7 @@ import {
   JoinCodeModal,
   Button,
 } from "../components";
-import { getTodayLocalDate, toLocalDate } from "../lib/dateUtils";
+import { toLocalDate } from "../lib/dateUtils";
 
 interface StationProgress {
   stationId: string;
@@ -22,9 +22,14 @@ interface StationProgress {
 
 export function ChefDashboard() {
   const { user, signOut } = useAuthStore();
-  const { currentKitchen, stations, loadKitchen } = useKitchenStore();
+  const {
+    currentKitchen,
+    stations,
+    loadKitchen,
+    selectedDate,
+    setSelectedDate,
+  } = useKitchenStore();
   const [progress, setProgress] = useState<StationProgress[]>([]);
-  const [selectedDate, setSelectedDate] = useState(getTodayLocalDate());
   const [currentShift, setCurrentShift] = useState("");
   const [showJoinCode, setShowJoinCode] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");

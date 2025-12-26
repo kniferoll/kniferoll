@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { supabase } from "../lib/supabase";
+import { getTodayLocalDate } from "../lib/dateUtils";
 import type { DbKitchen, DbStation } from "@kniferoll/types";
 
 interface SessionUser {
@@ -16,6 +17,7 @@ interface KitchenState {
   sessionUser: SessionUser | null;
   loading: boolean;
   error: string | null;
+  selectedDate: string;
 
   // Actions
   createKitchen: (
@@ -30,6 +32,7 @@ interface KitchenState {
     displayName: string
   ) => Promise<{ error?: string }>;
   claimStation: (stationId: string) => Promise<{ error?: string }>;
+  setSelectedDate: (date: string) => void;
   clearKitchen: () => void;
 }
 
@@ -41,6 +44,7 @@ export const useKitchenStore = create<KitchenState>()(
       sessionUser: null,
       loading: false,
       error: null,
+      selectedDate: getTodayLocalDate(),
 
       createKitchen: async (name, stationNames, schedule, closedDays) => {
         set({ loading: true, error: null });
@@ -287,12 +291,17 @@ export const useKitchenStore = create<KitchenState>()(
         }
       },
 
+      setSelectedDate: (date: string) => {
+        set({ selectedDate: date });
+      },
+
       clearKitchen: () => {
         set({
           currentKitchen: null,
           stations: [],
           sessionUser: null,
           error: null,
+          selectedDate: getTodayLocalDate(),
         });
       },
     }),
@@ -301,6 +310,7 @@ export const useKitchenStore = create<KitchenState>()(
       partialize: (state) => ({
         currentKitchen: state.currentKitchen,
         sessionUser: state.sessionUser,
+        selectedDate: state.selectedDate,
       }),
     }
   )
