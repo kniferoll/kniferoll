@@ -16,36 +16,64 @@ export function StationView() {
     deletePrepItem,
   } = usePrepStore();
   const { stations, sessionUser, currentKitchen } = useKitchenStore();
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [currentShift, setCurrentShift] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemQuantity, setNewItemQuantity] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const today = new Date().toISOString().split("T")[0];
-  const todayName = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
   const station = stations.find((s) => s.id === stationId);
+  
+  // Get day name for selected date
+  const selectedDateObj = new Date(selectedDate + "T12:00:00");
+  const dayName = selectedDateObj.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+  const isToday = selectedDate === new Date().toISOString().split("T")[0];
 
-  // Get available shifts for today
-  const availableShifts: string[] = currentKitchen?.schedule
-    ? (currentKitchen.schedule as any).default ||
-      (currentKitchen.schedule as any)[todayName] ||
-      ["AM", "PM"]
-    : ["AM", "PM"];
+  // Check if selected day is closed
+  const isClosed = currentKitchen?.closed_days?.includes(dayName) || false;
+
+  // Get available shifts for selected date
+  const availableShifts: string[] = isClosed ? [] : (
+    currentKitchen?.schedule
+      ? (currentKitchen.schedule as any).default ||
+        (currentKitchen.schedule as any)[dayName] ||
+        ["AM", "PM"]
+      : ["AM", "PM"]
+  );
+
+  // Date navigation helpers
+  const navigateDate = (days: number) => {
+    const newDate = new Date(selectedDate + "T12:00:00");
+    newDate.setDate(newDate.getDate() + days);
+    setSelectedDate(newDate.toISOString().split("T")[0]);
+  };
+
+  const formatSelectedDate = () => {
+    const options: Intl.DateTimeFormatOptions = { 
+      weekday: "short", 
+      month: "short", 
+      day: "numeric" 
+    };
+    return selectedDateObj.toLocaleDateString("en-US", options);
+  };
 
   // Subscribe to real-time updates
   useRealtimePrepItems(stationId);
 
-  // Set initial shift when kitchen loads
+  // Set initial shift when kitchen loads or date changes
   useEffect(() => {
-    if (currentKitchen && !currentShift && availableShifts.length > 0) {
-      setCurrentShift(availableShifts[0]);
+    if (currentKitchen && availableShifts.length > 0) {
+      // Reset to first shift when date changes or if current shift isn't available
+      if (!currentShift || !availableShifts.includes(currentShift)) {
+        setCurrentShift(availableShifts[0]);
+      }
     }
-  }, [currentKitchen, currentShift, availableShifts]);
+  }, [currentKitchen, availableShifts, selectedDate]);
 
   useEffect(() => {
     if (!stationId || !currentShift) return;
-    loadPrepItems(stationId, today, currentShift);
-  }, [stationId, today, currentShift, loadPrepItems]);
+    loadPrepItems(stationId, selectedDate, currentShift);
+  }, [stationId, selectedDate, currentShift, loadPrepItems]);
 
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +83,7 @@ export function StationView() {
 
     await addPrepItem({
       station_id: stationId,
-      shift_date: today,
+      shift_date: selectedDate,
       shift_name: currentShift,
       description: newItemDescription.trim(),
       quantity_raw: newItemQuantity.trim(),
@@ -113,27 +141,59 @@ export function StationView() {
             <div className="w-12" /> {/* Spacer for centering */}
           </div>
 
-          {/* Shift Toggle */}
-          <div className="flex items-center justify-center">
-            <div className="inline-flex rounded-lg border border-gray-300 bg-white">
-              {availableShifts.map((shift: string, index: number) => (
-                <button
-                  key={shift}
-                  onClick={() => setCurrentShift(shift)}
-                  className={`px-6 py-2 text-sm font-medium transition-colors ${
-                    index === 0 ? "rounded-l-lg" : ""
-                  } ${
-                    index === availableShifts.length - 1 ? "rounded-r-lg" : ""
-                  } ${
-                    currentShift === shift
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  {shift}
-                </button>
-              ))}
+          {/* Date Navigation */}
+          <div className="flex items-center justify-center mb-3">
+            <button
+              onClick={() => navigateDate(-1)}
+              className="px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              aria-label="Previous day"
+            >
+              ←
+            </button>
+            <div className="px-6 py-2 min-w-45 text-center">
+              <div className="text-sm font-semibold text-gray-900">
+                {formatSelectedDate()}
+              </div>
+              {isToday && (
+                <div className="text-xs text-blue-600 font-medium">Today</div>
+              )}
             </div>
+            <button
+              onClick={() => navigateDate(1)}
+              className="px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              aria-label="Next day"
+            >
+              →
+            </button>
+          </div>
+
+          {/* Shift Toggle or Closed Notice */}
+          <div className="flex items-center justify-center">
+            {isClosed ? (
+              <div className="px-6 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg border border-gray-300">
+                Kitchen Closed
+              </div>
+            ) : (
+              <div className="inline-flex rounded-lg border border-gray-300 bg-white">
+                {availableShifts.map((shift: string, index: number) => (
+                  <button
+                    key={shift}
+                    onClick={() => setCurrentShift(shift)}
+                    className={`px-6 py-2 text-sm font-medium transition-colors ${
+                      index === 0 ? "rounded-l-lg" : ""
+                    } ${
+                      index === availableShifts.length - 1 ? "rounded-r-lg" : ""
+                    } ${
+                      currentShift === shift
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {shift}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Progress */}
@@ -158,7 +218,12 @@ export function StationView() {
 
       {/* Prep Items List */}
       <div className="flex-1 overflow-y-auto px-4 py-6 pb-32">
-        {prepItems.length === 0 ? (
+        {isClosed ? (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-lg mb-2">Kitchen is closed on this day</p>
+            <p className="text-sm">Select a different date to add prep items</p>
+          </div>
+        ) : prepItems.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <p className="text-lg mb-2">No prep items yet</p>
             <p className="text-sm">Add your first item below</p>
@@ -245,34 +310,36 @@ export function StationView() {
       </div>
 
       {/* Add Item Form - Sticky Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
-        <form onSubmit={handleAddItem} className="max-w-3xl mx-auto">
-          <div className="flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={newItemDescription}
-              onChange={(e) => setNewItemDescription(e.target.value)}
-              placeholder="Add prep item..."
-              className="flex-1 px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <input
-              type="text"
-              value={newItemQuantity}
-              onChange={(e) => setNewItemQuantity(e.target.value)}
-              placeholder="Qty"
-              className="w-24 px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-              type="submit"
-              disabled={!newItemDescription.trim()}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Add
-            </button>
-          </div>
-        </form>
-      </div>
+      {!isClosed && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+          <form onSubmit={handleAddItem} className="max-w-3xl mx-auto">
+            <div className="flex gap-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={newItemDescription}
+                onChange={(e) => setNewItemDescription(e.target.value)}
+                placeholder="Add prep item..."
+                className="flex-1 px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <input
+                type="text"
+                value={newItemQuantity}
+                onChange={(e) => setNewItemQuantity(e.target.value)}
+                placeholder="Qty"
+                className="w-24 px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button
+                type="submit"
+                disabled={!newItemDescription.trim()}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

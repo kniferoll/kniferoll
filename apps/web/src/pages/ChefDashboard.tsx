@@ -16,21 +16,41 @@ export function ChefDashboard() {
   const { user, signOut } = useAuthStore();
   const { currentKitchen, stations, loadKitchen } = useKitchenStore();
   const [progress, setProgress] = useState<StationProgress[]>([]);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [currentShift, setCurrentShift] = useState("");
   const [showJoinCode, setShowJoinCode] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const navigate = useNavigate();
 
-  const today = new Date().toISOString().split("T")[0];
-  const todayName = new Date()
+  const selectedDateObj = new Date(selectedDate + "T12:00:00");
+  const dayName = selectedDateObj
     .toLocaleDateString("en-US", { weekday: "long" })
     .toLowerCase();
+  const isToday = selectedDate === new Date().toISOString().split("T")[0];
 
-  // Get available shifts for today
+  // Get available shifts for selected date
   const availableShifts: string[] = currentKitchen?.schedule
     ? (currentKitchen.schedule as any).default ||
-      (currentKitchen.schedule as any)[todayName] || ["AM", "PM"]
+      (currentKitchen.schedule as any)[dayName] || ["AM", "PM"]
     : ["AM", "PM"];
+
+  // Date navigation helpers
+  const navigateDate = (days: number) => {
+    const newDate = new Date(selectedDate + "T12:00:00");
+    newDate.setDate(newDate.getDate() + days);
+    setSelectedDate(newDate.toISOString().split("T")[0]);
+  };
+
+  const formatSelectedDate = () => {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    };
+    return selectedDateObj.toLocaleDateString("en-US", options);
+  };
 
   useEffect(() => {
     if (!user) {
@@ -55,12 +75,14 @@ export function ChefDashboard() {
     loadUserKitchen();
   }, [user, navigate, loadKitchen]);
 
-  // Set initial shift when kitchen loads
+  // Set initial shift when kitchen loads or date changes
   useEffect(() => {
-    if (currentKitchen && !currentShift && availableShifts.length > 0) {
-      setCurrentShift(availableShifts[0]);
+    if (currentKitchen && availableShifts.length > 0) {
+      if (!currentShift || !availableShifts.includes(currentShift)) {
+        setCurrentShift(availableShifts[0]);
+      }
     }
-  }, [currentKitchen, currentShift, availableShifts]);
+  }, [currentKitchen, availableShifts, selectedDate]);
 
   useEffect(() => {
     if (!currentKitchen || stations.length === 0 || !currentShift) return;
@@ -73,7 +95,7 @@ export function ChefDashboard() {
           .from("prep_items")
           .select("id, completed")
           .eq("station_id", station.id)
-          .eq("shift_date", today)
+          .eq("shift_date", selectedDate)
           .eq("shift_name", currentShift);
 
         const total = items?.length || 0;
@@ -112,7 +134,7 @@ export function ChefDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentKitchen, stations, currentShift, today]);
+  }, [currentKitchen, stations, currentShift, selectedDate]);
 
   // Generate QR code when modal is shown
   useEffect(() => {
@@ -162,11 +184,14 @@ export function ChefDashboard() {
               {currentKitchen.name}
             </h1>
             <p className="text-sm text-gray-600">
-              {new Date(today).toLocaleDateString("en-US", {
+              {selectedDateObj.toLocaleDateString("en-US", {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
               })}
+              {isToday && (
+                <span className="ml-2 text-blue-600 font-medium">(Today)</span>
+              )}
             </p>
           </div>
           <button
@@ -179,6 +204,27 @@ export function ChefDashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Date Navigation */}
+        <div className="flex items-center justify-center mb-4">
+          <button
+            onClick={() => navigateDate(-1)}
+            className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+            aria-label="Previous day"
+          >
+            ← Previous
+          </button>
+          <div className="px-6 py-2 min-w-45 text-center font-semibold text-gray-900">
+            {formatSelectedDate()}
+          </div>
+          <button
+            onClick={() => navigateDate(1)}
+            className="px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+            aria-label="Next day"
+          >
+            Next →
+          </button>
+        </div>
+
         {/* Shift Toggle */}
         <div className="flex items-center justify-between mb-6">
           <div className="inline-flex rounded-lg border border-gray-300 bg-white">
