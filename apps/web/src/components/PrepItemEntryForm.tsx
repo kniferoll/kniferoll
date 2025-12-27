@@ -327,29 +327,31 @@ export function PrepItemEntryForm({
 
           {/* Collapsible Units Row - Only shown when focused */}
           {isFormFocused && (
-            <div className="flex flex-wrap gap-1.5 max-h-18 overflow-hidden">
-              {orderedUnits.slice(0, 8).map((unit, index) => (
-                <button
-                  key={unit.id}
-                  type="button"
-                  onClick={() => handleQuickUnitTap(unit.id)}
-                  onMouseDown={(e) => e.preventDefault()} // Prevent blur
-                  disabled={disabled || isLoading}
-                  style={{
-                    animation:
-                      selectedUnitId === unit.id && index === 0
-                        ? "slideIn 0.3s ease-out"
-                        : undefined,
-                  }}
-                  className={`px-2.5 py-1 rounded-full text-xs whitespace-nowrap transition-all duration-300 shrink-0 ${
-                    selectedUnitId === unit.id
-                      ? "bg-blue-600 dark:bg-blue-700 text-white"
-                      : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-600"
-                  } disabled:opacity-50`}
-                >
-                  {unit.name}
-                </button>
-              ))}
+            <div className="flex gap-1.5">
+              <div className="flex flex-wrap gap-1.5 max-h-18 overflow-hidden flex-1 lg:flex-nowrap lg:overflow-x-auto lg:max-h-6 scrollbar-hide">
+                {orderedUnits.map((unit, index) => (
+                  <button
+                    key={unit.id}
+                    type="button"
+                    onClick={() => handleQuickUnitTap(unit.id)}
+                    onMouseDown={(e) => e.preventDefault()} // Prevent blur
+                    disabled={disabled || isLoading}
+                    style={{
+                      animation:
+                        selectedUnitId === unit.id && index === 0
+                          ? "slideIn 0.3s ease-out"
+                          : undefined,
+                    }}
+                    className={`px-2.5 py-1 rounded-full text-xs whitespace-nowrap transition-all duration-300 shrink-0 ${
+                      selectedUnitId === unit.id
+                        ? "bg-blue-600 dark:bg-blue-700 text-white"
+                        : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-600"
+                    } disabled:opacity-50`}
+                  >
+                    {unit.name}
+                  </button>
+                ))}
+              </div>
 
               {/* Add/Browse Units Button */}
               <button
