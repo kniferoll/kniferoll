@@ -1,333 +1,449 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { usePrepStore } from "../stores/prepStore";
-import { usePrepEntryStore } from "../stores/prepEntryStore";
-import { useKitchenStore } from "../stores/kitchenStore";
 import { useAuthStore } from "../stores/authStore";
+import { useKitchenStore } from "../stores/kitchenStore";
+import { usePrepItems } from "../hooks/usePrepItems";
+import { useStations } from "../hooks/useStations";
 import { useRealtimePrepItems } from "../hooks/useRealtimePrepItems";
-import { getDeviceToken } from "../lib/supabase";
-import type { PrepStatus } from "@kniferoll/types";
-import {
-  DateCalendar,
-  ShiftToggle,
-  PrepItemEntryForm,
-  PrepItemList,
-  ProgressBar,
-  SkeletonList,
-  CookInviteButton,
-} from "../components";
-import { toLocalDate } from "../lib/dateUtils";
+import { useRealtimeStations } from "../hooks/useRealtimeStations";
+import { usePrepItemActions } from "../hooks/usePrepItemActions";
+import { getTodayLocalDate } from "../lib/dateUtils";
+import { Button } from "../components/Button";
+import { ErrorAlert } from "../components/ErrorAlert";
+import { PrepItemAutocomplete } from "../components/PrepItemAutocomplete";
+import type { Database, PrepStatus } from "@kniferoll/types";
+
+type Station = Database["public"]["Tables"]["stations"]["Row"];
+
+const DEFAULT_SHIFTS = ["Breakfast", "Lunch", "Dinner"];
 
 export function StationView() {
-  const { id: stationId } = useParams<{ id: string }>();
+  const { kitchenId } = useParams<{ kitchenId: string }>();
   const navigate = useNavigate();
-  const [shouldSort, setShouldSort] = useState(true);
-  const [showOverflowMenu, setShowOverflowMenu] = useState(false);
-  const { prepItems, loading, loadPrepItems, cycleStatus, deletePrepItem } =
-    usePrepStore();
+  const { user } = useAuthStore();
   const {
-    suggestions,
-    masterSuggestions,
-    quickUnits,
-    addingItem,
-    loadSuggestionsAndUnits,
-    addItemWithUpdates,
-    dismissSuggestionPersistent,
-  } = usePrepEntryStore();
-  const {
-    stations,
-    sessionUser,
     currentKitchen,
     selectedDate,
+    selectedShift,
     setSelectedDate,
-    loadKitchen,
-    selectedShift,
     setSelectedShift,
+    loadKitchen,
   } = useKitchenStore();
-  const { user } = useAuthStore();
+  const [currentStation, setCurrentStation] = useState<Station | null>(null);
+  const { stations, loading: stationsLoading } = useStations(kitchenId);
+  const { prepItems, loading: itemsLoading } = usePrepItems(
+    currentStation?.id,
+    selectedDate
+  );
+  useRealtimeStations(kitchenId);
+  useRealtimePrepItems(currentStation?.id, selectedDate);
 
-  const station = stations.find((s) => s.id === stationId);
+  const {
+    addPrepItem,
+    updateItemStatus,
+    deleteItem,
+    error: itemActionError,
+  } = usePrepItemActions();
 
-  // Load kitchen data on refresh if we have kitchen but no stations
+  const [newItemDescription, setNewItemDescription] = useState("");
+  const [newItemQuantity, setNewItemQuantity] = useState("");
+  const [newItemUnit, setNewItemUnit] = useState("");
+  const [error, setError] = useState("");
+  const [addingItem, setAddingItem] = useState(false);
+
+  // Load kitchen on mount
   useEffect(() => {
-    if (currentKitchen?.id && stations.length === 0) {
-      loadKitchen(currentKitchen.id);
+    if (kitchenId && !currentKitchen) {
+      loadKitchen(kitchenId);
     }
-  }, [currentKitchen?.id, stations.length, loadKitchen]);
+  }, [kitchenId, currentKitchen, loadKitchen]);
 
-  // Get day name for selected date
-  const selectedDateObj = toLocalDate(selectedDate);
-  const dayName = selectedDateObj
-    .toLocaleDateString("en-US", { weekday: "long" })
-    .toLowerCase();
-
-  // Check if selected day is closed
-  const isClosed = currentKitchen?.closed_days?.includes(dayName) || false;
-
-  // Get available shifts for selected date
-  const availableShifts: string[] = isClosed
-    ? []
-    : currentKitchen?.schedule
-    ? (currentKitchen.schedule as any).default ||
-      (currentKitchen.schedule as any)[dayName] || ["AM", "PM"]
-    : ["AM", "PM"];
-
-  // Subscribe to real-time updates
-  useRealtimePrepItems(stationId);
-
-  // Load suggestions and units when kitchen, station, shift, or date changes
+  // Initialize station and shift
   useEffect(() => {
-    if (currentKitchen?.id && stationId && selectedShift) {
-      loadSuggestionsAndUnits(
-        currentKitchen.id,
-        stationId,
-        selectedDate,
-        selectedShift
-      );
+    if (stations.length > 0 && !currentStation) {
+      setCurrentStation(stations[0]);
     }
-  }, [
-    currentKitchen?.id,
-    stationId,
-    selectedDate,
-    selectedShift,
-    loadSuggestionsAndUnits,
-  ]);
+  }, [stations, currentStation]);
 
-  // Set initial shift when kitchen loads, only if not set or invalid
   useEffect(() => {
-    if (currentKitchen && availableShifts.length > 0) {
-      // Only set shift if none selected or if current selection isn't available
-      if (!selectedShift || !availableShifts.includes(selectedShift)) {
-        setSelectedShift(availableShifts[0]);
-      }
+    if (!selectedShift && DEFAULT_SHIFTS.length > 0) {
+      setSelectedShift(DEFAULT_SHIFTS[1]); // Default to Lunch
     }
-  }, [currentKitchen, availableShifts, selectedShift, setSelectedShift]);
+  }, [selectedShift, setSelectedShift]);
 
-  useEffect(() => {
-    if (!stationId || !selectedShift) return;
-    loadPrepItems(stationId, selectedDate, selectedShift);
-    setShouldSort(true); // Reset sorting on date/shift change
-  }, [stationId, selectedDate, selectedShift, loadPrepItems]);
-
-  const handleAddItem = async (
-    description: string,
-    unitId: string | null,
-    quantity: number | null
-  ) => {
-    if (!stationId || !currentKitchen?.id || !description.trim()) return;
-
-    const userId = sessionUser?.id || getDeviceToken();
-
-    await addItemWithUpdates(
-      currentKitchen.id,
-      stationId,
-      selectedDate,
-      selectedShift,
-      description,
-      unitId,
-      quantity,
-      userId
-    );
-  };
-
-  const handleCycleStatus = async (itemId: string) => {
-    const userName = sessionUser?.name || user?.email || undefined;
-    await cycleStatus(itemId, userName);
-    setShouldSort(false); // Keep items in place after status change
-  };
-
-  const handleDelete = async (itemId: string) => {
-    await deletePrepItem(itemId);
-  };
-
-  const handleDismissSuggestion = async (suggestionId: string) => {
-    if (!stationId || !selectedShift) return;
-    const userId = user?.id || sessionUser?.id || getDeviceToken();
-    await dismissSuggestionPersistent(
-      suggestionId,
-      stationId,
-      selectedDate,
-      selectedShift,
-      userId
-    );
-  };
-
-  if (!station) {
+  if (!user || !kitchenId) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-slate-400 mb-4">
-            Station not found
-          </p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            Back to dashboard
-          </button>
-        </div>
+        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
       </div>
     );
   }
-  // Calculate status counts for progress bar
+
+  if (stationsLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Loading kitchen...</p>
+      </div>
+    );
+  }
+
+  if (stations.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
+        <ErrorAlert
+          title="No Stations"
+          message="This kitchen has no stations configured"
+        />
+      </div>
+    );
+  }
+
+  // Calculate prep stats
   const completedCount = prepItems.filter(
     (item) => item.status === "complete"
   ).length;
-  const partialCount = prepItems.filter(
+  const workingCount = prepItems.filter(
     (item) => item.status === "partial"
   ).length;
-  const pendingCount = prepItems.filter(
-    (item) => item.status === "pending" || !item.status
+  const todoCount = prepItems.filter(
+    (item) => item.status === "pending"
   ).length;
   const totalCount = prepItems.length;
+  const progressPercent =
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  const handleAddPrepItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newItemDescription.trim() || !currentStation) {
+      setError("Description is required");
+      return;
+    }
+
+    setAddingItem(true);
+    setError("");
+
+    try {
+      const { error: addError } = await addPrepItem(
+        currentStation.id,
+        selectedDate,
+        selectedShift,
+        newItemDescription,
+        newItemQuantity || undefined,
+        newItemUnit || undefined,
+        kitchenId
+      );
+
+      if (addError) {
+        setError(addError);
+      } else {
+        // Clear form
+        setNewItemDescription("");
+        setNewItemQuantity("");
+        setNewItemUnit("");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to add item";
+      setError(message);
+    } finally {
+      setAddingItem(false);
+    }
+  };
+
+  const handleStatusChange = async (
+    itemId: string,
+    currentStatus: PrepStatus | null
+  ) => {
+    try {
+      const statusCycle: Record<PrepStatus, PrepStatus> = {
+        pending: "partial",
+        partial: "complete",
+        complete: "pending",
+      };
+      const newStatus = statusCycle[currentStatus || "pending"];
+
+      const { error: updateError } = await updateItemStatus(itemId, newStatus);
+      if (updateError) {
+        setError(updateError);
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update status";
+      setError(message);
+    }
+  };
+
+  const handleDeletePrepItem = async (itemId: string) => {
+    try {
+      const { error: deleteError } = await deleteItem(itemId);
+      if (deleteError) {
+        setError(deleteError);
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to delete item";
+      setError(message);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-10">
-        <div className="px-4 py-4">
+      <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={() =>
-                navigate(
-                  currentKitchen?.join_code
-                    ? `/join/${currentKitchen.join_code}/stations`
-                    : "/join"
-                )
-              }
-              className="text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200"
-            >
-              ← Back
-            </button>
-            <DateCalendar
-              selectedDate={selectedDate}
-              onDateSelect={setSelectedDate}
-              closedDays={currentKitchen?.closed_days || []}
-            />
-            <div className="w-12" /> {/* Spacer for centering */}
-          </div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                ← Back
+              </button>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {currentKitchen?.name}
+              </h1>
+            </div>
 
-          {/* Shift Toggle or Closed Notice */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1" />
-            <ShiftToggle
-              shifts={availableShifts}
-              currentShift={selectedShift}
-              onShiftChange={setSelectedShift}
-              disabled={isClosed}
-            />
-            <div className="flex-1 flex justify-end">
-              {sessionUser && currentKitchen && (
-                <CookInviteButton
-                  kitchenId={currentKitchen.id}
-                  cookSessionUserId={sessionUser.id}
-                />
-              )}
+            <div className="flex items-center gap-4">
+              {/* Date picker */}
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                max={getTodayLocalDate()}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-800 dark:text-white"
+              />
+
+              {/* Menu button */}
+              <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                ⋮
+              </button>
             </div>
           </div>
 
-          {/* Progress and Overflow Menu */}
-          {totalCount > 0 && (
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex-1">
-                <ProgressBar
-                  completed={completedCount}
-                  partial={partialCount}
-                  pending={pendingCount}
-                />
-              </div>
-              <div className="relative">
+          {/* Station and Shift selection */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Station:
+              </label>
+              <select
+                value={currentStation?.id || ""}
+                onChange={(e) => {
+                  const station = stations.find((s) => s.id === e.target.value);
+                  setCurrentStation(station || null);
+                }}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-800 dark:text-white"
+              >
+                {stations.map((station) => (
+                  <option key={station.id} value={station.id}>
+                    {station.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Shift tabs */}
+            <div className="flex gap-2">
+              {DEFAULT_SHIFTS.map((shift) => (
                 <button
-                  onClick={() => setShowOverflowMenu(!showOverflowMenu)}
-                  className="shrink-0 w-9 h-9 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center"
-                  aria-label="More options"
+                  key={shift}
+                  onClick={() => setSelectedShift(shift)}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                    selectedShift === shift
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  }`}
                 >
-                  <svg
-                    className="w-5 h-5"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <circle cx="12" cy="5" r="2" />
-                    <circle cx="12" cy="12" r="2" />
-                    <circle cx="12" cy="19" r="2" />
-                  </svg>
+                  {shift}
                 </button>
-                {showOverflowMenu && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setShowOverflowMenu(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 py-1 z-20">
-                      <button
-                        onClick={() => {
-                          setShouldSort(true);
-                          setShowOverflowMenu(false);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-2"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path
-                            d="M7 15l5 5 5-5M7 9l5-5 5 5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        Sort Items
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+              ))}
             </div>
-          )}
-        </div>
-      </header>
-
-      {/* Prep Items List */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 pb-48">
-        {isClosed ? (
-          <div className="text-center py-12 text-gray-500 dark:text-slate-400">
-            <p className="text-lg mb-2">Kitchen is closed on this day</p>
-            <p className="text-sm">Select a different date to add prep items</p>
           </div>
-        ) : loading ? (
-          <SkeletonList count={5} />
-        ) : (
-          <PrepItemList
-            items={prepItems.map((item) => ({
-              ...item,
-              status: item.status as PrepStatus | null,
-            }))}
-            onCycleStatus={handleCycleStatus}
-            onDelete={handleDelete}
-            shouldSort={shouldSort}
-          />
-        )}
+        </div>
       </div>
 
-      {/* Add Item Form - Floating Bottom */}
-      {!isClosed && (
-        <div className="fixed bottom-0 left-0 right-0 pointer-events-none">
-          <div className="max-w-3xl mx-auto px-4 pb-4 pointer-events-auto">
-            <PrepItemEntryForm
-              allSuggestions={masterSuggestions}
-              suggestions={suggestions}
-              quickUnits={quickUnits}
-              onAddItem={handleAddItem}
-              onDismissSuggestion={handleDismissSuggestion}
-              disabled={!selectedShift}
-              isLoading={addingItem}
+      {/* Main content */}
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Progress bar */}
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-6 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-semibold text-gray-900 dark:text-white">
+              Progress
+            </h2>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {progressPercent}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all"
+              style={{ width: `${progressPercent}%` }}
             />
           </div>
+          <div className="grid grid-cols-4 gap-4 text-center text-sm">
+            <div>
+              <p className="text-gray-600 dark:text-gray-400">Done</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                {completedCount}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600 dark:text-gray-400">Working</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                {workingCount}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600 dark:text-gray-400">Todo</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                {todoCount}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600 dark:text-gray-400">Total</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                {totalCount}
+              </p>
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Prep items list */}
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-6 mb-6">
+          {itemsLoading ? (
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading prep items...
+            </p>
+          ) : prepItems.length === 0 ? (
+            <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+              No prep items for this shift. Add one below to get started!
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {prepItems.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors group"
+                >
+                  {/* Status indicator */}
+                  <button
+                    onClick={() =>
+                      handleStatusChange(
+                        item.id,
+                        item.status as PrepStatus | null
+                      )
+                    }
+                    className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-gray-400 hover:border-gray-600 transition-colors flex items-center justify-center"
+                  >
+                    {item.status === "complete" && (
+                      <div className="w-4 h-4 bg-blue-600 rounded-full" />
+                    )}
+                    {item.status === "partial" && (
+                      <div className="w-3 h-3 bg-blue-600 rounded-full" />
+                    )}
+                  </button>
+
+                  {/* Item details */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-900 dark:text-white font-medium">
+                      {item.description}
+                    </p>
+                    {item.quantity && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {item.quantity} {item.unit_id || ""}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Delete button */}
+                  <button
+                    onClick={() => handleDeletePrepItem(item.id)}
+                    className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-800 dark:hover:text-red-400 transition-all"
+                  >
+                    🗑
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Add prep item form */}
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow p-6 sticky bottom-0">
+          {(error || itemActionError) && (
+            <ErrorAlert
+              title="Error"
+              message={error || itemActionError || ""}
+            />
+          )}
+
+          <form onSubmit={handleAddPrepItem} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Description
+              </label>
+              <PrepItemAutocomplete
+                kitchenId={kitchenId}
+                stationId={currentStation?.id}
+                shiftName={selectedShift}
+                value={newItemDescription}
+                onChange={setNewItemDescription}
+                onSelectSuggestion={(suggestion) => {
+                  setNewItemDescription(suggestion.description);
+                  if (suggestion.last_quantity_used) {
+                    setNewItemQuantity(
+                      suggestion.last_quantity_used.toString()
+                    );
+                  }
+                  if (suggestion.default_unit_id) {
+                    setNewItemUnit(suggestion.default_unit_id);
+                  }
+                }}
+                disabled={addingItem}
+                autoFocus
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  value={newItemQuantity}
+                  onChange={(e) => setNewItemQuantity(e.target.value)}
+                  placeholder="Amount"
+                  disabled={addingItem}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Unit
+                </label>
+                <input
+                  type="text"
+                  value={newItemUnit}
+                  onChange={(e) => setNewItemUnit(e.target.value)}
+                  placeholder="e.g., lbs, cups"
+                  disabled={addingItem}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={addingItem || !newItemDescription.trim()}
+              className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {addingItem ? "Adding..." : "Add Prep Item"}
+            </Button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

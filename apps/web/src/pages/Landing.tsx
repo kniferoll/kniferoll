@@ -1,55 +1,72 @@
-import { Link } from "react-router-dom";
-import { Button, FeatureCard } from "../components";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../stores/authStore";
 
 export function Landing() {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+
+  if (user) {
+    navigate("/dashboard");
+    return null;
+  }
+
   return (
-    <div className="relative min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-start md:justify-center p-4 pt-12 md:pt-4 overflow-hidden">
-      {/* Gradient background blobs */}
-      <div className="absolute -top-44 -right-60 h-60 w-80 md:right-0 bg-linear-to-b from-[#fff1be] via-[#ee87cb] to-[#b060ff] rotate-[-10deg] rounded-full blur-3xl opacity-40 dark:opacity-20 pointer-events-none" />
-      <div className="absolute -bottom-32 -left-40 h-64 w-80 bg-linear-to-t from-[#b060ff] via-[#ee87cb] to-[#fff1be] rotate-10 rounded-full blur-3xl opacity-30 dark:opacity-10 pointer-events-none" />
-
-      <div className="relative max-w-2xl mx-auto text-center z-10">
-        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-slate-50 mb-6">
-          Kniferoll
-        </h1>
-        <p className="text-xl md:text-2xl text-gray-600 dark:text-slate-400 mb-12">
-          Simple, fast kitchen prep management
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-          <Link to="/join">
-            <Button variant="primary" fullWidth>
-              Join Kitchen
-            </Button>
-          </Link>
-          <Link to="/signup">
-            <Button variant="secondary" fullWidth>
-              Sign Up
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button variant="secondary" fullWidth>
-              Chef Login
-            </Button>
-          </Link>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-950">
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            Kniferoll
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300">
+            Kitchen prep management for professional chefs
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 text-left">
-          <FeatureCard
-            emoji="🗒️"
-            title="Digital Prep Lists"
-            description="Ditch the paper. Track prep in real-time."
-          />
-          <FeatureCard
-            emoji="⚡"
-            title="Lightning Fast"
-            description="Join a kitchen in under 15 seconds."
-          />
-          <FeatureCard
-            emoji="📱"
-            title="Works Offline"
-            description="No wifi? No problem. Syncs when you're back."
-          />
+        <div className="flex flex-col gap-4 max-w-sm mx-auto mb-16">
+          <button
+            onClick={() => navigate("/signup")}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Sign Up
+          </button>
+          <button
+            onClick={() => navigate("/login")}
+            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="text-center">
+            <div className="text-4xl mb-4">📋</div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Manage Prep Lists
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Real-time collaboration on station prep across your kitchen
+            </p>
+          </div>
+
+          <div className="text-center">
+            <div className="text-4xl mb-4">👥</div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Invite Your Team
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Share secure invite links with your kitchen staff
+            </p>
+          </div>
+
+          <div className="text-center">
+            <div className="text-4xl mb-4">⚡</div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Real-time Sync
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              See updates instantly as your team works
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -3,9 +3,12 @@ import { supabase } from "../lib/supabase";
 import { usePrepStore } from "../stores/prepStore";
 import type { DbPrepItem } from "@kniferoll/types";
 
-export function useRealtimePrepItems(stationId: string | undefined) {
+export function useRealtimePrepItems(
+  stationId: string | undefined,
+  shiftDate: string | undefined
+) {
   useEffect(() => {
-    if (!stationId) return;
+    if (!stationId || !shiftDate) return;
 
     // Helper to fetch unit name for an item
     const fetchWithUnitName = async (item: DbPrepItem) => {
@@ -23,14 +26,14 @@ export function useRealtimePrepItems(stationId: string | undefined) {
     };
 
     const channel = supabase
-      .channel(`prep_items:${stationId}`)
+      .channel(`prep_items:${stationId}:${shiftDate}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "prep_items",
-          filter: `station_id=eq.${stationId}`,
+          filter: `station_id=eq.${stationId}&shift_date=eq.${shiftDate}`,
         },
         async (payload) => {
           const newItem = payload.new as DbPrepItem;
@@ -52,7 +55,7 @@ export function useRealtimePrepItems(stationId: string | undefined) {
           event: "UPDATE",
           schema: "public",
           table: "prep_items",
-          filter: `station_id=eq.${stationId}`,
+          filter: `station_id=eq.${stationId}&shift_date=eq.${shiftDate}`,
         },
         async (payload) => {
           const updatedItem = payload.new as DbPrepItem;
@@ -71,7 +74,7 @@ export function useRealtimePrepItems(stationId: string | undefined) {
           event: "DELETE",
           schema: "public",
           table: "prep_items",
-          filter: `station_id=eq.${stationId}`,
+          filter: `station_id=eq.${stationId}&shift_date=eq.${shiftDate}`,
         },
         (payload) => {
           const deletedItem = payload.old as DbPrepItem;
@@ -88,5 +91,5 @@ export function useRealtimePrepItems(stationId: string | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [stationId]);
+  }, [stationId, shiftDate]);
 }

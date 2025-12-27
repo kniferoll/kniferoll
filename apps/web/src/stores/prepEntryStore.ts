@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { supabase, getDeviceToken } from "../lib/supabase";
+import { supabase } from "../lib/supabase";
 import type {
   DbKitchenUnit,
   DbPrepItem,
@@ -67,7 +67,8 @@ interface PrepEntryState {
     description: string,
     unitId: string | null,
     quantity: number | null,
-    userId: string
+    userId: string,
+    isAnonymous?: boolean
   ) => Promise<{ error?: string }>;
   dismissSuggestion: (suggestionId: string) => void;
   clearDismissals: () => void;
@@ -120,27 +121,12 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
               .eq("shift_name", shiftName)
           : null;
 
-      const dismissedSuggestionsPromise =
-        stationId && shiftDate && shiftName
-          ? supabase
-              .from("station_shift_dismissed_suggestions")
-              .select("suggestion_id")
-              .eq("station_id", stationId)
-              .eq("shift_date", shiftDate)
-              .eq("shift_name", shiftName)
-          : null;
-
-      const [
-        suggestionsResponse,
-        unitsResponse,
-        currentItemsResponse,
-        dismissedResponse,
-      ] = await Promise.all([
-        suggestionsPromise,
-        unitsPromise,
-        currentItemsPromise,
-        dismissedSuggestionsPromise,
-      ]);
+      const [suggestionsResponse, unitsResponse, currentItemsResponse] =
+        await Promise.all([
+          suggestionsPromise,
+          unitsPromise,
+          currentItemsPromise,
+        ]);
 
       if (suggestionsResponse.error) {
         set({
@@ -151,31 +137,26 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         const allSuggestions = suggestionsResponse.data || [];
         const currentItems = currentItemsResponse?.data || [];
 
-        // Load dismissed suggestions from database
-        const dismissedIds = new Set<string>(
-          dismissedResponse?.data?.map((d) => d.suggestion_id) || []
-        );
-
         // Create master list (no currentItems filter) for autocomplete
         const masterRanked = rankSuggestions(
           allSuggestions,
-          new Set(), // Don't filter dismissed
-          [], // Don't filter by currentItems for autocomplete
-          null // Get all ranked suggestions
+          new Set(),
+          [],
+          null
         );
 
-        // Rank all suggestions (don't filter out dismissed yet, and get all of them)
+        // Rank all suggestions
         const allRanked = rankSuggestions(
           allSuggestions,
-          new Set(), // Don't filter dismissed here
+          new Set(),
           currentItems,
-          null // Get all ranked suggestions, not just top N
+          null
         );
 
-        // Compute which ones to display based on dismissed suggestions from database
+        // Use local dismissed set (not database)
         const displayed = getDisplayedSuggestions(
           allRanked,
-          dismissedIds,
+          get().dismissedSuggestionIds,
           currentItems
         );
 
@@ -184,7 +165,6 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
           allRankedSuggestions: allRanked,
           currentItems,
           suggestions: displayed,
-          dismissedSuggestionIds: dismissedIds,
           suggestionsLoading: false,
         });
       }
@@ -217,16 +197,13 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
     description,
     unitId,
     quantity,
-    userId
+    userId,
+    isAnonymous = false
   ) => {
     set({ addingItem: true, error: null });
 
     try {
-      const deviceToken = getDeviceToken();
-
       // Step 1: Insert prep item
-      const unit = unitId ? get().allUnits.find((u) => u.id === unitId) : null;
-
       const { data: newPrepItem, error: prepError } = await supabase
         .from("prep_items")
         .insert({
@@ -236,8 +213,12 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
           description,
           unit_id: unitId || null,
           quantity: quantity || null,
-          quantity_raw: formatQuantityRaw(quantity, unit?.name),
-          created_by: userId || deviceToken,
+          quantity_raw: formatQuantityRaw(
+            quantity,
+            unitId ? get().allUnits.find((u) => u.id === unitId)?.name : null
+          ),
+          created_by_user: !isAnonymous ? (userId as any) : null,
+          created_by_anon: isAnonymous ? (userId as any) : null,
         })
         .select()
         .single();
@@ -251,7 +232,6 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
       if (newPrepItem) {
         const { usePrepStore } = await import("./prepStore");
         const currentItems = usePrepStore.getState().prepItems;
-        // Only add if viewing the same station/date/shift
         const isCurrentView =
           currentItems.length === 0 ||
           currentItems.some(
@@ -261,13 +241,8 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
               item.shift_name === shiftName
           );
         if (isCurrentView) {
-          // Include unit_name from the unit object we already have
-          const itemWithUnitName = {
-            ...newPrepItem,
-            unit_name: unit?.name || null,
-          };
           usePrepStore.setState({
-            prepItems: [...currentItems, itemWithUnitName],
+            prepItems: [...currentItems, newPrepItem],
           });
         }
       }
@@ -275,7 +250,6 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
       // Step 2: Upsert suggestion (increment count, update last_used)
       const normalizedDesc = description.trim();
 
-      // First, try to find existing suggestion
       const { data: existingSuggestion } = await supabase
         .from("kitchen_item_suggestions")
         .select("id, use_count")
@@ -284,8 +258,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         .maybeSingle();
 
       if (existingSuggestion) {
-        // Update existing
-        const { error: updateError } = await supabase
+        await supabase
           .from("kitchen_item_suggestions")
           .update({
             use_count: (existingSuggestion.use_count || 1) + 1,
@@ -294,48 +267,18 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
             last_quantity_used: quantity || null,
           })
           .eq("id", existingSuggestion.id);
-
-        if (updateError) {
-          console.warn("Error updating suggestion:", updateError);
-        }
       } else {
-        // Insert new
-        const { error: insertError } = await supabase
-          .from("kitchen_item_suggestions")
-          .insert({
-            kitchen_id: kitchenId,
-            description: normalizedDesc,
-            default_unit_id: unitId || null,
-            use_count: 1,
-            last_used: new Date().toISOString(),
-            last_quantity_used: quantity || null,
-          });
-
-        if (insertError) {
-          console.warn("Error inserting suggestion:", insertError);
-        }
+        await supabase.from("kitchen_item_suggestions").insert({
+          kitchen_id: kitchenId,
+          description: normalizedDesc,
+          default_unit_id: unitId || null,
+          use_count: 1,
+          last_used: new Date().toISOString(),
+          last_quantity_used: quantity || null,
+        });
       }
 
-      // Step 3: Increment unit usage if unit selected
-      if (unitId) {
-        const currentUnit = get().allUnits.find((u) => u.id === unitId);
-        if (currentUnit) {
-          const { error: unitError } = await supabase
-            .from("kitchen_units")
-            .update({
-              use_count: (currentUnit.use_count || 0) + 1,
-              last_used: new Date().toISOString(),
-            })
-            .eq("id", unitId);
-
-          if (unitError) {
-            console.warn("Error updating unit usage:", unitError);
-            // Don't fail the entire operation if unit update fails
-          }
-        }
-      }
-
-      // Refresh suggestions and units from database with context so filtering works
+      // Refresh suggestions and units from database
       await get().loadSuggestionsAndUnits(
         kitchenId,
         stationId,
@@ -373,28 +316,14 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
 
   dismissSuggestionPersistent: async (
     suggestionId,
-    stationId,
-    shiftDate,
-    shiftName,
-    userId
+    _stationId,
+    _shiftDate,
+    _shiftName,
+    _userId
   ) => {
-    // First update local state immediately for responsive UI
+    // Update local state immediately for responsive UI
+    // Note: In the new schema, dismissals are session-based (not persisted to DB)
     get().dismissSuggestion(suggestionId);
-
-    // Then persist to database
-    try {
-      const deviceToken = getDeviceToken();
-      await supabase.from("station_shift_dismissed_suggestions").insert({
-        station_id: stationId,
-        shift_date: shiftDate,
-        shift_name: shiftName,
-        suggestion_id: suggestionId,
-        dismissed_by: userId || deviceToken,
-      });
-    } catch (err) {
-      console.warn("Error persisting dismissal:", err);
-      // Don't revert the UI - dismissal still applies locally
-    }
   },
 
   clearDismissals: () => {

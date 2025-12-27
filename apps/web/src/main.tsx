@@ -27,7 +27,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const isDev = process.env.NODE_ENV === "development";
+const isDev = import.meta.env.DEV;
 const root = createRoot(document.getElementById("root")!);
 
 root.render(

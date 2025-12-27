@@ -2,19 +2,19 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { supabase } from "../lib/supabase";
 import { getTodayLocalDate } from "../lib/dateUtils";
-import type { DbKitchen, DbStation } from "@kniferoll/types";
+import type { DbKitchen, DbStation, DbKitchenMember } from "@kniferoll/types";
 
-interface SessionUser {
+interface CurrentUser {
   id: string;
-  name: string;
-  device_token: string;
-  station_id: string | null;
+  displayName: string;
+  isAnonymous: boolean;
 }
 
 interface KitchenState {
   currentKitchen: DbKitchen | null;
   stations: DbStation[];
-  sessionUser: SessionUser | null;
+  currentUser: CurrentUser | null;
+  membership: DbKitchenMember | null;
   loading: boolean;
   error: string | null;
   selectedDate: string;
@@ -23,16 +23,13 @@ interface KitchenState {
   // Actions
   createKitchen: (
     name: string,
-    stationNames: string[],
-    schedule?: { [key: string]: string[] },
-    closedDays?: string[]
+    stationNames: string[]
   ) => Promise<{ kitchenId?: string; error?: string }>;
   loadKitchen: (id: string) => Promise<void>;
-  joinKitchen: (
-    code: string,
+  joinKitchenViaInvite: (
+    token: string,
     displayName: string
   ) => Promise<{ error?: string }>;
-  claimStation: (stationId: string) => Promise<{ error?: string }>;
   setSelectedDate: (date: string) => void;
   setSelectedShift: (shift: string) => void;
   clearKitchen: () => void;
@@ -40,16 +37,17 @@ interface KitchenState {
 
 export const useKitchenStore = create<KitchenState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       currentKitchen: null,
       stations: [],
-      sessionUser: null,
+      currentUser: null,
+      membership: null,
       loading: false,
       error: null,
       selectedDate: getTodayLocalDate(),
       selectedShift: "",
 
-      createKitchen: async (name, stationNames, schedule, closedDays) => {
+      createKitchen: async (name, stationNames) => {
         set({ loading: true, error: null });
 
         try {
@@ -61,40 +59,12 @@ export const useKitchenStore = create<KitchenState>()(
             return { error: "Not authenticated" };
           }
 
-          // Validate that schedule has at least one shift (if provided)
-          if (schedule) {
-            const shifts = schedule.default || Object.values(schedule).flat();
-            if (!Array.isArray(shifts) || shifts.length === 0) {
-              set({
-                loading: false,
-                error: "At least one shift must be configured",
-              });
-              return { error: "At least one shift must be configured" };
-            }
-          }
-
-          // Generate join code
-          const joinCode = Math.random()
-            .toString(36)
-            .substring(2, 8)
-            .toUpperCase();
-
-          // Build shifts_config from schedule
-          const shiftsConfig = schedule?.default
-            ? schedule.default.map((name: string) => ({ name }))
-            : [{ name: "AM" }, { name: "PM" }];
-
           // Create kitchen
           const { data: kitchen, error: kitchenError } = await supabase
             .from("kitchens")
             .insert({
               name,
               owner_id: user.id,
-              join_code: joinCode,
-              shifts_config: shiftsConfig,
-              schedule: schedule || { default: ["Lunch", "Dinner"] },
-              closed_days: closedDays || [],
-              plan: "free",
             })
             .select()
             .single();
@@ -104,14 +74,17 @@ export const useKitchenStore = create<KitchenState>()(
             return { error: kitchenError?.message };
           }
 
-          // Add owner to user_kitchens table
-          const { error: membershipError } = await supabase
-            .from("user_kitchens")
+          // Add owner to kitchen_members table
+          const { data: membership, error: membershipError } = await supabase
+            .from("kitchen_members")
             .insert({
-              user_id: user.id,
               kitchen_id: kitchen.id,
+              user_id: user.id,
               role: "owner",
-            });
+              can_invite: true,
+            })
+            .select()
+            .single();
 
           if (membershipError) {
             set({ loading: false, error: membershipError.message });
@@ -138,6 +111,12 @@ export const useKitchenStore = create<KitchenState>()(
           set({
             currentKitchen: kitchen,
             stations: stations || [],
+            currentUser: {
+              id: user.id,
+              displayName: user.user_metadata?.name || user.email || "You",
+              isAnonymous: false,
+            },
+            membership: membership,
             loading: false,
           });
 
@@ -175,9 +154,37 @@ export const useKitchenStore = create<KitchenState>()(
             return;
           }
 
+          // Load current user's membership
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+
+          let membership: DbKitchenMember | null = null;
+          let currentUser: CurrentUser | null = null;
+
+          if (user) {
+            const { data: m } = await supabase
+              .from("kitchen_members")
+              .select("*")
+              .eq("kitchen_id", id)
+              .eq("user_id", user.id)
+              .single();
+
+            membership = m;
+            if (m) {
+              currentUser = {
+                id: user.id,
+                displayName: user.user_metadata?.name || user.email || "You",
+                isAnonymous: false,
+              };
+            }
+          }
+
           set({
             currentKitchen: kitchen,
             stations: stations || [],
+            membership,
+            currentUser,
             loading: false,
           });
         } catch (err) {
@@ -186,20 +193,41 @@ export const useKitchenStore = create<KitchenState>()(
         }
       },
 
-      joinKitchen: async (code, displayName) => {
+      joinKitchenViaInvite: async (token, displayName) => {
         set({ loading: true, error: null });
 
         try {
-          // Find kitchen by join code
-          const { data: kitchen, error: kitchenError } = await supabase
-            .from("kitchens")
-            .select("*")
-            .eq("join_code", code.toUpperCase())
+          // Verify invite link and get kitchen
+          const { data: inviteLink, error: inviteError } = await supabase
+            .from("invite_links")
+            .select("*, kitchens(*)")
+            .eq("token", token)
             .single();
 
-          if (kitchenError || !kitchen) {
-            set({ loading: false, error: "Invalid join code" });
-            return { error: "Invalid join code" };
+          if (inviteError || !inviteLink) {
+            set({ loading: false, error: "Invalid or expired invite link" });
+            return { error: "Invalid or expired invite link" };
+          }
+
+          // Check if link is expired or revoked
+          if (
+            inviteLink.revoked ||
+            new Date(inviteLink.expires_at) < new Date()
+          ) {
+            set({ loading: false, error: "Invite link has expired" });
+            return { error: "Invite link has expired" };
+          }
+
+          // Check if max uses reached
+          if (inviteLink.use_count >= inviteLink.max_uses) {
+            set({ loading: false, error: "Invite link has reached max uses" });
+            return { error: "Invite link has reached max uses" };
+          }
+
+          const kitchen = (inviteLink as any).kitchens;
+          if (!kitchen) {
+            set({ loading: false, error: "Kitchen not found" });
+            return { error: "Kitchen not found" };
           }
 
           // Load stations
@@ -209,77 +237,93 @@ export const useKitchenStore = create<KitchenState>()(
             .eq("kitchen_id", kitchen.id)
             .order("display_order");
 
-          // Get or create device token
-          let deviceToken = localStorage.getItem("kniferoll_device_token");
-          if (!deviceToken) {
-            deviceToken = crypto.randomUUID();
-            localStorage.setItem("kniferoll_device_token", deviceToken);
+          // Try to get current registered user
+          const {
+            data: { user: authUser },
+          } = await supabase.auth.getUser();
+
+          let membership: DbKitchenMember | null = null;
+          let currentUser: CurrentUser | null = null;
+
+          if (authUser) {
+            // Add registered user to kitchen_members
+            const { data: m, error: mError } = await supabase
+              .from("kitchen_members")
+              .upsert(
+                {
+                  kitchen_id: kitchen.id,
+                  user_id: authUser.id,
+                  role: "member",
+                },
+                { onConflict: "kitchen_id,user_id" }
+              )
+              .select()
+              .single();
+
+            if (!mError) {
+              membership = m;
+              currentUser = {
+                id: authUser.id,
+                displayName:
+                  authUser.user_metadata?.name || authUser.email || displayName,
+                isAnonymous: false,
+              };
+            }
+          } else {
+            // Create or get anonymous user
+            let deviceToken = localStorage.getItem("kniferoll_device_token");
+            if (!deviceToken) {
+              deviceToken = crypto.randomUUID();
+              localStorage.setItem("kniferoll_device_token", deviceToken);
+            }
+
+            const { data: anonUser, error: anonError } = await supabase
+              .from("anonymous_users")
+              .upsert(
+                {
+                  device_token: deviceToken,
+                  display_name: displayName,
+                },
+                { onConflict: "device_token" }
+              )
+              .select()
+              .single();
+
+            if (!anonError && anonUser) {
+              // Add anonymous user to kitchen_members
+              const { data: m } = await supabase
+                .from("kitchen_members")
+                .upsert(
+                  {
+                    kitchen_id: kitchen.id,
+                    anonymous_user_id: anonUser.id,
+                    role: "member",
+                  },
+                  { onConflict: "kitchen_id,anonymous_user_id" }
+                )
+                .select()
+                .single();
+
+              membership = m;
+              currentUser = {
+                id: anonUser.id,
+                displayName,
+                isAnonymous: true,
+              };
+            }
           }
 
-          // Upsert session user (constraint on kitchen_id + device_token)
-          const { data: sessionUser, error: userError } = await supabase
-            .from("session_users")
-            .upsert(
-              {
-                kitchen_id: kitchen.id,
-                name: displayName,
-                device_token: deviceToken,
-                station_id: null,
-                last_active: new Date().toISOString(),
-              },
-              {
-                onConflict: "kitchen_id,device_token",
-              }
-            )
-            .select()
-            .single();
-
-          if (userError || !sessionUser) {
-            set({ loading: false, error: userError?.message });
-            return { error: userError?.message };
-          }
+          // Increment use count on invite link
+          await supabase
+            .from("invite_links")
+            .update({ use_count: inviteLink.use_count + 1 })
+            .eq("id", inviteLink.id);
 
           set({
             currentKitchen: kitchen,
             stations: stations || [],
-            sessionUser: {
-              id: sessionUser.id,
-              name: sessionUser.name,
-              device_token: sessionUser.device_token,
-              station_id: sessionUser.station_id,
-            },
-            loading: false,
-          });
-
-          return {};
-        } catch (err) {
-          const message = err instanceof Error ? err.message : "Unknown error";
-          set({ loading: false, error: message });
-          return { error: message };
-        }
-      },
-
-      claimStation: async (stationId) => {
-        const { sessionUser } = get();
-        if (!sessionUser) {
-          return { error: "No session user" };
-        }
-
-        set({ loading: true, error: null });
-
-        try {
-          const { error } = await supabase
-            .from("session_users")
-            .update({ station_id: stationId })
-            .eq("id", sessionUser.id);
-
-          if (error) {
-            set({ loading: false, error: error.message });
-            return { error: error.message };
-          }
-
-          set({
-            sessionUser: { ...sessionUser, station_id: stationId },
+            membership,
+            currentUser,
             loading: false,
           });
 
@@ -303,7 +347,8 @@ export const useKitchenStore = create<KitchenState>()(
         set({
           currentKitchen: null,
           stations: [],
-          sessionUser: null,
+          currentUser: null,
+          membership: null,
           error: null,
           selectedDate: getTodayLocalDate(),
           selectedShift: "",
@@ -314,7 +359,7 @@ export const useKitchenStore = create<KitchenState>()(
       name: "kniferoll-kitchen",
       partialize: (state) => ({
         currentKitchen: state.currentKitchen,
-        sessionUser: state.sessionUser,
+        currentUser: state.currentUser,
         selectedDate: state.selectedDate,
         selectedShift: state.selectedShift,
       }),

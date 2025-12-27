@@ -1,0 +1,150 @@
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
+import type { Station } from "@kniferoll/types";
+
+/**
+ * Hook to fetch all stations for a kitchen
+ */
+export function useStations(kitchenId: string | undefined) {
+  const [stations, setStations] = useState<Station[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    if (!kitchenId) {
+      setStations([]);
+      setLoading(false);
+      return;
+    }
+
+    const fetchStations = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data, error: err } = await supabase
+          .from("stations")
+          .select("*")
+          .eq("kitchen_id", kitchenId)
+          .order("display_order", { ascending: true });
+
+        if (err) throw err;
+        setStations(data || []);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStations();
+  }, [kitchenId]);
+
+  return { stations, loading, error };
+}
+
+/**
+ * Hook to create a new station
+ */
+export function useCreateStation() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const createStation = async (
+    kitchenId: string,
+    name: string
+  ): Promise<Station | null> => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: err } = await supabase
+        .from("stations")
+        .insert({
+          kitchen_id: kitchenId,
+          name,
+          display_order: 0,
+        })
+        .select()
+        .single();
+
+      if (err) throw err;
+      return data;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { createStation, loading, error };
+}
+
+/**
+ * Hook to update a station
+ */
+export function useUpdateStation() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const updateStation = async (
+    stationId: string,
+    updates: Partial<Station>
+  ): Promise<Station | null> => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data, error: err } = await supabase
+        .from("stations")
+        .update(updates)
+        .eq("id", stationId)
+        .select()
+        .single();
+
+      if (err) throw err;
+      return data;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { updateStation, loading, error };
+}
+
+/**
+ * Hook to delete a station
+ */
+export function useDeleteStation() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const deleteStation = async (stationId: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { error: err } = await supabase
+        .from("stations")
+        .delete()
+        .eq("id", stationId);
+
+      if (err) throw err;
+      return true;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { deleteStation, loading, error };
+}

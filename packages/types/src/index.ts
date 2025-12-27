@@ -1,53 +1,58 @@
 export * from "./database";
 import type { Database } from "./database";
 
-// Database row types (use these when working with Supabase data)
+// ============================================================================
+// DATABASE ROW TYPES
+// ============================================================================
+
+export type DbUserProfile =
+  Database["public"]["Tables"]["user_profiles"]["Row"];
+export type DbAnonymousUser =
+  Database["public"]["Tables"]["anonymous_users"]["Row"];
 export type DbKitchen = Database["public"]["Tables"]["kitchens"]["Row"];
+export type DbKitchenMember =
+  Database["public"]["Tables"]["kitchen_members"]["Row"];
 export type DbStation = Database["public"]["Tables"]["stations"]["Row"];
 export type DbPrepItem = Database["public"]["Tables"]["prep_items"]["Row"];
-export type DbSessionUser =
-  Database["public"]["Tables"]["session_users"]["Row"];
+export type DbInviteLink = Database["public"]["Tables"]["invite_links"]["Row"];
 export type DbKitchenUnit =
   Database["public"]["Tables"]["kitchen_units"]["Row"];
 export type DbKitchenItemSuggestion =
   Database["public"]["Tables"]["kitchen_item_suggestions"]["Row"];
-export type DbUserSuggestionDismissal =
-  Database["public"]["Tables"]["user_suggestion_dismissals"]["Row"];
 
-// Prep item status enum
-export type PrepStatus = "pending" | "partial" | "complete";
+// ============================================================================
+// ENUMS
+// ============================================================================
 
-// App-specific types
-export interface ShiftConfig {
-  name: string;
-  start_time?: string;
-  end_time?: string;
-}
+export type UserPlan = Database["public"]["Enums"]["user_plan"];
+export type SubscriptionStatus =
+  Database["public"]["Enums"]["subscription_status"];
+export type MemberRole = Database["public"]["Enums"]["member_role"];
+export type PrepStatus = Database["public"]["Enums"]["prep_status"];
 
-export interface QuantityParsed {
-  amount: number;
-  container?: string;
-  unit?: string;
-  item: string;
-  prep_style?: string;
-}
+// ============================================================================
+// CONVENIENCE ALIASES
+// ============================================================================
 
-// Re-export types that match database structure for convenience
+export type UserProfile = DbUserProfile;
+export type AnonymousUser = DbAnonymousUser;
 export type Kitchen = DbKitchen;
+export type KitchenMember = DbKitchenMember;
 export type Station = DbStation;
 export type PrepItem = DbPrepItem;
-
-export interface SessionUser {
-  id: string;
-  kitchen_id: string;
-  name: string;
-  station_id?: string;
-  device_token: string;
-  last_active: string;
-}
-
-// Prep entry system types
+export type InviteLink = DbInviteLink;
 export type KitchenUnit = DbKitchenUnit;
+export type KitchenItemSuggestion = DbKitchenItemSuggestion;
+
+// ============================================================================
+// APP-SPECIFIC TYPES
+// ============================================================================
+
+export interface PrepItemFormData {
+  description: string;
+  unitId: string | null;
+  quantity: number | null;
+}
 
 export interface Suggestion extends DbKitchenItemSuggestion {
   dismissed?: boolean; // Client-side flag for current session
@@ -58,8 +63,12 @@ export interface RecencyScoredSuggestion extends Suggestion {
   weightedScore: number;
 }
 
-export interface PrepItemFormData {
-  description: string;
-  unitId: string | null;
-  quantity: number | null;
+// ============================================================================
+// ENTITLEMENT TYPES
+// ============================================================================
+
+export interface UserLimits {
+  maxKitchens: number;
+  maxStationsPerKitchen: number;
+  canInviteAsOwner: boolean;
 }

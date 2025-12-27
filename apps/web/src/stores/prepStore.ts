@@ -49,7 +49,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from("prep_items")
-        .select("*, kitchen_units(name)")
+        .select("*")
         .eq("station_id", stationId)
         .eq("shift_date", shiftDate)
         .eq("shift_name", shiftName)
@@ -60,14 +60,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         return;
       }
 
-      // Map the joined data to include unit_name
-      const itemsWithUnitName = (data || []).map((item: any) => ({
-        ...item,
-        unit_name: item.kitchen_units?.name || null,
-        kitchen_units: undefined, // Remove nested object
-      }));
-
-      set({ prepItems: itemsWithUnitName, loading: false });
+      set({ prepItems: data || [], loading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       set({ loading: false, error: message });
@@ -78,10 +71,11 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
+      // Ensure created_by_user and created_by_anon are properly set
       const { data, error } = await supabase
         .from("prep_items")
         .insert(item)
-        .select("*, kitchen_units(name)")
+        .select()
         .single();
 
       if (error) {
@@ -89,15 +83,8 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         return { error: error.message };
       }
 
-      // Map the joined data to include unit_name
-      const itemWithUnitName = {
-        ...data,
-        unit_name: (data as any).kitchen_units?.name || null,
-        kitchen_units: undefined, // Remove nested object
-      };
-
       set((state) => ({
-        prepItems: [...state.prepItems, itemWithUnitName],
+        prepItems: [...state.prepItems, data],
         loading: false,
       }));
 
@@ -109,7 +96,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     }
   },
 
-  cycleStatus: async (itemId, userName) => {
+  cycleStatus: async (itemId, userId?: string, isAnonymous = false) => {
     const { prepItems } = get();
     const item = prepItems.find((i) => i.id === itemId);
     if (!item) return { error: "Item not found" };
@@ -120,9 +107,8 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     const updates: PrepItemUpdate = {
       status: newStatus,
       status_changed_at: now,
-      status_changed_by: userName || null,
-      // Set completed_at when status becomes complete, clear it otherwise
-      completed_at: newStatus === "complete" ? now : null,
+      status_changed_by_user: !isAnonymous ? (userId as any) : null,
+      status_changed_by_anon: isAnonymous ? (userId as any) : null,
     };
 
     // Optimistic update
