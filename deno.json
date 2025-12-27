@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  },
+  "imports": {
+    "jsr:@supabase/functions-js/": "https://jsr.io/@supabase/functions-js/",
+    "stripe": "https://esm.sh/stripe@14.0.0"
+  }
+}

@@ -3,6 +3,8 @@
  * Handles checkout session creation and subscription management
  */
 
+import { supabase } from "./supabase";
+
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -20,6 +22,15 @@ export async function redirectToCheckout(options: {
   cancelUrl: string;
 }): Promise<void> {
   try {
+    // Get the current session token
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      throw new Error("No active session");
+    }
+
     // Call edge function to create checkout session
     const response = await fetch(
       `${API_BASE_URL}/functions/v1/create-checkout-session`,
@@ -27,6 +38,7 @@ export async function redirectToCheckout(options: {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           userId: options.userId,
@@ -64,12 +76,22 @@ export async function getCustomerPortalUrl(options: {
   returnUrl: string;
 }): Promise<string> {
   try {
+    // Get the current session token
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      throw new Error("No active session");
+    }
+
     const response = await fetch(
       `${API_BASE_URL}/functions/v1/create-portal-session`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           userId: options.userId,

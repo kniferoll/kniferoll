@@ -30,16 +30,15 @@ Deno.serve(async (req: Request) => {
     const token = authHeader.replace("Bearer ", "");
 
     // Verify token with Supabase
-    const {
-      data: { user },
-      error: authError,
-    } = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     }).then((r) => r.json());
 
-    if (authError || !user) {
+    const user = authResponse;
+
+    if (!user || !user.id) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json" },
@@ -57,7 +56,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Get user's Stripe customer ID
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const serviceRoleKey = Deno.env.get("SERVICE_ROLE_KEY");
     const { data: userProfile } = await fetch(
       `${supabaseUrl}/rest/v1/user_profiles?id=eq.${user.id}`,
       {
