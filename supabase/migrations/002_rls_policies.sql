@@ -1,5 +1,11 @@
 -- Kniferoll RLS Policies
 -- All policies derive from kitchen_members table
+-- 
+-- IMPORTANT: kitchens and kitchen_members must NOT create circular references
+-- Pattern: 
+--   - kitchens policies use ONLY owner_id checks (no subqueries to kitchen_members)
+--   - kitchen_members policies can reference kitchens (one-way dependency)
+--   - Other tables reference kitchen_members (which doesn't reference them back)
 
 -- ============================================================================
 -- ENABLE RLS ON ALL TABLES
@@ -21,71 +27,95 @@ alter table kitchen_item_suggestions enable row level security;
 
 create policy "Users can view their own profile"
   on user_profiles for select
+  to authenticated
   using (id = auth.uid());
 
 create policy "Users can update their own profile"
   on user_profiles for update
+  to authenticated
   using (id = auth.uid());
 
 create policy "Users can insert their own profile"
   on user_profiles for insert
+  to authenticated
   with check (id = auth.uid());
 
 -- ============================================================================
 -- ANONYMOUS USERS
 -- ============================================================================
 
--- Anonymous users table is read-only from client perspective
--- Inserts/updates happen via service role only
+-- Anonymous users table is managed via service role only
+-- No direct client access policies needed
 
 -- ============================================================================
 -- KITCHENS
+-- CRITICAL: Only use owner_id checks here to avoid circular reference with kitchen_members
 -- ============================================================================
 
-create policy "Members can view kitchen"
+create policy "Owner can view kitchen"
   on kitchens for select
-  using (
-    exists (
-      select 1 from kitchen_members
-      where kitchen_members.kitchen_id = kitchens.id
-      and kitchen_members.user_id = auth.uid()
-    )
-  );
-
-create policy "Owner can update kitchen"
-  on kitchens for update
-  using (owner_id = auth.uid());
-
-create policy "Owner can delete kitchen"
-  on kitchens for delete
+  to authenticated
   using (owner_id = auth.uid());
 
 create policy "Authenticated users can create kitchens"
   on kitchens for insert
+  to authenticated
   with check (owner_id = auth.uid());
+
+create policy "Owner can update kitchen"
+  on kitchens for update
+  to authenticated
+  using (owner_id = auth.uid());
+
+create policy "Owner can delete kitchen"
+  on kitchens for delete
+  to authenticated
+  using (owner_id = auth.uid());
 
 -- ============================================================================
 -- KITCHEN MEMBERS
+-- Can safely reference kitchens table since kitchens doesn't reference us
 -- ============================================================================
 
-create policy "Members can view membership"
+-- Users can see their own memberships
+create policy "User can view own membership"
   on kitchen_members for select
-  using (
+  to authenticated
+  using (user_id = auth.uid());
+
+-- Owner can add members to their kitchens
+create policy "Owner can add members"
+  on kitchen_members for insert
+  to authenticated
+  with check (
     exists (
-      select 1 from kitchen_members as my_membership
-      where my_membership.kitchen_id = kitchen_members.kitchen_id
-      and my_membership.user_id = auth.uid()
+      select 1 from kitchens
+      where kitchens.id = kitchen_members.kitchen_id
+      and kitchens.owner_id = auth.uid()
     )
   );
 
-create policy "Owner/admin can manage members"
-  on kitchen_members for all
+-- Owner can update members in their kitchens
+create policy "Owner can update members"
+  on kitchen_members for update
+  to authenticated
   using (
     exists (
-      select 1 from kitchen_members as my_membership
-      where my_membership.kitchen_id = kitchen_members.kitchen_id
-      and my_membership.user_id = auth.uid()
-      and my_membership.role in ('owner', 'admin')
+      select 1 from kitchens
+      where kitchens.id = kitchen_members.kitchen_id
+      and kitchens.owner_id = auth.uid()
+    )
+  );
+
+-- Owner can delete members from their kitchens
+create policy "Owner can delete members"
+  on kitchen_members for delete
+  to authenticated
+  using (
+    exists (
+      select 1 from kitchens
+      where kitchens.id = kitchen_members.kitchen_id
+      and kitchens.owner_id = auth.uid()
     )
   );
 
@@ -95,6 +125,7 @@ create policy "Owner/admin can manage members"
 
 create policy "Members can view stations"
   on stations for select
+  to authenticated
   using (
     exists (
       select 1 from kitchen_members
@@ -105,6 +136,7 @@ create policy "Members can view stations"
 
 create policy "Owner/admin can manage stations"
   on stations for all
+  to authenticated
   using (
     exists (
       select 1 from kitchen_members
@@ -120,6 +152,7 @@ create policy "Owner/admin can manage stations"
 
 create policy "Members can view prep items"
   on prep_items for select
+  to authenticated
   using (
     exists (
       select 1 from kitchen_members
@@ -131,6 +164,7 @@ create policy "Members can view prep items"
 
 create policy "Members can manage prep items"
   on prep_items for all
+  to authenticated
   using (
     exists (
       select 1 from kitchen_members
@@ -146,6 +180,7 @@ create policy "Members can manage prep items"
 
 create policy "Authorized users can create invite links"
   on invite_links for insert
+  to authenticated
   with check (
     exists (
       select 1 from kitchen_members
@@ -157,6 +192,7 @@ create policy "Authorized users can create invite links"
 
 create policy "Members can view invite links"
   on invite_links for select
+  to authenticated
   using (
     exists (
       select 1 from kitchen_members
@@ -171,6 +207,7 @@ create policy "Members can view invite links"
 
 create policy "Members can view kitchen units"
   on kitchen_units for select
+  to authenticated
   using (
     exists (
       select 1 from kitchen_members
@@ -181,6 +218,7 @@ create policy "Members can view kitchen units"
 
 create policy "Owner/admin can manage kitchen units"
   on kitchen_units for all
+  to authenticated
   using (
     exists (
       select 1 from kitchen_members
@@ -196,6 +234,7 @@ create policy "Owner/admin can manage kitchen units"
 
 create policy "Members can view suggestions"
   on kitchen_item_suggestions for select
+  to authenticated
   using (
     exists (
       select 1 from kitchen_members
@@ -206,6 +245,7 @@ create policy "Members can view suggestions"
 
 create policy "Members can create suggestions"
   on kitchen_item_suggestions for insert
+  to authenticated
   with check (
     exists (
       select 1 from kitchen_members
@@ -216,6 +256,7 @@ create policy "Members can create suggestions"
 
 create policy "Members can update suggestions"
   on kitchen_item_suggestions for update
+  to authenticated
   using (
     exists (
       select 1 from kitchen_members

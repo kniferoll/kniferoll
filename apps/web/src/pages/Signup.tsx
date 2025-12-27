@@ -41,6 +41,11 @@ export function Signup() {
     setLoading(true);
 
     try {
+      console.log("🚀 DEBUG Signup: Starting signup process", {
+        email,
+        displayName,
+      });
+
       // Sign up with Supabase Auth
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
@@ -48,6 +53,14 @@ export function Signup() {
         options: {
           data: { display_name: displayName },
         },
+      });
+
+      console.log("🔐 DEBUG Signup: Auth signup result", {
+        hasUser: !!data.user,
+        userId: data.user?.id,
+        userEmail: data.user?.email,
+        session: !!data.session,
+        error: signupError,
       });
 
       if (signupError) {
@@ -62,8 +75,24 @@ export function Signup() {
         return;
       }
 
+      console.log("👤 DEBUG Signup: Ensuring user profile exists");
+
+      // Check current session
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("🔐 DEBUG Signup: Current session state", {
+        hasSession: !!sessionData.session,
+        sessionUserId: sessionData.session?.user?.id,
+        accessToken:
+          sessionData.session?.access_token?.substring(0, 20) + "...",
+      });
+
       // Create user profile with free plan
-      await ensureUserProfile(data.user.id, displayName || undefined);
+      const profile = await ensureUserProfile(
+        data.user.id,
+        displayName || undefined
+      );
+
+      console.log("📊 DEBUG Signup: Profile result", { profile });
 
       // If user came from anonymous session, link membership
       if (deviceToken) {
@@ -71,7 +100,7 @@ export function Signup() {
           .from("anonymous_users")
           .select("id, kitchen_members(kitchen_id)")
           .eq("device_token", deviceToken)
-          .single();
+          .maybeSingle();
 
         if (
           anonUser &&

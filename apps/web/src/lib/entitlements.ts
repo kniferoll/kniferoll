@@ -18,17 +18,30 @@ export function getUserLimits(plan: UserPlan) {
  * Get the user's profile and plan
  */
 export async function getUserProfile(userId: string) {
+  console.log("🔍 DEBUG getUserProfile: Fetching profile for", userId);
+
   const { data, error } = await supabase
     .from("user_profiles")
     .select("*")
     .eq("id", userId)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    console.error("Error fetching user profile:", error);
+    console.log("⚠️ DEBUG getUserProfile: Error fetching profile:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
     return null;
   }
 
+  if (!data) {
+    console.log("ℹ️ DEBUG getUserProfile: No profile found (will create)");
+    return null;
+  }
+
+  console.log("✅ DEBUG getUserProfile: Profile found:", data);
   return data;
 }
 
@@ -150,8 +163,22 @@ export async function canGenerateInvite(
  * Ensure user profile exists (create if needed)
  */
 export async function ensureUserProfile(userId: string, displayName?: string) {
+  console.log("🔧 DEBUG ensureUserProfile: Starting for", {
+    userId,
+    displayName,
+  });
+
   const existing = await getUserProfile(userId);
-  if (existing) return existing;
+  if (existing) {
+    console.log("✅ DEBUG ensureUserProfile: Profile already exists");
+    return existing;
+  }
+
+  console.log("📝 DEBUG ensureUserProfile: Creating new profile", {
+    id: userId,
+    plan: "free",
+    display_name: displayName || null,
+  });
 
   // Create new profile with free plan
   const { data, error } = await supabase
@@ -165,9 +192,18 @@ export async function ensureUserProfile(userId: string, displayName?: string) {
     .single();
 
   if (error) {
-    console.error("Error creating user profile:", error);
+    console.error("❌ DEBUG ensureUserProfile: Error creating profile:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
     return null;
   }
 
+  console.log(
+    "✅ DEBUG ensureUserProfile: Profile created successfully:",
+    data
+  );
   return data;
 }
