@@ -36,6 +36,24 @@ exists (
 )
 ```
 
+## Admin Management Pattern
+
+To allow admins to manage members without creating policy recursion on `kitchen_members`, use a security definer helper function and call it from policies:
+
+```sql
+create function is_kitchen_admin(kitchen_id uuid)
+returns boolean as $$
+  select exists (
+    select 1 from kitchen_members
+    where kitchen_members.kitchen_id = $1
+    and kitchen_members.user_id = auth.uid()
+    and kitchen_members.role in ('owner', 'admin')
+  );
+$$ language sql security definer;
+```
+
+Then in your policies you can safely check `is_kitchen_admin(<table>.kitchen_id)` without referencing `kitchen_members` in its own RLS, avoiding recursion. Prefer owner-only until admin delegation is required.
+
 ## Enums
 
 ```sql

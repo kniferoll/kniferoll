@@ -47,7 +47,11 @@ export function Dashboard() {
   };
 
   const handleCreateKitchen = () => {
-    if (!limits?.canCreateKitchen) {
+    // Avoid false paywall before limits load
+    if (!limits) {
+      return; // optionally show a loading state
+    }
+    if (!limits.canCreateKitchen) {
       showKitchenPaywall();
       return;
     }
@@ -86,7 +90,8 @@ export function Dashboard() {
             </p>
             <Button
               onClick={handleCreateKitchen}
-              className="bg-blue-600 text-white hover:bg-blue-700"
+              disabled={loading || !limits}
+              className="bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
             >
               Create Kitchen
             </Button>
@@ -123,7 +128,11 @@ export function Dashboard() {
                 <p className="text-gray-600 dark:text-gray-400 mb-4">
                   Manage multiple kitchens with your account
                 </p>
-                <Button onClick={handleCreateKitchen} variant="primary">
+                <Button
+                  onClick={handleCreateKitchen}
+                  disabled={loading || !limits}
+                  variant="primary"
+                >
                   Create New Kitchen
                 </Button>
               </div>

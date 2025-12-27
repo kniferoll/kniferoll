@@ -1,9 +1,19 @@
 import { defineConfig } from "vite";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vite.dev/config/
+// Resolve repo root so Vite reads env files from the monorepo root
+const rootDir = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  ".."
+);
+
 export default defineConfig({
+  envDir: rootDir,
   plugins: [
     react(),
     VitePWA({

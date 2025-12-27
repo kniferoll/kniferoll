@@ -502,7 +502,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_kitchen_member: { Args: { kitchen_id: string }; Returns: boolean }
+      is_kitchen_owner: { Args: { kitchen_id: string }; Returns: boolean }
     }
     Enums: {
       member_role: "owner" | "admin" | "member"
