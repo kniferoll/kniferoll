@@ -60,6 +60,7 @@ export function PrepItemEntryForm({
       const searchTerm = description.toLowerCase().trim();
       const filtered = allSuggestions
         .filter((s) => s.description.toLowerCase().includes(searchTerm))
+        .filter((s) => s.description.toLowerCase() !== searchTerm) // Don't show exact matches
         .slice(0, 5); // Limit to 5 results
       setFilteredAutocomplete(filtered);
       setShowAutocomplete(filtered.length > 0);
@@ -170,18 +171,28 @@ export function PrepItemEntryForm({
 
     try {
       const parsedQuantity = quantity ? parseFloat(quantity) : null;
-      await onAddItem(description.trim(), selectedUnitId, parsedQuantity);
+      const result = await onAddItem(
+        description.trim(),
+        selectedUnitId,
+        parsedQuantity
+      );
 
-      // Clear form after successful submission
-      setDescription("");
-      setSelectedUnitId(null);
-      setQuantity("");
-      setIsFormFocused(false);
+      // Only clear form if submission was successful (no error returned)
+      if (!result?.error) {
+        setDescription("");
+        setSelectedUnitId(null);
+        setQuantity("");
+        setIsFormFocused(false);
+        setShowAutocomplete(false);
+        setShowUnitPicker(false);
 
-      // Focus back to description for next item
-      setTimeout(() => {
-        descriptionInputRef.current?.focus();
-      }, 0);
+        // Focus back to description for next item
+        setTimeout(() => {
+          descriptionInputRef.current?.focus();
+        }, 0);
+      }
+    } catch (error) {
+      console.error("Error adding item:", error);
     } finally {
       isSubmitting.current = false;
     }

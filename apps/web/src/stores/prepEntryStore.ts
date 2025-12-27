@@ -261,8 +261,13 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
               item.shift_name === shiftName
           );
         if (isCurrentView) {
+          // Include unit_name from the unit object we already have
+          const itemWithUnitName = {
+            ...newPrepItem,
+            unit_name: unit?.name || null,
+          };
           usePrepStore.setState({
-            prepItems: [...currentItems, newPrepItem],
+            prepItems: [...currentItems, itemWithUnitName],
           });
         }
       }
@@ -276,7 +281,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         .select("id, use_count")
         .eq("kitchen_id", kitchenId)
         .ilike("description", normalizedDesc)
-        .single();
+        .maybeSingle();
 
       if (existingSuggestion) {
         // Update existing
