@@ -28,6 +28,8 @@ export function PrepItemList({
 }: PrepItemListProps) {
   // Maintain display order in local state
   const [displayOrder, setDisplayOrder] = useState<string[]>([]);
+  // Track which item is in delete confirmation mode
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
   // Sort items when shouldSort is true, otherwise maintain current order
   useEffect(() => {
@@ -139,7 +141,7 @@ export function PrepItemList({
           <div
             key={item.id}
             className={`
-              flex items-start gap-3 px-4 py-3 rounded-lg
+              flex items-center gap-3 px-4 py-3 rounded-lg
               ${
                 item.status === "partial"
                   ? "bg-yellow-50 dark:bg-yellow-950/20"
@@ -163,10 +165,10 @@ export function PrepItemList({
               {getStatusIcon(item.status)}
             </button>
 
-            {/* Description and Pill Container */}
+            {/* Description */}
             <div className="flex-1 min-w-0">
-              {/* Desktop: inline description and pill */}
-              <div className="sm:flex sm:items-center sm:gap-2">
+              {/* Mobile: description and pill stacked */}
+              <div className="sm:hidden">
                 <span
                   className={`block text-base ${
                     item.status === "complete"
@@ -179,8 +181,8 @@ export function PrepItemList({
                 {pillText && (
                   <span
                     className={`
-                      hidden sm:inline-flex
-                      px-2.5 py-1 rounded-full text-sm font-medium shrink-0
+                      block mt-1
+                      px-2.5 py-1 rounded-full text-sm font-medium w-fit
                       ${
                         item.status === "complete"
                           ? "bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500"
@@ -192,49 +194,94 @@ export function PrepItemList({
                   </span>
                 )}
               </div>
-              {/* Mobile: pill below description */}
-              {pillText && (
-                <span
-                  className={`
-                    sm:hidden block mt-1
-                    px-2.5 py-1 rounded-full text-sm font-medium w-fit
-                    ${
-                      item.status === "complete"
-                        ? "bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500"
-                        : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
-                    }
-                  `.trim()}
-                >
-                  {pillText}
-                </span>
-              )}
+              {/* Desktop: description only */}
+              <span
+                className={`hidden sm:block text-base ${
+                  item.status === "complete"
+                    ? "text-gray-400 dark:text-slate-500 line-through"
+                    : "text-gray-900 dark:text-slate-50"
+                }`}
+              >
+                {item.description}
+              </span>
             </div>
 
-            {/* Delete Button */}
-            <button
-              onClick={() => {
-                if (confirm("Delete this prep item?")) {
-                  onDelete(item.id);
-                }
-              }}
-              disabled={disabled}
-              className="shrink-0 w-11 h-11 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors disabled:opacity-50"
-              aria-label="Delete"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {/* Badge - Desktop only, right side */}
+            {pillText && (
+              <span
+                className={`
+                  hidden sm:inline-flex
+                  px-2.5 py-1 rounded-full text-sm font-medium shrink-0
+                  ${
+                    item.status === "complete"
+                      ? "bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500"
+                      : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
+                  }
+                `.trim()}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
+                {pillText}
+              </span>
+            )}
+
+            {/* Delete/Confirm Button */}
+            {deletingItemId === item.id ? (
+              <div className="shrink-0 flex items-center gap-1">
+                {/* Confirm Delete */}
+                <button
+                  onClick={async () => {
+                    await onDelete(item.id);
+                    setDeletingItemId(null);
+                  }}
+                  disabled={disabled}
+                  className="w-9 h-9 flex items-center justify-center text-green-500 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded transition-colors disabled:opacity-50"
+                  aria-label="Confirm delete"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                  </svg>
+                </button>
+                {/* Cancel Delete */}
+                <button
+                  onClick={() => setDeletingItemId(null)}
+                  disabled={disabled}
+                  className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors disabled:opacity-50"
+                  aria-label="Cancel delete"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setDeletingItemId(item.id)}
+                disabled={disabled}
+                className="shrink-0 w-11 h-11 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors disabled:opacity-50"
+                aria-label="Delete"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
         );
       })}

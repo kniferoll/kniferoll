@@ -5,6 +5,7 @@ import { useAuthStore } from "../stores/authStore";
 import { supabase } from "../lib/supabase";
 import QRCode from "qrcode";
 import {
+  Header,
   DateCalendar,
   ShiftToggle,
   StationCard,
@@ -179,52 +180,50 @@ export function ChefDashboard() {
     );
   }
 
+  const [showMenu, setShowMenu] = useState(false);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          {/* Mobile layout */}
-          <div className="flex flex-col md:hidden gap-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-50 truncate flex-1">
-                {currentKitchen.name}
-              </h1>
-              <button
-                onClick={handleSignOut}
-                className="text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 whitespace-nowrap"
-              >
-                Sign Out
-              </button>
-            </div>
-            <div className="flex justify-center">
-              <DateCalendar
-                selectedDate={selectedDate}
-                onDateSelect={setSelectedDate}
-                closedDays={currentKitchen?.closed_days || []}
-              />
-            </div>
-          </div>
-
-          {/* Desktop layout */}
-          <div className="hidden md:flex items-center justify-between gap-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-50">
-              {currentKitchen.name}
-            </h1>
+      <Header
+        title={currentKitchen.name}
+        rightContent={
+          <>
             <DateCalendar
               selectedDate={selectedDate}
               onDateSelect={setSelectedDate}
               closedDays={currentKitchen?.closed_days || []}
             />
-            <button
-              onClick={handleSignOut}
-              className="text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </header>
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="inline-flex items-center justify-center rounded-md text-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 p-2 transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 8c1.1 0 2-1 2-2s-1-2-2-2-2 1-2 2 1 2 2 2zm0 2c-1.1 0-2 1-2 2s1 2 2 2 2-1 2-2-1-2-2-2zm0 6c-1.1 0-2 1-2 2s1 2 2 2 2-1 2-2-1-2-2-2z" />
+                </svg>
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 py-1 z-20">
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setShowMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        }
+      />
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Shift Toggle and Share Button */}

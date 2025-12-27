@@ -212,7 +212,6 @@ export function DateCalendar({
 
   const selectedDateObj = toLocalDate(selectedDate);
   const todayString = getTodayLocalDate();
-
   const isToday = selectedDate === todayString;
 
   const formattedDate = selectedDateObj.toLocaleDateString("en-US", {
@@ -245,10 +244,14 @@ export function DateCalendar({
       {/* Minimal date display button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        className="inline-flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/10 border-2 border-gray-300 dark:border-white/20 rounded-lg hover:bg-gray-50 dark:hover:bg-white/20 transition-colors text-sm font-semibold text-gray-900 dark:text-white"
       >
         <svg
-          className="w-5 h-5 text-gray-600 dark:text-slate-400"
+          className={`w-5 h-5 transition-colors ${
+            isToday
+              ? "text-blue-500 dark:text-blue-400"
+              : "text-gray-600 dark:text-white/70"
+          }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -260,21 +263,12 @@ export function DateCalendar({
             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
           />
         </svg>
-        <div className="text-left">
-          <div className="text-sm font-semibold text-gray-900 dark:text-slate-50">
-            {formattedDate}
-          </div>
-          {isToday && (
-            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-              Today
-            </div>
-          )}
-        </div>
+        {formattedDate}
       </button>
 
       {/* Dropdown with calendar grid */}
       {isOpen && (
-        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-50 animate-slideDown">
+        <div className="absolute top-full mt-2 left-0 md:left-auto md:right-0 z-50 animate-slideDown">
           <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 shadow-lg dark:shadow-xl p-4">
             <CalendarGrid
               selectedDate={selectedDate}

@@ -10,7 +10,7 @@ interface PrepItemEntryFormProps {
     description: string,
     unitId: string | null,
     quantity: number | null
-  ) => Promise<void>;
+  ) => Promise<{ error?: any } | void>;
   onDismissSuggestion: (suggestionId: string) => void;
   disabled?: boolean;
   isLoading?: boolean;
@@ -327,7 +327,7 @@ export function PrepItemEntryForm({
 
           {/* Collapsible Units Row - Only shown when focused */}
           {isFormFocused && (
-            <div className="flex flex-wrap gap-1.5 max-h-[4.5rem] overflow-hidden">
+            <div className="flex flex-wrap gap-1.5 max-h-18 overflow-hidden">
               {orderedUnits.slice(0, 8).map((unit, index) => (
                 <button
                   key={unit.id}

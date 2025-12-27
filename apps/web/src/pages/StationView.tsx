@@ -135,9 +135,7 @@ export function StationView() {
   };
 
   const handleDelete = async (itemId: string) => {
-    if (confirm("Delete this prep item?")) {
-      await deletePrepItem(itemId);
-    }
+    await deletePrepItem(itemId);
   };
 
   const handleDismissSuggestion = async (suggestionId: string) => {
