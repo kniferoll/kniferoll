@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 interface ButtonProps {
   children: ReactNode;
@@ -10,7 +10,7 @@ interface ButtonProps {
   fullWidth?: boolean;
 }
 
-export function Button({
+const ButtonInner = ({
   children,
   onClick,
   type = "button",
@@ -18,7 +18,7 @@ export function Button({
   disabled = false,
   className = "",
   fullWidth = false,
-}: ButtonProps) {
+}: ButtonProps) => {
   const baseStyles = "py-2 px-4 rounded-lg font-semibold transition-colors";
   const variantStyles = {
     primary:
@@ -40,4 +40,6 @@ export function Button({
       {children}
     </button>
   );
-}
+};
+
+export const Button = memo(ButtonInner);

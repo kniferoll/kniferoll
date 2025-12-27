@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { ProgressBar } from "./ProgressBar";
 
 interface StationCardProps {
@@ -8,13 +9,13 @@ interface StationCardProps {
   onClick: () => void;
 }
 
-export function StationCard({
+const StationCardInner = ({
   name,
   completed,
   partial,
   pending,
   onClick,
-}: StationCardProps) {
+}: StationCardProps) => {
   return (
     <button
       onClick={onClick}
@@ -27,4 +28,6 @@ export function StationCard({
       <ProgressBar completed={completed} partial={partial} pending={pending} />
     </button>
   );
-}
+};
+
+export const StationCard = memo(StationCardInner);

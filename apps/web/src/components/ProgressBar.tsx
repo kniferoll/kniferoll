@@ -1,10 +1,16 @@
+import { memo } from "react";
+
 interface ProgressBarProps {
   completed: number;
   partial: number;
   pending: number;
 }
 
-export function ProgressBar({ completed, partial, pending }: ProgressBarProps) {
+const ProgressBarInner = ({
+  completed,
+  partial,
+  pending,
+}: ProgressBarProps) => {
   const total = completed + partial + pending;
   const completedPercentage = total > 0 ? (completed / total) * 100 : 0;
   const partialPercentage = total > 0 ? (partial / total) * 100 : 0;
@@ -59,4 +65,6 @@ export function ProgressBar({ completed, partial, pending }: ProgressBarProps) {
       </div>
     </div>
   );
-}
+};
+
+export const ProgressBar = memo(ProgressBarInner);

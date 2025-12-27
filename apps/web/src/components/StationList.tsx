@@ -1,3 +1,5 @@
+import { memo, useCallback } from "react";
+
 interface StationListProps {
   stations: string[];
   onRemove: (index: number) => void;
@@ -6,19 +8,22 @@ interface StationListProps {
   onAddStation: () => void;
 }
 
-export function StationList({
+const StationListInner = ({
   stations,
   onRemove,
   newStation,
   onNewStationChange,
   onAddStation,
-}: StationListProps) {
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onAddStation();
-    }
-  };
+}: StationListProps) => {
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onAddStation();
+      }
+    },
+    [onAddStation]
+  );
 
   return (
     <div>
@@ -61,4 +66,6 @@ export function StationList({
       </div>
     </div>
   );
-}
+};
+
+export const StationList = memo(StationListInner);

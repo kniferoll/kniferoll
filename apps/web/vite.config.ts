@@ -31,6 +31,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+        // Optimize build size for service worker
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
@@ -38,13 +39,42 @@ export default defineConfig({
             options: {
               cacheName: "supabase-cache",
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+                maxEntries: 20, // Reduced from 50
+                maxAgeSeconds: 60 * 60 * 12, // Reduced from 24 hours to 12
               },
             },
           },
         ],
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks
+          "vendor-react": ["react", "react-dom"],
+          "vendor-supabase": ["@supabase/supabase-js"],
+          "vendor-react-query": ["@tanstack/react-query"],
+          "vendor-router": ["react-router-dom"],
+          "vendor-zustand": ["zustand"],
+          // Library chunks
+          "lib-analytics": [
+            "@vercel/analytics/react",
+            "@vercel/speed-insights/react",
+          ],
+          "lib-qr": ["qrcode"],
+        },
+      },
+    },
+    // Reduce initial chunk size
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      },
+    },
+  },
 });

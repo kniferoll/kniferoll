@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import type { PrepStatus } from "@kniferoll/types";
 
 interface PrepItem {
@@ -19,7 +19,7 @@ interface PrepItemListProps {
   shouldSort?: boolean;
 }
 
-export function PrepItemList({
+function PrepItemListInner({
   items,
   onCycleStatus,
   onDelete,
@@ -288,3 +288,5 @@ export function PrepItemList({
     </div>
   );
 }
+
+export const PrepItemList = memo(PrepItemListInner);
