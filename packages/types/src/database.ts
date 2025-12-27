@@ -39,6 +39,60 @@ export type Database = {
   };
   public: {
     Tables: {
+      invite_codes: {
+        Row: {
+          code: string;
+          created_at: string | null;
+          created_by: string | null;
+          current_uses: number;
+          expires_at: string;
+          id: string;
+          is_active: boolean;
+          kitchen_id: string;
+          max_uses: number;
+          updated_at: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string | null;
+          created_by?: string | null;
+          current_uses?: number;
+          expires_at: string;
+          id?: string;
+          is_active?: boolean;
+          kitchen_id: string;
+          max_uses?: number;
+          updated_at?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string | null;
+          created_by?: string | null;
+          current_uses?: number;
+          expires_at?: string;
+          id?: string;
+          is_active?: boolean;
+          kitchen_id?: string;
+          max_uses?: number;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invite_codes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "session_users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invite_codes_kitchen_id_fkey";
+            columns: ["kitchen_id"];
+            isOneToOne: false;
+            referencedRelation: "kitchens";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       kitchen_item_suggestions: {
         Row: {
           created_at: string | null;
@@ -545,7 +599,25 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      seed_default_units: { Args: { kitchen_id: string }; Returns: undefined };
+      cleanup_expired_invite_codes: {
+        Args: never;
+        Returns: {
+          deleted_count: number;
+        }[];
+      };
+      generate_invite_code: { Args: never; Returns: string };
+      seed_default_units: {
+        Args: { p_kitchen_id: string };
+        Returns: undefined;
+      };
+      validate_and_use_invite_code: {
+        Args: { p_code: string; p_kitchen_id: string };
+        Returns: {
+          error_message: string;
+          result_kitchen_id: string;
+          valid: boolean;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;

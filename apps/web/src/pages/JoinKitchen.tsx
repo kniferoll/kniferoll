@@ -1,23 +1,37 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { useKitchenStore } from "../stores/kitchenStore";
+import { supabase } from "../lib/supabase";
 import {
   CodeInput,
   NameInput,
   StationSelector,
   ErrorAlert,
+  InviteCodeInput,
 } from "../components";
 
-type Step = "code" | "name" | "station";
+type Step = "code" | "name" | "station" | "invite" | "method";
 
 export function JoinKitchen() {
   const { code: codeParam } = useParams();
-  const [step, setStep] = useState<Step>("code");
+  const [step, setStep] = useState<Step>(codeParam ? "code" : "method");
   const [code, setCode] = useState(codeParam?.toUpperCase() || "");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [validating, setValidating] = useState(false);
-  const { joinKitchen, claimStation, stations, loading } = useKitchenStore();
+  const [joinMethod, setJoinMethod] = useState<
+    "kitchen-code" | "invite-code" | null
+  >(null);
+  const [inviteKitchenId, setInviteKitchenId] = useState<string | null>(null);
+  const {
+    joinKitchen,
+    claimStation,
+    stations,
+    loading,
+    currentKitchen,
+    sessionUser,
+    loadKitchen,
+  } = useKitchenStore();
   const navigate = useNavigate();
 
   // Load saved name from session storage
@@ -30,10 +44,20 @@ export function JoinKitchen() {
 
   useEffect(() => {
     if (codeParam) {
-      setCode(codeParam.toUpperCase());
-      setStep("name");
+      const normalized = codeParam.toUpperCase();
+      setCode(normalized);
+      setJoinMethod("kitchen-code");
+      // If the user has already joined this kitchen, show station selection
+      if (
+        currentKitchen?.join_code?.toUpperCase() === normalized &&
+        !!sessionUser
+      ) {
+        setStep("station");
+      } else {
+        setStep("name");
+      }
     }
-  }, [codeParam]);
+  }, [codeParam, currentKitchen?.join_code, sessionUser]);
 
   // Auto-validate code when 6 characters are entered
   useEffect(() => {
@@ -42,11 +66,24 @@ export function JoinKitchen() {
       setError("");
       // Small delay for better UX
       setTimeout(() => {
+        // Put the join code in the URL so back goes to /join/:code
+        const upper = code.toUpperCase();
+        if (!codeParam || codeParam.toUpperCase() !== upper) {
+          navigate(`/join/${upper}`, { replace: true });
+        }
         setStep("name");
         setValidating(false);
       }, 300);
     }
   }, [code, step, validating]);
+
+  // If user already joined a kitchen and lands on /join without a code,
+  // redirect them to /join/:code so back from station goes to station selection
+  useEffect(() => {
+    if (!codeParam && currentKitchen?.join_code && sessionUser) {
+      navigate(`/join/${currentKitchen.join_code}`, { replace: true });
+    }
+  }, [codeParam, currentKitchen?.join_code, sessionUser, navigate]);
 
   const handleNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,11 +92,45 @@ export function JoinKitchen() {
     // Store name in session for future use
     sessionStorage.setItem("kniferoll_username", name.trim());
 
-    const result = await joinKitchen(code, name.trim());
-    if (result.error) {
-      setError(result.error);
+    if (joinMethod === "invite-code" && inviteKitchenId) {
+      // For invite codes, we already have the kitchen_id
+      // Create a session user directly
+      try {
+        const deviceToken =
+          sessionStorage.getItem("device_token") || `device_${Date.now()}`;
+        sessionStorage.setItem("device_token", deviceToken);
+
+        const { data: sessionUser, error: sessionError } = await supabase
+          .from("session_users")
+          .upsert({
+            kitchen_id: inviteKitchenId,
+            name: name.trim(),
+            device_token: deviceToken,
+          })
+          .select()
+          .single();
+
+        if (sessionError || !sessionUser) {
+          setError(sessionError?.message || "Failed to create session");
+          return;
+        }
+
+        // Load the kitchen using the store
+        await loadKitchen(inviteKitchenId);
+
+        navigate(`/join/${inviteKitchenId}/stations`, { replace: true });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      }
     } else {
-      setStep("station");
+      // For regular join codes
+      const upper = code.toUpperCase();
+      const result = await joinKitchen(upper, name.trim());
+      if (result.error) {
+        setError(result.error);
+      } else {
+        navigate(`/join/${upper}/stations`, { replace: true });
+      }
     }
   };
 
@@ -90,8 +161,50 @@ export function JoinKitchen() {
 
         {error && <ErrorAlert message={error} />}
 
+        {step === "method" && (
+          <div className="space-y-4">
+            <button
+              onClick={() => setStep("code")}
+              className="w-full p-4 border-2 border-gray-300 dark:border-slate-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition text-left"
+            >
+              <div className="font-semibold text-gray-900 dark:text-white">
+                Join with Kitchen Code
+              </div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">
+                Use the permanent code
+              </div>
+            </button>
+
+            <button
+              onClick={() => setStep("invite")}
+              className="w-full p-4 border-2 border-gray-300 dark:border-slate-700 rounded-lg hover:border-green-500 dark:hover:border-green-400 transition text-left"
+            >
+              <div className="font-semibold text-gray-900 dark:text-white">
+                Join with Invite Code
+              </div>
+              <div className="text-sm text-gray-600 dark:text-slate-400">
+                Use a temporary code from someone
+              </div>
+            </button>
+          </div>
+        )}
+
         {step === "code" && (
           <CodeInput value={code} onChange={setCode} validating={validating} />
+        )}
+
+        {step === "invite" && (
+          <InviteCodeInput
+            kitchenId={currentKitchen?.id}
+            onSuccess={(foundKitchenId) => {
+              if (foundKitchenId) {
+                setJoinMethod("invite-code");
+                setInviteKitchenId(foundKitchenId);
+                setStep("name");
+              }
+            }}
+            onCancel={() => setStep("method")}
+          />
         )}
 
         {step === "name" && (

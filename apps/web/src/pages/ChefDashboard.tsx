@@ -12,6 +12,7 @@ import {
   JoinCodeModal,
   Button,
   SkeletonStationCard,
+  ShareModal,
 } from "../components";
 import { toLocalDate } from "../lib/dateUtils";
 
@@ -38,6 +39,7 @@ export function ChefDashboard() {
   const [progress, setProgress] = useState<StationProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [showJoinCode, setShowJoinCode] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const navigate = useNavigate();
 
@@ -238,8 +240,22 @@ export function ChefDashboard() {
             onShiftChange={setSelectedShift}
           />
 
-          <Button onClick={() => setShowJoinCode(true)}>Share Join Code</Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowShareModal(true)}>
+              Share Kitchen
+            </Button>
+            <Button onClick={() => setShowJoinCode(true)} variant="secondary">
+              Share Join Code
+            </Button>
+          </div>
         </div>
+
+        {/* Share Modal */}
+        <ShareModal
+          kitchenId={currentKitchen.id}
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+        />
 
         {/* Join Code Modal */}
         {showJoinCode && (

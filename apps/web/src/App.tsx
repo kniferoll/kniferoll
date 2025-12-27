@@ -28,6 +28,11 @@ const ChefDashboard = lazy(() =>
 const StationView = lazy(() =>
   import("./pages/StationView").then((m) => ({ default: m.StationView }))
 );
+const StationSelection = lazy(() =>
+  import("./pages/StationSelection").then((m) => ({
+    default: m.StationSelection,
+  }))
+);
 
 function LoadingFallback() {
   return (
@@ -64,6 +69,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/join" element={<JoinKitchen />} />
           <Route path="/join/:code" element={<JoinKitchen />} />
+          <Route path="/join/:code/stations" element={<StationSelection />} />
           <Route path="/kitchen/new" element={<KitchenOnboarding />} />
           <Route path="/dashboard" element={<ChefDashboard />} />
           <Route path="/station/:id" element={<StationView />} />

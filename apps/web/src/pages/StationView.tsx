@@ -14,6 +14,7 @@ import {
   PrepItemList,
   ProgressBar,
   SkeletonList,
+  CookInviteButton,
 } from "../components";
 import { toLocalDate } from "../lib/dateUtils";
 
@@ -187,7 +188,13 @@ export function StationView() {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() =>
+                navigate(
+                  currentKitchen?.join_code
+                    ? `/join/${currentKitchen.join_code}/stations`
+                    : "/join"
+                )
+              }
               className="text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200"
             >
               ← Back
@@ -201,13 +208,22 @@ export function StationView() {
           </div>
 
           {/* Shift Toggle or Closed Notice */}
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1" />
             <ShiftToggle
               shifts={availableShifts}
               currentShift={selectedShift}
               onShiftChange={setSelectedShift}
               disabled={isClosed}
             />
+            <div className="flex-1 flex justify-end">
+              {sessionUser && currentKitchen && (
+                <CookInviteButton
+                  kitchenId={currentKitchen.id}
+                  cookSessionUserId={sessionUser.id}
+                />
+              )}
+            </div>
           </div>
 
           {/* Progress and Overflow Menu */}
