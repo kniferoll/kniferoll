@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useKitchenStore } from "../stores/kitchenStore";
 import { supabase, getDeviceToken } from "../lib/supabase";
 import type { KitchenUnit } from "@kniferoll/types";
@@ -100,17 +101,18 @@ export function UnitPickerModal({
   };
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    return createPortal(
+      <div className="fixed inset-0 bg-gray-500/50 dark:bg-slate-950/50 flex items-center justify-center z-50">
         <div className="bg-white dark:bg-slate-900 rounded-lg p-6 max-w-md w-full mx-4">
           <p className="text-gray-600 dark:text-slate-400">Loading units...</p>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  return createPortal(
+    <div className="fixed inset-0 bg-gray-500/50 dark:bg-slate-950/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-slate-900 rounded-lg max-w-md w-full max-h-[80vh] flex flex-col">
         <div className="flex justify-between items-center p-4 border-b dark:border-slate-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-50">
@@ -248,6 +250,7 @@ export function UnitPickerModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

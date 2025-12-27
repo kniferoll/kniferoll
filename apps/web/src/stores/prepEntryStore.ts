@@ -33,6 +33,7 @@ interface PrepEntryState {
   // Suggestions and units
   suggestions: RecencyScoredSuggestion[];
   allRankedSuggestions: RecencyScoredSuggestion[]; // Keep all ranked suggestions to fill gaps when dismissing
+  masterSuggestions: RecencyScoredSuggestion[]; // All suggestions without currentItems filter for autocomplete
   currentItems: DbPrepItem[]; // Current items in the view for filtering suggestions
   quickUnits: DbKitchenUnit[];
   allUnits: DbKitchenUnit[];
@@ -75,6 +76,7 @@ interface PrepEntryState {
 export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
   suggestions: [],
   allRankedSuggestions: [],
+  masterSuggestions: [],
   currentItems: [],
   quickUnits: [],
   allUnits: [],
@@ -154,6 +156,14 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
           dismissedResponse?.data?.map((d) => d.suggestion_id) || []
         );
 
+        // Create master list (no currentItems filter) for autocomplete
+        const masterRanked = rankSuggestions(
+          allSuggestions,
+          new Set(), // Don't filter dismissed
+          [], // Don't filter by currentItems for autocomplete
+          null // Get all ranked suggestions
+        );
+
         // Rank all suggestions (don't filter out dismissed yet, and get all of them)
         const allRanked = rankSuggestions(
           allSuggestions,
@@ -170,6 +180,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         );
 
         set({
+          masterSuggestions: masterRanked,
           allRankedSuggestions: allRanked,
           currentItems,
           suggestions: displayed,

@@ -18,6 +18,8 @@ interface StationProgress {
   stationName: string;
   total: number;
   completed: number;
+  partial: number;
+  pending: number;
 }
 
 export function ChefDashboard() {
@@ -88,20 +90,26 @@ export function ChefDashboard() {
       for (const station of stations) {
         const { data: items } = await supabase
           .from("prep_items")
-          .select("id, completed")
+          .select("id, status")
           .eq("station_id", station.id)
           .eq("shift_date", selectedDate)
           .eq("shift_name", selectedShift);
 
         const total = items?.length || 0;
         const completed =
-          items?.filter((i) => i.completed === true).length || 0;
+          items?.filter((i) => i.status === "complete").length || 0;
+        const partial =
+          items?.filter((i) => i.status === "partial").length || 0;
+        const pending =
+          items?.filter((i) => i.status === "pending" || !i.status).length || 0;
 
         progressData.push({
           stationId: station.id,
           stationName: station.name,
           total,
           completed,
+          partial,
+          pending,
         });
       }
 
@@ -221,7 +229,8 @@ export function ChefDashboard() {
               key={station.stationId}
               name={station.stationName}
               completed={station.completed}
-              total={station.total}
+              partial={station.partial}
+              pending={station.pending}
               onClick={() => navigate(`/station/${station.stationId}`)}
             />
           ))}

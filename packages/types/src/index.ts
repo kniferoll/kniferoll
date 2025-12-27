@@ -14,6 +14,9 @@ export type DbKitchenItemSuggestion =
 export type DbUserSuggestionDismissal =
   Database["public"]["Tables"]["user_suggestion_dismissals"]["Row"];
 
+// Prep item status enum
+export type PrepStatus = "pending" | "partial" | "complete";
+
 // App-specific types
 export interface ShiftConfig {
   name: string;

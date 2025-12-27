@@ -1,9 +1,19 @@
 import { create } from "zustand";
 import { supabase } from "../lib/supabase";
-import type { DbPrepItem, Database } from "@kniferoll/types";
+import type { DbPrepItem, Database, PrepStatus } from "@kniferoll/types";
 
 type PrepItemInsert = Database["public"]["Tables"]["prep_items"]["Insert"];
 type PrepItemUpdate = Database["public"]["Tables"]["prep_items"]["Update"];
+
+// Helper function to cycle through status states
+function cycleStatus(current: PrepStatus | null): PrepStatus {
+  const cycle: Record<PrepStatus, PrepStatus> = {
+    pending: "partial",
+    partial: "complete",
+    complete: "pending",
+  };
+  return cycle[current || "pending"];
+}
 
 interface PrepState {
   prepItems: DbPrepItem[];
@@ -17,7 +27,10 @@ interface PrepState {
     shiftName: string
   ) => Promise<void>;
   addPrepItem: (item: PrepItemInsert) => Promise<{ error?: string }>;
-  toggleComplete: (itemId: string) => Promise<{ error?: string }>;
+  cycleStatus: (
+    itemId: string,
+    userName?: string
+  ) => Promise<{ error?: string }>;
   deletePrepItem: (itemId: string) => Promise<{ error?: string }>;
   updatePrepItem: (
     itemId: string,
@@ -36,7 +49,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from("prep_items")
-        .select("*")
+        .select("*, kitchen_units(name)")
         .eq("station_id", stationId)
         .eq("shift_date", shiftDate)
         .eq("shift_name", shiftName)
@@ -47,7 +60,14 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         return;
       }
 
-      set({ prepItems: data || [], loading: false });
+      // Map the joined data to include unit_name
+      const itemsWithUnitName = (data || []).map((item: any) => ({
+        ...item,
+        unit_name: item.kitchen_units?.name || null,
+        kitchen_units: undefined, // Remove nested object
+      }));
+
+      set({ prepItems: itemsWithUnitName, loading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       set({ loading: false, error: message });
@@ -61,7 +81,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
       const { data, error } = await supabase
         .from("prep_items")
         .insert(item)
-        .select()
+        .select("*, kitchen_units(name)")
         .single();
 
       if (error) {
@@ -69,8 +89,15 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         return { error: error.message };
       }
 
+      // Map the joined data to include unit_name
+      const itemWithUnitName = {
+        ...data,
+        unit_name: (data as any).kitchen_units?.name || null,
+        kitchen_units: undefined, // Remove nested object
+      };
+
       set((state) => ({
-        prepItems: [...state.prepItems, data],
+        prepItems: [...state.prepItems, itemWithUnitName],
         loading: false,
       }));
 
@@ -82,18 +109,28 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     }
   },
 
-  toggleComplete: async (itemId) => {
+  cycleStatus: async (itemId, userName) => {
     const { prepItems } = get();
     const item = prepItems.find((i) => i.id === itemId);
     if (!item) return { error: "Item not found" };
 
-    const newCompleted = !item.completed;
+    const newStatus = cycleStatus(item.status as PrepStatus | null);
+    const now = new Date().toISOString();
+
     const updates: PrepItemUpdate = {
-      completed: newCompleted,
-      completed_at: newCompleted ? new Date().toISOString() : null,
+      status: newStatus,
+      status_changed_at: now,
+      status_changed_by: userName || null,
+      // Set completed_at when status becomes complete, clear it otherwise
+      completed_at: newStatus === "complete" ? now : null,
     };
 
-    set({ loading: true, error: null });
+    // Optimistic update
+    set((state) => ({
+      prepItems: state.prepItems.map((i) =>
+        i.id === itemId ? { ...i, ...updates } : i
+      ),
+    }));
 
     try {
       const { error } = await supabase
@@ -102,21 +139,22 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         .eq("id", itemId);
 
       if (error) {
-        set({ loading: false, error: error.message });
+        // Revert on error
+        set((state) => ({
+          prepItems: state.prepItems.map((i) => (i.id === itemId ? item : i)),
+          error: error.message,
+        }));
         return { error: error.message };
       }
-
-      set((state) => ({
-        prepItems: state.prepItems.map((i) =>
-          i.id === itemId ? { ...i, ...updates } : i
-        ),
-        loading: false,
-      }));
 
       return {};
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      set({ loading: false, error: message });
+      // Revert on error
+      set((state) => ({
+        prepItems: state.prepItems.map((i) => (i.id === itemId ? item : i)),
+        error: message,
+      }));
       return { error: message };
     }
   },

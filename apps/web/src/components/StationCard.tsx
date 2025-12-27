@@ -3,18 +3,18 @@ import { ProgressBar } from "./ProgressBar";
 interface StationCardProps {
   name: string;
   completed: number;
-  total: number;
+  partial: number;
+  pending: number;
   onClick: () => void;
 }
 
 export function StationCard({
   name,
   completed,
-  total,
+  partial,
+  pending,
   onClick,
 }: StationCardProps) {
-  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-
   return (
     <button
       onClick={onClick}
@@ -24,16 +24,7 @@ export function StationCard({
         {name}
       </h3>
 
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-2xl font-bold text-gray-900 dark:text-slate-50">
-          {completed}/{total}
-        </span>
-        <span className="text-sm text-gray-600 dark:text-slate-400">
-          {percentage}%
-        </span>
-      </div>
-
-      <ProgressBar completed={completed} total={total} />
+      <ProgressBar completed={completed} partial={partial} pending={pending} />
     </button>
   );
 }
