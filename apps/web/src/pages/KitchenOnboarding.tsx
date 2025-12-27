@@ -262,10 +262,10 @@ export function KitchenOnboarding() {
           {/* Step 1: Kitchen Name */}
           {step === "name" && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-50 mb-2">
                 Name your kitchen
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-slate-400 mb-6">
                 What should we call this kitchen?
               </p>
               <input
@@ -273,7 +273,7 @@ export function KitchenOnboarding() {
                 value={kitchenName}
                 onChange={(e) => setKitchenName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleNext()}
-                className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 text-lg border-2 border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-50 placeholder-gray-500 dark:placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                 placeholder="e.g., Blue Duck Tavern"
                 autoFocus
               />
@@ -283,10 +283,12 @@ export function KitchenOnboarding() {
           {/* Step 2: Days Open */}
           {step === "days" && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-50 mb-2">
                 Which days are you open?
               </h2>
-              <p className="text-gray-600 mb-6">Tap any day to toggle closed</p>
+              <p className="text-gray-600 dark:text-slate-400 mb-6">
+                Tap any day to toggle closed
+              </p>
               <div className="grid grid-cols-7 gap-2">
                 {DAYS.map(({ key, label }) => (
                   <button
@@ -294,7 +296,7 @@ export function KitchenOnboarding() {
                     onClick={() => toggleDay(key)}
                     className={`py-4 rounded-lg font-semibold text-sm transition-all ${
                       closedDays.includes(key)
-                        ? "bg-gray-100 text-gray-400 line-through"
+                        ? "bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-400 line-through"
                         : "bg-blue-600 text-white hover:bg-blue-700"
                     }`}
                   >
@@ -308,10 +310,10 @@ export function KitchenOnboarding() {
           {/* Step 3: Shifts */}
           {step === "shifts" && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-50 mb-2">
                 Which shifts do you run?
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-slate-400 mb-6">
                 Select your shifts, then reorder them below
               </p>
 
@@ -323,7 +325,7 @@ export function KitchenOnboarding() {
                     className={`px-6 py-3 rounded-lg font-semibold text-lg transition-all ${
                       selectedShifts.includes(shift)
                         ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600"
                     }`}
                   >
                     {selectedShifts.includes(shift) && "✓ "}
@@ -335,7 +337,7 @@ export function KitchenOnboarding() {
               {/* Selected shifts with drag and drop reordering */}
               {selectedShifts.length > 0 && (
                 <div className="mb-6">
-                  <p className="text-sm text-gray-700 font-medium mb-3">
+                  <p className="text-sm text-gray-700 dark:text-slate-300 font-medium mb-3">
                     Your shifts (drag to reorder):
                   </p>
                   <div className="space-y-2">
@@ -349,15 +351,15 @@ export function KitchenOnboarding() {
                         onTouchStart={(e) => handleTouchStart(e, index)}
                         onTouchMove={handleTouchMove}
                         onTouchEnd={handleTouchEnd}
-                        className={`flex items-center gap-3 bg-blue-50 border-2 rounded-lg p-4 cursor-move touch-none transition-all ${
+                        className={`flex items-center gap-3 bg-blue-50 dark:bg-slate-800 border-2 rounded-lg p-4 cursor-move touch-none transition-all ${
                           draggedShiftIndex === index ||
                           touchDragIndex === index
                             ? "opacity-50 border-blue-400 scale-105"
-                            : "border-blue-200 hover:border-blue-400 hover:shadow-md"
+                            : "border-blue-200 dark:border-slate-600 hover:border-blue-400 dark:hover:border-slate-500 hover:shadow-md"
                         }`}
                       >
                         {/* Drag handle icon */}
-                        <div className="text-gray-400">
+                        <div className="text-gray-400 dark:text-slate-500">
                           <svg
                             className="w-5 h-5"
                             fill="currentColor"
@@ -373,7 +375,7 @@ export function KitchenOnboarding() {
                         </div>
 
                         {/* Shift name */}
-                        <div className="flex-1 font-semibold text-gray-900 text-lg">
+                        <div className="flex-1 font-semibold text-gray-900 dark:text-slate-100 text-lg">
                           {shift}
                         </div>
 
@@ -398,12 +400,12 @@ export function KitchenOnboarding() {
                   onKeyDown={(e) =>
                     e.key === "Enter" && (e.preventDefault(), addCustomShift())
                   }
-                  className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-50 placeholder-gray-500 dark:placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   placeholder="Add custom shift (e.g., Brunch, Late Night)"
                 />
                 <button
                   onClick={addCustomShift}
-                  className="px-6 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+                  className="px-6 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg font-medium text-gray-900 dark:text-slate-100 transition-colors"
                 >
                   + Add
                 </button>
@@ -414,10 +416,10 @@ export function KitchenOnboarding() {
           {/* Step 4: Schedule Mode */}
           {step === "schedule-mode" && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-50 mb-2">
                 Different shifts on different days?
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-slate-400 mb-6">
                 Most kitchens have the same shifts every day
               </p>
 
@@ -426,21 +428,23 @@ export function KitchenOnboarding() {
                   onClick={() => setScheduleMode("same")}
                   className={`w-full p-6 rounded-lg border-2 transition-all text-left ${
                     scheduleMode === "same"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
+                      ? "border-blue-500 bg-blue-50 dark:bg-slate-800 dark:border-blue-600"
+                      : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-semibold text-lg text-gray-900">
+                      <div className="font-semibold text-lg text-gray-900 dark:text-slate-100">
                         Same every day
                       </div>
-                      <div className="text-gray-600 mt-1">
+                      <div className="text-gray-600 dark:text-slate-400 mt-1">
                         {selectedShifts.join(", ")} on all open days
                       </div>
                     </div>
                     {scheduleMode === "same" && (
-                      <div className="text-blue-600 text-2xl">✓</div>
+                      <div className="text-blue-600 dark:text-blue-400 text-2xl">
+                        ✓
+                      </div>
                     )}
                   </div>
                 </button>
@@ -449,21 +453,23 @@ export function KitchenOnboarding() {
                   onClick={() => setScheduleMode("varies")}
                   className={`w-full p-6 rounded-lg border-2 transition-all text-left ${
                     scheduleMode === "varies"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
+                      ? "border-blue-500 bg-blue-50 dark:bg-slate-800 dark:border-blue-600"
+                      : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-semibold text-lg text-gray-900">
+                      <div className="font-semibold text-lg text-gray-900 dark:text-slate-100">
                         Varies by day
                       </div>
-                      <div className="text-gray-600 mt-1">
+                      <div className="text-gray-600 dark:text-slate-400 mt-1">
                         Configure each day separately
                       </div>
                     </div>
                     {scheduleMode === "varies" && (
-                      <div className="text-blue-600 text-2xl">✓</div>
+                      <div className="text-blue-600 dark:text-blue-400 text-2xl">
+                        ✓
+                      </div>
                     )}
                   </div>
                 </button>
@@ -471,8 +477,8 @@ export function KitchenOnboarding() {
 
               {/* Per-day configuration */}
               {scheduleMode === "varies" && (
-                <div className="border-t pt-6 space-y-4">
-                  <h3 className="font-semibold text-gray-900 mb-4">
+                <div className="border-t dark:border-slate-700 pt-6 space-y-4">
+                  <h3 className="font-semibold text-gray-900 dark:text-slate-100 mb-4">
                     Configure each day:
                   </h3>
                   {DAYS.map(({ key, label }) => {
@@ -482,17 +488,19 @@ export function KitchenOnboarding() {
                           key={key}
                           className="flex items-center justify-between py-2"
                         >
-                          <span className="font-medium text-gray-400 w-24">
+                          <span className="font-medium text-gray-400 dark:text-slate-500 w-24">
                             {label}
                           </span>
-                          <span className="text-gray-400 italic">Closed</span>
+                          <span className="text-gray-400 dark:text-slate-500 italic">
+                            Closed
+                          </span>
                         </div>
                       );
                     }
 
                     return (
                       <div key={key} className="flex items-start gap-3">
-                        <span className="font-medium text-gray-900 w-24 pt-2">
+                        <span className="font-medium text-gray-900 dark:text-slate-100 w-24 pt-2">
                           {label}
                         </span>
                         <div className="flex-1 flex flex-wrap gap-2">
@@ -503,7 +511,7 @@ export function KitchenOnboarding() {
                               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                                 perDaySchedule[key]?.includes(shift)
                                   ? "bg-blue-600 text-white"
-                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                  : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600"
                               }`}
                             >
                               {perDaySchedule[key]?.includes(shift) && "✓ "}
@@ -522,22 +530,22 @@ export function KitchenOnboarding() {
           {/* Step 5: Stations */}
           {step === "stations" && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-50 mb-2">
                 Add your stations
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-slate-400 mb-6">
                 Where does the work get done?
               </p>
 
               <div className="space-y-2 mb-4">
                 {stations.map((station, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <div className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg font-medium">
+                    <div className="flex-1 px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg font-medium text-gray-900 dark:text-slate-100">
                       {station}
                     </div>
                     <button
                       onClick={() => removeStation(index)}
-                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-colors"
                     >
                       Remove
                     </button>
@@ -553,12 +561,12 @@ export function KitchenOnboarding() {
                   onKeyDown={(e) =>
                     e.key === "Enter" && (e.preventDefault(), addStation())
                   }
-                  className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-50 placeholder-gray-500 dark:placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                   placeholder="Add station..."
                 />
                 <button
                   onClick={addStation}
-                  className="px-6 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium"
+                  className="px-6 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg font-medium text-gray-900 dark:text-slate-100 transition-colors"
                 >
                   + Add
                 </button>
@@ -571,7 +579,7 @@ export function KitchenOnboarding() {
             {step !== "name" && (
               <button
                 onClick={handleBack}
-                className="px-6 py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                className="px-6 py-3 border-2 border-gray-300 dark:border-slate-600 rounded-lg font-semibold text-gray-900 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Back
               </button>

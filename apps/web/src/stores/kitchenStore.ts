@@ -82,10 +82,7 @@ export const useKitchenStore = create<KitchenState>()(
           // Build shifts_config from schedule
           const shiftsConfig = schedule?.default
             ? schedule.default.map((name: string) => ({ name }))
-            : [
-                { name: "AM", start_time: "06:00", end_time: "14:00" },
-                { name: "PM", start_time: "14:00", end_time: "22:00" },
-              ];
+            : [{ name: "AM" }, { name: "PM" }];
 
           // Create kitchen
           const { data: kitchen, error: kitchenError } = await supabase

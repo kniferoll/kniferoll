@@ -214,14 +214,14 @@ export function PrepItemEntryForm({
                   type="button"
                   onClick={() => handleSuggestionTap(suggestion)}
                   onMouseDown={(e) => e.preventDefault()} // Prevent blur
-                  className="px-2.5 py-1 bg-blue-50 dark:bg-slate-800 text-blue-700 dark:text-blue-300 text-xs rounded-full hover:bg-blue-100 dark:hover:bg-slate-700 transition-colors whitespace-nowrap"
+                  className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-xs rounded-full hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors whitespace-nowrap"
                 >
                   {suggestion.description}
                 </button>
                 <button
                   type="button"
                   onClick={() => onDismissSuggestion(suggestion.id)}
-                  className="px-1.5 py-1 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-400 transition-colors text-xs"
+                  className="px-1.5 py-1 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors text-xs"
                   title="Dismiss suggestion"
                 >
                   ✕
@@ -252,7 +252,7 @@ export function PrepItemEntryForm({
                   setIsFormFocused(false);
                 }}
                 disabled={disabled || isLoading}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-50 placeholder-gray-500 dark:placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-slate-700"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-50 placeholder-gray-500 dark:placeholder-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-slate-700"
                 required
                 autoComplete="off"
               />
@@ -261,7 +261,7 @@ export function PrepItemEntryForm({
               {showAutocomplete && filteredAutocomplete.length > 0 && (
                 <div
                   ref={autocompleteRef}
-                  className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                  className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-500 rounded-lg shadow-lg dark:shadow-xl max-h-60 overflow-y-auto"
                 >
                   {filteredAutocomplete.map((suggestion) => (
                     <button
@@ -269,14 +269,14 @@ export function PrepItemEntryForm({
                       type="button"
                       onClick={() => handleSuggestionTap(suggestion)}
                       onMouseDown={(e) => e.preventDefault()} // Prevent blur
-                      className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-900 dark:text-slate-50 border-b border-gray-100 dark:border-slate-700 last:border-b-0 transition-colors"
+                      className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-900 dark:text-slate-100 border-b border-gray-100 dark:border-slate-700 last:border-b-0 transition-colors"
                     >
                       <div className="font-medium">
                         {suggestion.description}
                       </div>
                       {suggestion.last_quantity_used &&
                         suggestion.default_unit_id && (
-                          <div className="text-sm text-gray-500 dark:text-slate-400">
+                          <div className="text-sm text-gray-500 dark:text-slate-300">
                             Last used: {suggestion.last_quantity_used}{" "}
                             {
                               quickUnits.find(
@@ -302,7 +302,7 @@ export function PrepItemEntryForm({
               onFocus={() => setIsFormFocused(true)}
               onBlur={() => setIsFormFocused(false)}
               disabled={disabled || isLoading}
-              className="w-12 px-2 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-50 placeholder-gray-400 dark:placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-slate-700 text-center"
+              className="w-12 px-2 py-2 border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-50 placeholder-gray-400 dark:placeholder-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-slate-700 text-center"
             />
 
             <button
@@ -333,7 +333,7 @@ export function PrepItemEntryForm({
                   className={`px-2.5 py-1 rounded-full text-xs whitespace-nowrap transition-all duration-300 shrink-0 ${
                     selectedUnitId === unit.id
                       ? "bg-blue-600 dark:bg-blue-700 text-white"
-                      : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600"
+                      : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-600"
                   } disabled:opacity-50`}
                 >
                   {unit.name}
@@ -346,7 +346,7 @@ export function PrepItemEntryForm({
                 onClick={handleOpenUnitPicker}
                 onMouseDown={(e) => e.preventDefault()} // Prevent blur
                 disabled={disabled || isLoading}
-                className="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors shrink-0 disabled:opacity-50"
+                className="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors shrink-0 disabled:opacity-50"
               >
                 +
               </button>
