@@ -14,6 +14,8 @@ export function StationSelector({
   onSelect,
   loading = false,
 }: StationSelectorProps) {
+  const isLoadingStations = stations.length === 0 && loading;
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md dark:shadow-xl dark:border dark:border-slate-800 p-8">
       <h2 className="text-2xl font-semibold text-gray-900 dark:text-slate-50 mb-2 text-center">
@@ -23,22 +25,29 @@ export function StationSelector({
         Tap to claim and start working
       </p>
       <div className="grid gap-3">
-        {stations.map((station) => (
-          <button
-            key={station.id}
-            onClick={() => onSelect(station.id)}
-            disabled={loading}
-            className="w-full p-6 text-2xl font-semibold bg-gray-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900 active:bg-blue-100 dark:active:bg-blue-800 border-2 border-gray-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 text-gray-900 dark:text-slate-50 rounded-xl transition-all shadow-sm hover:shadow-md dark:shadow-lg dark:hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ minHeight: "64px" }}
-          >
-            <span className="flex items-center justify-center gap-3">
-              <span className="text-3xl">🔪</span>
-              <span>{station.name}</span>
-            </span>
-          </button>
-        ))}
+        {isLoadingStations
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="w-full h-16 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse"
+              />
+            ))
+          : stations.map((station) => (
+              <button
+                key={station.id}
+                onClick={() => onSelect(station.id)}
+                disabled={loading}
+                className="w-full p-6 text-2xl font-semibold bg-gray-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900 active:bg-blue-100 dark:active:bg-blue-800 border-2 border-gray-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 text-gray-900 dark:text-slate-50 rounded-xl transition-all shadow-sm hover:shadow-md dark:shadow-lg dark:hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ minHeight: "64px" }}
+              >
+                <span className="flex items-center justify-center gap-3">
+                  <span className="text-3xl">🔪</span>
+                  <span>{station.name}</span>
+                </span>
+              </button>
+            ))}
       </div>
-      {loading && (
+      {loading && stations.length > 0 && (
         <p className="mt-4 text-center text-blue-600 dark:text-blue-400 font-medium">
           Claiming station...
         </p>

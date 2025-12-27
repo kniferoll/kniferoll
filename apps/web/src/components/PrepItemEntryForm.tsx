@@ -212,7 +212,7 @@ export function PrepItemEntryForm({
           }
         }
       `}</style>
-      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm rounded-lg shadow-lg dark:shadow-2xl p-3 space-y-2">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm rounded-lg shadow-lg dark:shadow-2xl p-3 space-y-2 border border-gray-200 dark:border-slate-700">
         {/* Suggestions Row */}
         {suggestions.length > 0 && (
           <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">

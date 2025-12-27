@@ -11,6 +11,7 @@ import {
   StationCard,
   JoinCodeModal,
   Button,
+  SkeletonStationCard,
 } from "../components";
 import { toLocalDate } from "../lib/dateUtils";
 
@@ -35,6 +36,7 @@ export function ChefDashboard() {
     setSelectedShift,
   } = useKitchenStore();
   const [progress, setProgress] = useState<StationProgress[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showJoinCode, setShowJoinCode] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const navigate = useNavigate();
@@ -86,6 +88,7 @@ export function ChefDashboard() {
     if (!currentKitchen || stations.length === 0 || !selectedShift) return;
 
     const fetchProgress = async () => {
+      setLoading(true);
       const progressData: StationProgress[] = [];
 
       for (const station of stations) {
@@ -115,6 +118,7 @@ export function ChefDashboard() {
       }
 
       setProgress(progressData);
+      setLoading(false);
     };
 
     fetchProgress();
@@ -248,23 +252,29 @@ export function ChefDashboard() {
 
         {/* Station Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {progress.map((station) => (
-            <StationCard
-              key={station.stationId}
-              name={station.stationName}
-              completed={station.completed}
-              partial={station.partial}
-              pending={station.pending}
-              onClick={() => navigate(`/station/${station.stationId}`)}
-            />
-          ))}
+          {loading ? (
+            Array.from({ length: stations.length || 3 }).map((_, i) => (
+              <SkeletonStationCard key={i} />
+            ))
+          ) : progress.length > 0 ? (
+            progress.map((station) => (
+              <StationCard
+                key={station.stationId}
+                name={station.stationName}
+                completed={station.completed}
+                partial={station.partial}
+                pending={station.pending}
+                onClick={() => navigate(`/station/${station.stationId}`)}
+              />
+            ))
+          ) : stations.length === 0 ? (
+            <div className="text-center py-12 col-span-full">
+              <p className="text-gray-600 dark:text-slate-400">
+                No stations yet
+              </p>
+            </div>
+          ) : null}
         </div>
-
-        {stations.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-slate-400">No stations yet</p>
-          </div>
-        )}
       </div>
     </div>
   );

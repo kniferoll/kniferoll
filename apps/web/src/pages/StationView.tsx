@@ -13,6 +13,7 @@ import {
   PrepItemEntryForm,
   PrepItemList,
   ProgressBar,
+  SkeletonList,
 } from "../components";
 import { toLocalDate } from "../lib/dateUtils";
 
@@ -21,7 +22,7 @@ export function StationView() {
   const navigate = useNavigate();
   const [shouldSort, setShouldSort] = useState(true);
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
-  const { prepItems, loadPrepItems, cycleStatus, deletePrepItem } =
+  const { prepItems, loading, loadPrepItems, cycleStatus, deletePrepItem } =
     usePrepStore();
   const {
     suggestions,
@@ -280,6 +281,8 @@ export function StationView() {
             <p className="text-lg mb-2">Kitchen is closed on this day</p>
             <p className="text-sm">Select a different date to add prep items</p>
           </div>
+        ) : loading ? (
+          <SkeletonList count={5} />
         ) : (
           <PrepItemList
             items={prepItems.map((item) => ({
