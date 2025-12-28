@@ -5,6 +5,9 @@ import type { DbPrepItem, Database, PrepStatus } from "@kniferoll/types";
 type PrepItemInsert = Database["public"]["Tables"]["prep_items"]["Insert"];
 type PrepItemUpdate = Database["public"]["Tables"]["prep_items"]["Update"];
 
+// Type for prep items with description field added from kitchen_items
+export type PrepItemWithDescription = DbPrepItem & { description: string };
+
 // Helper function to cycle through status states
 function cycleStatus(current: PrepStatus | null): PrepStatus {
   const cycle: Record<PrepStatus, PrepStatus> = {
@@ -16,7 +19,7 @@ function cycleStatus(current: PrepStatus | null): PrepStatus {
 }
 
 interface PrepState {
-  prepItems: DbPrepItem[];
+  prepItems: PrepItemWithDescription[];
   loading: boolean;
   error: string | null;
 
@@ -24,7 +27,7 @@ interface PrepState {
   loadPrepItems: (
     stationId: string,
     shiftDate: string,
-    shiftName: string
+    shiftId: string
   ) => Promise<void>;
   addPrepItem: (item: PrepItemInsert) => Promise<{ error?: string }>;
   cycleStatus: (
@@ -43,16 +46,16 @@ export const usePrepStore = create<PrepState>((set, get) => ({
   loading: false,
   error: null,
 
-  loadPrepItems: async (stationId, shiftDate, shiftName) => {
+  loadPrepItems: async (stationId, shiftDate, shiftId) => {
     set({ loading: true, error: null });
 
     try {
       const { data, error } = await supabase
         .from("prep_items")
-        .select("*")
+        .select("*, kitchen_items(name)")
         .eq("station_id", stationId)
         .eq("shift_date", shiftDate)
-        .eq("shift_name", shiftName)
+        .eq("shift_id", shiftId)
         .order("created_at", { ascending: true });
 
       if (error) {
@@ -60,7 +63,13 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         return;
       }
 
-      set({ prepItems: data || [], loading: false });
+      // Transform the data to include description from kitchen_items
+      const transformedData = (data || []).map((item: any) => ({
+        ...item,
+        description: item.kitchen_items?.name || "Unknown item",
+      }));
+
+      set({ prepItems: transformedData, loading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       set({ loading: false, error: message });
@@ -75,7 +84,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
       const { data, error } = await supabase
         .from("prep_items")
         .insert(item)
-        .select()
+        .select("*, kitchen_items(name)")
         .single();
 
       if (error) {
@@ -83,8 +92,16 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         return { error: error.message };
       }
 
+      const transformedItem = {
+        ...data,
+        description: (data as any).kitchen_items?.name || "Unknown item",
+      };
+
       set((state) => ({
-        prepItems: [...state.prepItems, data],
+        prepItems: [
+          ...state.prepItems,
+          transformedItem as PrepItemWithDescription,
+        ],
         loading: false,
       }));
 

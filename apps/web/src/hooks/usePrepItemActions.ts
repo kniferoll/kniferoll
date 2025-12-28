@@ -17,8 +17,8 @@ export function usePrepItemActions() {
   const addPrepItem = async (
     stationId: string,
     shiftDate: string,
-    shiftName: string,
-    description: string,
+    shiftId: string,
+    itemName: string,
     quantity?: number | string,
     unitId?: string,
     kitchenId?: string
@@ -31,43 +31,64 @@ export function usePrepItemActions() {
         throw new Error("User not authenticated");
       }
 
+      if (!kitchenId) {
+        throw new Error("Kitchen ID required");
+      }
+
+      const normalizedName = itemName.trim();
+
+      // Find or create kitchen_item
+      const { data: existingItems } = await supabase
+        .from("kitchen_items")
+        .select("id")
+        .eq("kitchen_id", kitchenId)
+        .ilike("name", normalizedName)
+        .limit(1);
+
+      let kitchenItemId: string;
+
+      if (existingItems && existingItems.length > 0) {
+        kitchenItemId = existingItems[0].id;
+      } else {
+        const { data: newItem, error: itemError } = await supabase
+          .from("kitchen_items")
+          .insert({
+            kitchen_id: kitchenId,
+            name: normalizedName,
+            default_unit_id: unitId || null,
+          })
+          .select("id")
+          .single();
+
+        if (itemError || !newItem) {
+          throw itemError || new Error("Failed to create item");
+        }
+
+        kitchenItemId = newItem.id;
+      }
+
       const item: PrepItemInsert = {
         station_id: stationId,
+        shift_id: shiftId,
         shift_date: shiftDate,
-        shift_name: shiftName,
-        description,
+        kitchen_item_id: kitchenItemId,
         quantity: quantity ? Number(quantity) : null,
         unit_id: unitId || null,
         status: "pending",
         created_by_user: user.id,
       };
 
-      const { data: newItem, error: insertError } = await supabase
+      const { data: newPrepItem, error: insertError } = await supabase
         .from("prep_items")
         .insert(item)
         .select()
         .single();
 
-      if (insertError || !newItem) {
+      if (insertError || !newPrepItem) {
         throw insertError || new Error("Failed to create item");
       }
 
-      // Update kitchen item suggestions for autocomplete
-      if (kitchenId) {
-        await supabase.from("kitchen_item_suggestions").upsert(
-          {
-            kitchen_id: kitchenId,
-            description,
-            use_count: 1,
-            last_used: shiftDate,
-            last_quantity_used: quantity ? Number(quantity) : null,
-            default_unit_id: unitId || null,
-          },
-          { onConflict: "kitchen_id,description" }
-        );
-      }
-
-      return { item: newItem, error: null };
+      return { item: newPrepItem, error: null };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to add item";
       setError(message);

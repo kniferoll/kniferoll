@@ -81,50 +81,44 @@ export type Database = {
           },
         ]
       }
-      kitchen_item_suggestions: {
+      kitchen_items: {
         Row: {
           created_at: string | null
           default_unit_id: string | null
-          description: string
           id: string
           kitchen_id: string
-          last_quantity_used: number | null
-          last_used: string | null
+          name: string
+          notes: string | null
           updated_at: string | null
-          use_count: number | null
         }
         Insert: {
           created_at?: string | null
           default_unit_id?: string | null
-          description: string
           id?: string
           kitchen_id: string
-          last_quantity_used?: number | null
-          last_used?: string | null
+          name: string
+          notes?: string | null
           updated_at?: string | null
-          use_count?: number | null
         }
         Update: {
           created_at?: string | null
           default_unit_id?: string | null
-          description?: string
           id?: string
           kitchen_id?: string
-          last_quantity_used?: number | null
-          last_used?: string | null
+          name?: string
+          notes?: string | null
           updated_at?: string | null
-          use_count?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "kitchen_item_suggestions_default_unit_id_fkey"
+            foreignKeyName: "kitchen_items_default_unit_id_fkey"
             columns: ["default_unit_id"]
             isOneToOne: false
             referencedRelation: "kitchen_units"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "kitchen_item_suggestions_kitchen_id_fkey"
+            foreignKeyName: "kitchen_items_kitchen_id_fkey"
             columns: ["kitchen_id"]
             isOneToOne: false
             referencedRelation: "kitchens"
@@ -212,31 +206,25 @@ export type Database = {
         Row: {
           created_at: string | null
           display_order: number | null
-          end_time: string | null
           id: string
           kitchen_id: string
           name: string
-          start_time: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           display_order?: number | null
-          end_time?: string | null
           id?: string
           kitchen_id: string
           name: string
-          start_time?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           display_order?: number | null
-          end_time?: string | null
           id?: string
           kitchen_id?: string
           name?: string
-          start_time?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -311,16 +299,84 @@ export type Database = {
         }
         Relationships: []
       }
+      prep_item_suggestions: {
+        Row: {
+          created_at: string | null
+          id: string
+          kitchen_item_id: string
+          last_quantity: number | null
+          last_unit_id: string | null
+          last_used: string | null
+          shift_id: string
+          station_id: string
+          updated_at: string | null
+          use_count: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          kitchen_item_id: string
+          last_quantity?: number | null
+          last_unit_id?: string | null
+          last_used?: string | null
+          shift_id: string
+          station_id: string
+          updated_at?: string | null
+          use_count?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          kitchen_item_id?: string
+          last_quantity?: number | null
+          last_unit_id?: string | null
+          last_used?: string | null
+          shift_id?: string
+          station_id?: string
+          updated_at?: string | null
+          use_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prep_item_suggestions_kitchen_item_id_fkey"
+            columns: ["kitchen_item_id"]
+            isOneToOne: false
+            referencedRelation: "kitchen_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prep_item_suggestions_last_unit_id_fkey"
+            columns: ["last_unit_id"]
+            isOneToOne: false
+            referencedRelation: "kitchen_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prep_item_suggestions_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "kitchen_shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prep_item_suggestions_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "stations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prep_items: {
         Row: {
           created_at: string | null
-          created_by_user: string
-          description: string
+          created_by_user: string | null
           id: string
+          kitchen_item_id: string
           quantity: number | null
           quantity_raw: string | null
           shift_date: string
-          shift_name: string
+          shift_id: string
           station_id: string
           status: Database["public"]["Enums"]["prep_status"]
           status_changed_at: string | null
@@ -330,13 +386,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          created_by_user: string
-          description: string
+          created_by_user?: string | null
           id?: string
+          kitchen_item_id: string
           quantity?: number | null
           quantity_raw?: string | null
           shift_date?: string
-          shift_name: string
+          shift_id: string
           station_id: string
           status?: Database["public"]["Enums"]["prep_status"]
           status_changed_at?: string | null
@@ -346,13 +402,13 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          created_by_user?: string
-          description?: string
+          created_by_user?: string | null
           id?: string
+          kitchen_item_id?: string
           quantity?: number | null
           quantity_raw?: string | null
           shift_date?: string
-          shift_name?: string
+          shift_id?: string
           station_id?: string
           status?: Database["public"]["Enums"]["prep_status"]
           status_changed_at?: string | null
@@ -361,6 +417,20 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "prep_items_kitchen_item_id_fkey"
+            columns: ["kitchen_item_id"]
+            isOneToOne: false
+            referencedRelation: "kitchen_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prep_items_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "kitchen_shifts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "prep_items_station_id_fkey"
             columns: ["station_id"]

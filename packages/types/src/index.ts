@@ -15,8 +15,10 @@ export type DbPrepItem = Database["public"]["Tables"]["prep_items"]["Row"];
 export type DbInviteLink = Database["public"]["Tables"]["invite_links"]["Row"];
 export type DbKitchenUnit =
   Database["public"]["Tables"]["kitchen_units"]["Row"];
-export type DbKitchenItemSuggestion =
-  Database["public"]["Tables"]["kitchen_item_suggestions"]["Row"];
+export type DbKitchenItem =
+  Database["public"]["Tables"]["kitchen_items"]["Row"];
+export type DbPrepItemSuggestion =
+  Database["public"]["Tables"]["prep_item_suggestions"]["Row"];
 export type DbKitchenShift =
   Database["public"]["Tables"]["kitchen_shifts"]["Row"];
 export type DbKitchenShiftDay =
@@ -43,7 +45,8 @@ export type Station = DbStation;
 export type PrepItem = DbPrepItem;
 export type InviteLink = DbInviteLink;
 export type KitchenUnit = DbKitchenUnit;
-export type KitchenItemSuggestion = DbKitchenItemSuggestion;
+export type KitchenItem = DbKitchenItem;
+export type PrepItemSuggestion = DbPrepItemSuggestion;
 export type KitchenShift = DbKitchenShift;
 export type KitchenShiftDay = DbKitchenShiftDay;
 
@@ -57,8 +60,9 @@ export interface PrepItemFormData {
   quantity: number | null;
 }
 
-export interface Suggestion extends DbKitchenItemSuggestion {
+export interface Suggestion extends DbPrepItemSuggestion {
   dismissed?: boolean; // Client-side flag for current session
+  description?: string; // From kitchen_items.name join
 }
 
 export interface RecencyScoredSuggestion extends Suggestion {

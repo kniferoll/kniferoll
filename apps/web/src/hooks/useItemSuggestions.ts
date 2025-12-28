@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
-import type { Database } from "@kniferoll/types";
+import type { DbPrepItemSuggestion } from "@kniferoll/types";
 
-type KitchenItemSuggestion =
-  Database["public"]["Tables"]["kitchen_item_suggestions"]["Row"];
+type KitchenItemSuggestion = DbPrepItemSuggestion & { description?: string };
 
 interface RankedSuggestion extends KitchenItemSuggestion {
   score: number;
@@ -22,9 +21,9 @@ interface RankedSuggestion extends KitchenItemSuggestion {
  * - recency_days: days since last used (negative score for older items)
  */
 export function useItemSuggestions(
-  kitchenId: string | undefined,
+  _kitchenId: string | undefined,
   stationId: string | undefined,
-  shiftName: string | undefined,
+  shiftId: string | undefined,
   searchQuery: string = ""
 ) {
   const [suggestions, setSuggestions] = useState<RankedSuggestion[]>([]);
@@ -32,7 +31,7 @@ export function useItemSuggestions(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!kitchenId || !stationId || !shiftName) {
+    if (!stationId || !shiftId) {
       setSuggestions([]);
       return;
     }
@@ -42,11 +41,13 @@ export function useItemSuggestions(
       setError(null);
 
       try {
-        // Fetch all suggestions for this kitchen
+        // Fetch suggestions for this station/shift
         const { data: allSuggestions, error: err } = await supabase
-          .from("kitchen_item_suggestions")
-          .select("*")
-          .eq("kitchen_id", kitchenId);
+          .from("prep_item_suggestions")
+          .select("*, kitchen_items(name)")
+          .eq("station_id", stationId)
+          .eq("shift_id", shiftId)
+          .order("use_count", { ascending: false });
 
         if (err) throw err;
 
@@ -56,37 +57,14 @@ export function useItemSuggestions(
           return;
         }
 
-        // Fetch prep items to determine usage context
-        const { data: prepItems, error: prepErr } = await supabase
-          .from("prep_items")
-          .select("description, station_id, shift_name")
-          .eq("station_id", stationId);
-
-        if (prepErr) {
-          // Continue without context data if fetch fails
-          console.error("Could not load prep context:", prepErr);
-        }
-
-        // Get all prep items for this station to check matches
-        const { data: stationPrepItems } = await supabase
-          .from("prep_items")
-          .select("description, shift_name")
-          .eq("station_id", stationId);
-
-        // Build usage maps
-        const stationShiftUsage = new Set(
-          (prepItems || [])
-            .filter((p) => p.shift_name === shiftName)
-            .map((p) => p.description?.toLowerCase())
-        );
-
-        const stationUsage = new Set(
-          (stationPrepItems || []).map((p) => p.description?.toLowerCase())
-        );
+        // Transform to include description from kitchen_items
+        const transformed = allSuggestions.map((s: any) => ({
+          ...s,
+          description: s.kitchen_items?.name || "Unknown item",
+        }));
 
         // Rank suggestions
-        const ranked: RankedSuggestion[] = allSuggestions.map((suggestion) => {
-          const descLower = suggestion.description.toLowerCase();
+        const ranked: RankedSuggestion[] = transformed.map((suggestion) => {
           const now = new Date();
           const lastUsedDate = suggestion.last_used
             ? new Date(suggestion.last_used)
@@ -98,16 +76,10 @@ export function useItemSuggestions(
             : 999;
 
           // Calculate score
-          const stationShiftMatch = stationShiftUsage.has(descLower) ? 1 : 0;
-          const stationMatch = stationUsage.has(descLower) ? 1 : 0;
           const useCount = suggestion.use_count || 0;
           const recencyPenalty = recencyDays * -0.1;
 
-          const score =
-            stationShiftMatch * 10 +
-            stationMatch * 5 +
-            useCount * 0.5 +
-            recencyPenalty;
+          const score = useCount * 0.5 + recencyPenalty;
 
           return {
             ...suggestion,
@@ -120,7 +92,7 @@ export function useItemSuggestions(
         if (searchQuery.trim()) {
           const queryLower = searchQuery.toLowerCase();
           filtered = ranked.filter((s) =>
-            s.description.toLowerCase().includes(queryLower)
+            (s.description || "").toLowerCase().includes(queryLower)
           );
         }
 
@@ -139,7 +111,7 @@ export function useItemSuggestions(
     };
 
     loadSuggestions();
-  }, [kitchenId, stationId, shiftName, searchQuery]);
+  }, [stationId, shiftId, searchQuery]);
 
   return { suggestions, loading, error };
 }
@@ -150,5 +122,5 @@ export function useItemSuggestions(
 export function getLastQuantity(
   suggestion: KitchenItemSuggestion
 ): number | null {
-  return suggestion.last_quantity_used;
+  return (suggestion as any).last_quantity || null;
 }

@@ -3,10 +3,9 @@ import {
   useItemSuggestions,
   getLastQuantity,
 } from "../hooks/useItemSuggestions";
-import type { Database } from "@kniferoll/types";
+import type { DbPrepItemSuggestion } from "@kniferoll/types";
 
-type KitchenItemSuggestion =
-  Database["public"]["Tables"]["kitchen_item_suggestions"]["Row"];
+type KitchenItemSuggestion = DbPrepItemSuggestion & { description?: string };
 
 interface PrepItemAutocompleteProps {
   kitchenId: string | undefined;
@@ -69,7 +68,7 @@ export function PrepItemAutocomplete({
   };
 
   const handleSelectSuggestion = (suggestion: KitchenItemSuggestion) => {
-    onChange(suggestion.description);
+    onChange(suggestion.description || "");
     setIsOpen(false);
     setHighlightedIndex(-1);
 

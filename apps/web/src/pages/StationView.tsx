@@ -6,7 +6,7 @@ import { useKitchenStore } from "../stores/kitchenStore";
 import { useAuthStore } from "../stores/authStore";
 import { useRealtimePrepItems } from "../hooks/useRealtimePrepItems";
 import { supabase, getDeviceToken } from "../lib/supabase";
-import type { PrepStatus } from "@kniferoll/types";
+
 import {
   DateCalendar,
   ShiftToggle,
@@ -40,13 +40,12 @@ export function StationView() {
     selectedDate,
     setSelectedDate,
     loadKitchen,
-    selectedShift,
-    setSelectedShift,
   } = useKitchenStore();
   const { user } = useAuthStore();
 
   const station = stations.find((s) => s.id === stationId);
-  const [kitchenShifts, setKitchenShifts] = useState<Array<{name: string}>>([]);
+  const [kitchenShifts, setKitchenShifts] = useState<Array<{id: string; name: string}>>([]);
+  const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
 
   // Load kitchen data on refresh if we have kitchen but no stations
   useEffect(() => {
@@ -62,70 +61,59 @@ export function StationView() {
     const loadShifts = async () => {
       const { data } = await supabase
         .from("kitchen_shifts")
-        .select("name")
+        .select("id, name")
         .eq("kitchen_id", currentKitchen.id)
         .order("display_order");
 
       if (data) {
         setKitchenShifts(data);
+        // Set initial shift ID to the first shift
+        if (data.length > 0 && !selectedShiftId) {
+          setSelectedShiftId(data[0].id);
+        }
       }
     };
 
     loadShifts();
-  }, [currentKitchen?.id]);
+  }, [currentKitchen?.id, selectedShiftId]);
 
   // Check if selected day is closed - for now assume no days are closed
   // TODO: Load from kitchen_shift_days table when needed
   const isClosed = false;
-
-  // Get available shifts - use loaded shifts or default to AM/PM
-  const availableShifts: string[] = kitchenShifts.length > 0
-    ? kitchenShifts.map((s) => s.name)
-    : ["AM", "PM"];
 
   // Subscribe to real-time updates
   useRealtimePrepItems(stationId, selectedDate);
 
   // Load suggestions and units when kitchen, station, shift, or date changes
   useEffect(() => {
-    if (currentKitchen?.id && stationId && selectedShift) {
+    if (currentKitchen?.id && stationId && selectedShiftId) {
       loadSuggestionsAndUnits(
         currentKitchen.id,
         stationId,
         selectedDate,
-        selectedShift
+        selectedShiftId
       );
     }
   }, [
     currentKitchen?.id,
     stationId,
     selectedDate,
-    selectedShift,
+    selectedShiftId,
     loadSuggestionsAndUnits,
   ]);
 
-  // Set initial shift when kitchen loads, only if not set or invalid
   useEffect(() => {
-    if (currentKitchen && availableShifts.length > 0) {
-      // Only set shift if none selected or if current selection isn't available
-      if (!selectedShift || !availableShifts.includes(selectedShift)) {
-        setSelectedShift(availableShifts[0]);
-      }
-    }
-  }, [currentKitchen, availableShifts, selectedShift, setSelectedShift]);
-
-  useEffect(() => {
-    if (!stationId || !selectedShift) return;
-    loadPrepItems(stationId, selectedDate, selectedShift);
+    if (!stationId || !selectedShiftId) return;
+    loadPrepItems(stationId, selectedDate, selectedShiftId);
     setShouldSort(true); // Reset sorting on date/shift change
-  }, [stationId, selectedDate, selectedShift, loadPrepItems]);
+  }, [stationId, selectedDate, selectedShiftId, loadPrepItems]);
 
   const handleAddItem = async (
     description: string,
     unitId: string | null,
     quantity: number | null
   ) => {
-    if (!stationId || !currentKitchen?.id || !description.trim()) return;
+    if (!stationId || !currentKitchen?.id || !selectedShiftId || !description.trim()) return;
 
     const userId = sessionUser?.id || getDeviceToken();
 
@@ -133,7 +121,7 @@ export function StationView() {
       currentKitchen.id,
       stationId,
       selectedDate,
-      selectedShift,
+      selectedShiftId,
       description,
       unitId,
       quantity,
@@ -152,13 +140,13 @@ export function StationView() {
   };
 
   const handleDismissSuggestion = async (suggestionId: string) => {
-    if (!stationId || !selectedShift) return;
+    if (!stationId || !selectedShiftId) return;
     const userId = user?.id || sessionUser?.id || getDeviceToken();
     await dismissSuggestionPersistent(
       suggestionId,
       stationId,
       selectedDate,
-      selectedShift,
+      selectedShiftId,
       userId
     );
   };
@@ -222,9 +210,12 @@ export function StationView() {
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1" />
             <ShiftToggle
-              shifts={availableShifts}
-              currentShift={selectedShift}
-              onShiftChange={setSelectedShift}
+              shifts={kitchenShifts.map(s => s.name)}
+              currentShift={kitchenShifts.find(s => s.id === selectedShiftId)?.name || ""}
+              onShiftChange={(shiftName) => {
+                const shift = kitchenShifts.find(s => s.name === shiftName);
+                if (shift) setSelectedShiftId(shift.id);
+              }}
               disabled={isClosed}
             />
             <div className="flex-1 flex justify-end">
@@ -307,10 +298,7 @@ export function StationView() {
           <SkeletonList count={5} />
         ) : (
           <PrepItemList
-            items={prepItems.map((item) => ({
-              ...item,
-              status: item.status as PrepStatus | null,
-            }))}
+            items={prepItems as any}
             onCycleStatus={handleCycleStatus}
             onDelete={handleDelete}
             shouldSort={shouldSort}
@@ -328,7 +316,7 @@ export function StationView() {
               quickUnits={quickUnits}
               onAddItem={handleAddItem}
               onDismissSuggestion={handleDismissSuggestion}
-              disabled={!selectedShift}
+              disabled={!selectedShiftId}
               isLoading={addingItem}
             />
           </div>

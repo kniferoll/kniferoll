@@ -59,8 +59,8 @@ export function PrepItemEntryForm({
     if (description.trim().length > 0) {
       const searchTerm = description.toLowerCase().trim();
       const filtered = allSuggestions
-        .filter((s) => s.description.toLowerCase().includes(searchTerm))
-        .filter((s) => s.description.toLowerCase() !== searchTerm) // Don't show exact matches
+        .filter((s) => (s.description || "").toLowerCase().includes(searchTerm))
+        .filter((s) => (s.description || "").toLowerCase() !== searchTerm) // Don't show exact matches
         .slice(0, 5); // Limit to 5 results
       setFilteredAutocomplete(filtered);
       setShowAutocomplete(filtered.length > 0);
@@ -90,15 +90,16 @@ export function PrepItemEntryForm({
   const handleSuggestionTap = (suggestion: RecencyScoredSuggestion) => {
     // Mark this as a programmatic change to prevent autocomplete from reopening
     isProgrammaticChange.current = true;
-    setDescription(suggestion.description);
-    if (suggestion.default_unit_id) {
-      setSelectedUnitId(suggestion.default_unit_id);
+    setDescription(suggestion.description || "");
+    // Use last_unit_id from prep_item_suggestions
+    if ((suggestion as any).last_unit_id) {
+      setSelectedUnitId((suggestion as any).last_unit_id);
     } else {
       setSelectedUnitId(null);
     }
-    // Pre-fill quantity if last_quantity_used is available
-    if (suggestion.last_quantity_used) {
-      setQuantity(suggestion.last_quantity_used.toString());
+    // Pre-fill quantity if last_quantity is available
+    if ((suggestion as any).last_quantity) {
+      setQuantity((suggestion as any).last_quantity.toString());
     } else {
       setQuantity("");
     }
@@ -227,7 +228,7 @@ export function PrepItemEntryForm({
                   onMouseDown={(e) => e.preventDefault()} // Prevent blur
                   className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 text-xs rounded-full hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors whitespace-nowrap"
                 >
-                  {suggestion.description}
+                  {suggestion.description || "Unknown item"}
                 </button>
                 <button
                   type="button"
@@ -283,15 +284,15 @@ export function PrepItemEntryForm({
                       className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-900 dark:text-slate-100 border-b border-gray-100 dark:border-slate-700 last:border-b-0 transition-colors"
                     >
                       <div className="font-medium">
-                        {suggestion.description}
+                        {(suggestion as any).description || "Unknown item"}
                       </div>
-                      {suggestion.last_quantity_used &&
-                        suggestion.default_unit_id && (
+                      {(suggestion as any).last_quantity &&
+                        (suggestion as any).last_unit_id && (
                           <div className="text-sm text-gray-500 dark:text-slate-300">
-                            Last used: {suggestion.last_quantity_used}{" "}
+                            Last used: {(suggestion as any).last_quantity}{" "}
                             {
                               quickUnits.find(
-                                (u) => u.id === suggestion.default_unit_id
+                                (u) => u.id === (suggestion as any).last_unit_id
                               )?.name
                             }
                           </div>

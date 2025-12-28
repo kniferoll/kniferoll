@@ -57,9 +57,10 @@ export function useCreatePrepItem() {
   const createPrepItem = async (
     stationId: string,
     shiftDate: string,
-    shiftName: string,
-    description: string,
+    shiftId: string,
+    itemName: string,
     userId: string,
+    kitchenId: string,
     quantity?: number,
     unitId?: string,
     quantityRaw?: string
@@ -72,13 +73,44 @@ export function useCreatePrepItem() {
         throw new Error("User ID required to create prep item");
       }
 
+      // Find or create kitchen_item
+      const normalizedName = itemName.trim();
+      const { data: existingItems } = await supabase
+        .from("kitchen_items")
+        .select("id")
+        .eq("kitchen_id", kitchenId)
+        .ilike("name", normalizedName)
+        .limit(1);
+
+      let kitchenItemId: string;
+
+      if (existingItems && existingItems.length > 0) {
+        kitchenItemId = existingItems[0].id;
+      } else {
+        const { data: newItem, error: itemError } = await supabase
+          .from("kitchen_items")
+          .insert({
+            kitchen_id: kitchenId,
+            name: normalizedName,
+            default_unit_id: unitId || null,
+          })
+          .select("id")
+          .single();
+
+        if (itemError || !newItem) {
+          throw itemError || new Error("Failed to create item");
+        }
+
+        kitchenItemId = newItem.id;
+      }
+
       const { data, error: err } = await supabase
         .from("prep_items")
         .insert({
           station_id: stationId,
+          shift_id: shiftId,
           shift_date: shiftDate,
-          shift_name: shiftName,
-          description,
+          kitchen_item_id: kitchenItemId,
           quantity: quantity || null,
           unit_id: unitId || null,
           quantity_raw: quantityRaw || null,

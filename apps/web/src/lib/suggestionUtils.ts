@@ -1,5 +1,5 @@
 import type {
-  DbKitchenItemSuggestion,
+  DbPrepItemSuggestion,
   RecencyScoredSuggestion,
   DbPrepItem,
 } from "@kniferoll/types";
@@ -45,11 +45,12 @@ export function calculateWeightedScore(
  */
 function isSuggestionAlreadyInList(
   suggestionDesc: string,
-  currentItems: DbPrepItem[]
+  currentItems: (DbPrepItem & { description?: string })[]
 ): boolean {
   const normalizedSuggestion = suggestionDesc.toLowerCase().trim();
   return currentItems.some(
-    (item) => item.description.toLowerCase().trim() === normalizedSuggestion
+    (item) =>
+      (item.description || "").toLowerCase().trim() === normalizedSuggestion
   );
 }
 
@@ -58,9 +59,9 @@ function isSuggestionAlreadyInList(
  * Excludes suggestions for items already on the current list
  */
 export function rankSuggestions(
-  suggestions: DbKitchenItemSuggestion[],
+  suggestions: (DbPrepItemSuggestion & { description?: string })[],
   dismissedIds: Set<string>,
-  currentItems: DbPrepItem[] = [],
+  currentItems: (DbPrepItem & { description?: string })[] = [],
   topN: number | null = 3
 ): RecencyScoredSuggestion[] {
   // Calculate max use_count for normalization
@@ -73,7 +74,9 @@ export function rankSuggestions(
   // Score and filter non-dismissed and non-duplicate suggestions
   const scored = suggestions
     .filter((s) => !dismissedIds.has(s.id))
-    .filter((s) => !isSuggestionAlreadyInList(s.description, currentItems))
+    .filter(
+      (s) => !isSuggestionAlreadyInList(s.description || "", currentItems)
+    )
     .map((s) => {
       const recencyScore = calculateRecencyScore(s.last_used);
       const weightedScore = calculateWeightedScore(

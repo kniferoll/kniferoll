@@ -413,9 +413,6 @@ export function KitchenSettings() {
                               <p className="font-semibold text-gray-900 dark:text-white">
                                 {shift.name}
                               </p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {shift.start_time} - {shift.end_time}
-                              </p>
                             </div>
                             {isOwner && (
                               <button

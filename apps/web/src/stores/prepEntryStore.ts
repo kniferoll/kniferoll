@@ -20,11 +20,7 @@ function getDisplayedSuggestions(
     .filter((s) => !dismissedIds.has(s.id))
     .filter(
       (s) =>
-        !currentItems.some(
-          (item) =>
-            item.description.toLowerCase().trim() ===
-            s.description.toLowerCase().trim()
-        )
+        !currentItems.some((item) => item.kitchen_item_id === s.kitchen_item_id)
     )
     .slice(0, topN);
 }
@@ -50,21 +46,21 @@ interface PrepEntryState {
     kitchenId: string,
     stationId?: string,
     shiftDate?: string,
-    shiftName?: string
+    shiftId?: string
   ) => Promise<void>;
   dismissSuggestionPersistent: (
     suggestionId: string,
     stationId: string,
     shiftDate: string,
-    shiftName: string,
+    shiftId: string,
     userId: string
   ) => Promise<void>;
   addItemWithUpdates: (
     kitchenId: string,
     stationId: string,
     shiftDate: string,
-    shiftName: string,
-    description: string,
+    shiftId: string,
+    itemName: string,
     unitId: string | null,
     quantity: number | null,
     userId: string,
@@ -91,34 +87,37 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
     kitchenId,
     stationId?,
     shiftDate?,
-    shiftName?
+    shiftId?
   ) => {
     set({ suggestionsLoading: true, unitsLoading: true, error: null });
 
     try {
-      // Fetch suggestions and units
-      const suggestionsPromise = supabase
-        .from("kitchen_item_suggestions")
-        .select("*")
-        .eq("kitchen_id", kitchenId)
-        .order("use_count", { ascending: false })
-        .limit(20);
+      // Fetch suggestions for this station/shift context with kitchen_items data
+      const suggestionsPromise =
+        stationId && shiftId
+          ? supabase
+              .from("prep_item_suggestions")
+              .select("*, kitchen_items(name)")
+              .eq("station_id", stationId)
+              .eq("shift_id", shiftId)
+              .order("use_count", { ascending: false })
+          : supabase.from("prep_item_suggestions").select("*").limit(0); // No suggestions if no context
 
       const unitsPromise = supabase
         .from("kitchen_units")
         .select("*")
         .eq("kitchen_id", kitchenId)
-        .order("use_count", { ascending: false });
+        .order("created_at", { ascending: true });
 
-      // If context is provided, also fetch current items and dismissed suggestions
+      // If context is provided, also fetch current items with kitchen_items data
       const currentItemsPromise =
-        stationId && shiftDate && shiftName
+        stationId && shiftDate && shiftId
           ? supabase
               .from("prep_items")
-              .select("*")
+              .select("*, kitchen_items(name)")
               .eq("station_id", stationId)
               .eq("shift_date", shiftDate)
-              .eq("shift_name", shiftName)
+              .eq("shift_id", shiftId)
           : null;
 
       const [suggestionsResponse, unitsResponse, currentItemsResponse] =
@@ -134,8 +133,20 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
           error: suggestionsResponse.error.message,
         });
       } else {
-        const allSuggestions = suggestionsResponse.data || [];
-        const currentItems = currentItemsResponse?.data || [];
+        // Transform suggestions to include description field from kitchen_items
+        const allSuggestions = (suggestionsResponse.data || []).map(
+          (s: any) => ({
+            ...s,
+            description: s.kitchen_items?.name || "Unknown item",
+          })
+        );
+        // Transform current items to include description field from kitchen_items
+        const currentItems = (currentItemsResponse?.data || []).map(
+          (item: any) => ({
+            ...item,
+            description: item.kitchen_items?.name || "Unknown item",
+          })
+        );
 
         // Create master list (no currentItems filter) for autocomplete
         const masterRanked = rankSuggestions(
@@ -193,8 +204,8 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
     kitchenId,
     stationId,
     shiftDate,
-    shiftName,
-    description,
+    shiftId,
+    itemName,
     unitId,
     quantity,
     userId
@@ -207,20 +218,57 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         return { error: "User ID required" };
       }
 
-      // Step 1: Insert prep item
+      const normalizedName = itemName.trim();
+
+      // Step 1: Create or find kitchen_item
+      const { data: existingItems } = await supabase
+        .from("kitchen_items")
+        .select("id")
+        .eq("kitchen_id", kitchenId)
+        .ilike("name", normalizedName)
+        .limit(1);
+
+      let kitchenItemId: string;
+
+      if (existingItems && existingItems.length > 0) {
+        kitchenItemId = existingItems[0].id;
+      } else {
+        const { data: newItem, error: itemError } = await supabase
+          .from("kitchen_items")
+          .insert({
+            kitchen_id: kitchenId,
+            name: normalizedName,
+            default_unit_id: unitId || null,
+          })
+          .select("id")
+          .single();
+
+        if (itemError || !newItem) {
+          set({
+            addingItem: false,
+            error: itemError?.message || "Failed to create item",
+          });
+          return { error: itemError?.message || "Failed to create item" };
+        }
+
+        kitchenItemId = newItem.id;
+      }
+
+      // Step 2: Insert prep item
       const { data: newPrepItem, error: prepError } = await supabase
         .from("prep_items")
         .insert({
           station_id: stationId,
+          shift_id: shiftId,
           shift_date: shiftDate,
-          shift_name: shiftName,
-          description,
+          kitchen_item_id: kitchenItemId,
           unit_id: unitId || null,
           quantity: quantity || null,
           quantity_raw: formatQuantityRaw(
             quantity,
             unitId ? get().allUnits.find((u) => u.id === unitId)?.name : null
           ),
+          status: "pending",
           created_by_user: userId as any,
         })
         .select()
@@ -241,43 +289,48 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
             (item) =>
               item.station_id === stationId &&
               item.shift_date === shiftDate &&
-              item.shift_name === shiftName
+              item.shift_id === shiftId
           );
         if (isCurrentView) {
+          // Add description from normalizedName to match PrepItemWithDescription type
+          const newItemWithDescription = {
+            ...newPrepItem,
+            description: normalizedName,
+          } as any;
           usePrepStore.setState({
-            prepItems: [...currentItems, newPrepItem],
+            prepItems: [...currentItems, newItemWithDescription],
           });
         }
       }
 
-      // Step 2: Upsert suggestion (increment count, update last_used)
-      const normalizedDesc = description.trim();
-
+      // Step 3: Upsert prep_item_suggestion (increment count, update last_used)
       const { data: existingSuggestion } = await supabase
-        .from("kitchen_item_suggestions")
+        .from("prep_item_suggestions")
         .select("id, use_count")
-        .eq("kitchen_id", kitchenId)
-        .ilike("description", normalizedDesc)
+        .eq("kitchen_item_id", kitchenItemId)
+        .eq("station_id", stationId)
+        .eq("shift_id", shiftId)
         .maybeSingle();
 
       if (existingSuggestion) {
         await supabase
-          .from("kitchen_item_suggestions")
+          .from("prep_item_suggestions")
           .update({
             use_count: (existingSuggestion.use_count || 1) + 1,
-            default_unit_id: unitId || null,
             last_used: new Date().toISOString(),
-            last_quantity_used: quantity || null,
+            last_quantity: quantity || null,
+            last_unit_id: unitId || null,
           })
           .eq("id", existingSuggestion.id);
       } else {
-        await supabase.from("kitchen_item_suggestions").insert({
-          kitchen_id: kitchenId,
-          description: normalizedDesc,
-          default_unit_id: unitId || null,
+        await supabase.from("prep_item_suggestions").insert({
+          kitchen_item_id: kitchenItemId,
+          station_id: stationId,
+          shift_id: shiftId,
           use_count: 1,
           last_used: new Date().toISOString(),
-          last_quantity_used: quantity || null,
+          last_quantity: quantity || null,
+          last_unit_id: unitId || null,
         });
       }
 
@@ -286,7 +339,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         kitchenId,
         stationId,
         shiftDate,
-        shiftName
+        shiftId
       );
 
       set({ addingItem: false });
@@ -321,7 +374,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
     suggestionId,
     _stationId,
     _shiftDate,
-    _shiftName,
+    _shiftId,
     _userId
   ) => {
     // Update local state immediately for responsive UI
