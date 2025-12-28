@@ -55,11 +55,15 @@ export function useCreateInviteLink() {
     kitchenId: string,
     expiresAt: string,
     maxUses: number = 1,
-    userId?: string
+    userId: string
   ): Promise<InviteLink | null> => {
     try {
       setLoading(true);
       setError(null);
+
+      if (!userId) {
+        throw new Error("User ID required to create invite link");
+      }
 
       const { data, error: err } = await supabase
         .from("invite_links")
@@ -67,7 +71,7 @@ export function useCreateInviteLink() {
           kitchen_id: kitchenId,
           expires_at: expiresAt,
           max_uses: maxUses,
-          created_by_user: userId || null,
+          created_by_user: userId,
         })
         .select()
         .single();
@@ -126,8 +130,7 @@ export function useJoinViaInviteLink() {
 
   const joinViaInviteLink = async (
     token: string,
-    userId?: string,
-    anonymousUserId?: string
+    userId: string
   ): Promise<boolean> => {
     try {
       setLoading(true);
@@ -155,8 +158,7 @@ export function useJoinViaInviteLink() {
         .from("kitchen_members")
         .insert({
           kitchen_id: inviteLink.kitchen_id,
-          user_id: userId || null,
-          anonymous_user_id: anonymousUserId || null,
+          user_id: userId,
           role: "member",
           can_invite: false,
         });

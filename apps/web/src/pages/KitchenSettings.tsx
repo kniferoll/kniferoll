@@ -369,7 +369,7 @@ export function KitchenSettings() {
 
                 {isOwner && (
                   <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-red-600">
+                    <h3 className="text-lg font-semibold dark:text-white mb-4 text-red-600">
                       Danger Zone
                     </h3>
                     <Button

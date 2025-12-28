@@ -197,12 +197,16 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
     description,
     unitId,
     quantity,
-    userId,
-    isAnonymous = false
+    userId
   ) => {
     set({ addingItem: true, error: null });
 
     try {
+      if (!userId) {
+        set({ addingItem: false, error: "User ID required" });
+        return { error: "User ID required" };
+      }
+
       // Step 1: Insert prep item
       const { data: newPrepItem, error: prepError } = await supabase
         .from("prep_items")
@@ -217,8 +221,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
             quantity,
             unitId ? get().allUnits.find((u) => u.id === unitId)?.name : null
           ),
-          created_by_user: !isAnonymous ? (userId as any) : null,
-          created_by_anon: isAnonymous ? (userId as any) : null,
+          created_by_user: userId as any,
         })
         .select()
         .single();

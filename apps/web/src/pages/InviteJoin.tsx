@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { getDeviceToken } from "../lib/supabase";
+import { signInAnonymously } from "../lib/auth";
 import { useAuthStore } from "../stores/authStore";
 import { CenteredPage } from "../components/CenteredPage";
 import { FormInput } from "../components/FormInput";
@@ -96,24 +96,17 @@ export function InviteJoin() {
         throw new Error("Invite link or kitchen not loaded");
       }
 
-      const deviceToken = getDeviceToken();
+      // Sign in as anonymous user
+      const { user: anonUser, error: authError } = await signInAnonymously();
+      if (authError || !anonUser) {
+        throw new Error("Failed to sign in anonymously");
+      }
 
-      // Get or create anonymous user
-      const { data: anonUser, error: anonError } = await supabase
-        .from("anonymous_users")
-        .upsert(
-          {
-            device_token: deviceToken,
-            display_name: displayName,
-            last_active_at: new Date().toISOString(),
-          },
-          { onConflict: "device_token" }
-        )
-        .select()
-        .single();
-
-      if (anonError || !anonUser) {
-        throw new Error("Failed to create anonymous user");
+      // Update user metadata with display name
+      if (displayName) {
+        await supabase.auth.updateUser({
+          data: { display_name: displayName },
+        });
       }
 
       // Create kitchen membership
@@ -121,7 +114,7 @@ export function InviteJoin() {
         .from("kitchen_members")
         .insert({
           kitchen_id: kitchen.id,
-          anonymous_user_id: anonUser.id,
+          user_id: anonUser.id,
           role: "member",
           can_invite: false,
         });

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { supabase } from "../lib/supabase";
-import { ensureUserProfile } from "../lib/entitlements";
 import { CenteredPage } from "../components/CenteredPage";
 import { FormInput } from "../components/FormInput";
 import { Button } from "../components/Button";
@@ -16,7 +15,6 @@ export function Signup() {
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [deviceToken, setDeviceToken] = useState<string | null>(null);
 
   // If already authenticated, redirect to dashboard
   useEffect(() => {
@@ -24,16 +22,6 @@ export function Signup() {
       navigate("/dashboard");
     }
   }, [user, navigate]);
-
-  // Get device token to check for existing anonymous session
-  useEffect(() => {
-    let token = localStorage.getItem("kniferoll_device_token");
-    if (!token) {
-      token = crypto.randomUUID();
-      localStorage.setItem("kniferoll_device_token", token);
-    }
-    setDeviceToken(token);
-  }, []);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,34 +74,8 @@ export function Signup() {
           sessionData.session?.access_token?.substring(0, 20) + "...",
       });
 
-      // Create user profile with free plan
-      const profile = await ensureUserProfile(
-        data.user.id,
-        displayName || undefined
-      );
-
-      console.log("📊 DEBUG Signup: Profile result", { profile });
-
-      // If user came from anonymous session, link membership
-      if (deviceToken) {
-        const { data: anonUser } = await supabase
-          .from("anonymous_users")
-          .select("id, kitchen_members(kitchen_id)")
-          .eq("device_token", deviceToken)
-          .maybeSingle();
-
-        if (
-          anonUser &&
-          anonUser.kitchen_members &&
-          anonUser.kitchen_members.length > 0
-        ) {
-          // Prompt user to link their anonymous session
-          // For now, proceed to dashboard - could show link confirmation UI
-          console.log(
-            "User has anonymous kitchen memberships to link to account"
-          );
-        }
-      }
+      // User profile is auto-created via database trigger on_auth_user_created
+      console.log("📊 DEBUG Signup: User profile auto-created via trigger");
 
       // Redirect to dashboard to continue onboarding
       navigate("/dashboard");

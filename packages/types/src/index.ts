@@ -7,8 +7,6 @@ import type { Database } from "./database";
 
 export type DbUserProfile =
   Database["public"]["Tables"]["user_profiles"]["Row"];
-export type DbAnonymousUser =
-  Database["public"]["Tables"]["anonymous_users"]["Row"];
 export type DbKitchen = Database["public"]["Tables"]["kitchens"]["Row"];
 export type DbKitchenMember =
   Database["public"]["Tables"]["kitchen_members"]["Row"];
@@ -19,6 +17,10 @@ export type DbKitchenUnit =
   Database["public"]["Tables"]["kitchen_units"]["Row"];
 export type DbKitchenItemSuggestion =
   Database["public"]["Tables"]["kitchen_item_suggestions"]["Row"];
+export type DbKitchenShift =
+  Database["public"]["Tables"]["kitchen_shifts"]["Row"];
+export type DbKitchenShiftDay =
+  Database["public"]["Tables"]["kitchen_shift_days"]["Row"];
 
 // ============================================================================
 // ENUMS
@@ -35,7 +37,6 @@ export type PrepStatus = Database["public"]["Enums"]["prep_status"];
 // ============================================================================
 
 export type UserProfile = DbUserProfile;
-export type AnonymousUser = DbAnonymousUser;
 export type Kitchen = DbKitchen;
 export type KitchenMember = DbKitchenMember;
 export type Station = DbStation;
@@ -43,6 +44,8 @@ export type PrepItem = DbPrepItem;
 export type InviteLink = DbInviteLink;
 export type KitchenUnit = DbKitchenUnit;
 export type KitchenItemSuggestion = DbKitchenItemSuggestion;
+export type KitchenShift = DbKitchenShift;
+export type KitchenShiftDay = DbKitchenShiftDay;
 
 // ============================================================================
 // APP-SPECIFIC TYPES

@@ -103,7 +103,7 @@ export function StationView() {
     (item) => item.status === "complete"
   ).length;
   const workingCount = prepItems.filter(
-    (item) => item.status === "partial"
+    (item) => item.status === "in_progress"
   ).length;
   const todoCount = prepItems.filter(
     (item) => item.status === "pending"
@@ -155,8 +155,8 @@ export function StationView() {
   ) => {
     try {
       const statusCycle: Record<PrepStatus, PrepStatus> = {
-        pending: "partial",
-        partial: "complete",
+        pending: "in_progress",
+        in_progress: "complete",
         complete: "pending",
       };
       const newStatus = statusCycle[currentStatus || "pending"];
@@ -333,12 +333,12 @@ export function StationView() {
                         item.status as PrepStatus | null
                       )
                     }
-                    className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-gray-400 hover:border-gray-600 transition-colors flex items-center justify-center"
+                    className="shrink-0 w-6 h-6 rounded-full border-2 border-gray-400 hover:border-gray-600 transition-colors flex items-center justify-center"
                   >
                     {item.status === "complete" && (
                       <div className="w-4 h-4 bg-blue-600 rounded-full" />
                     )}
-                    {item.status === "partial" && (
+                    {item.status === "in_progress" && (
                       <div className="w-3 h-3 bg-blue-600 rounded-full" />
                     )}
                   </button>
@@ -358,7 +358,7 @@ export function StationView() {
                   {/* Delete button */}
                   <button
                     onClick={() => handleDeletePrepItem(item.id)}
-                    className="flex-shrink-0 opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-800 dark:hover:text-red-400 transition-all"
+                    className="shrink-0 opacity-0 group-hover:opacity-100 text-red-600 hover:text-red-800 dark:hover:text-red-400 transition-all"
                   >
                     🗑
                   </button>

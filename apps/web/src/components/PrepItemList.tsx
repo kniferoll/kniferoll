@@ -35,7 +35,7 @@ function PrepItemListInner({
   useEffect(() => {
     if (shouldSort) {
       const sorted = [...items].sort((a, b) => {
-        const statusOrder = { partial: 0, pending: 1, complete: 2 };
+        const statusOrder = { pending: 0, in_progress: 1, complete: 2 };
         const aStatus = a.status || "pending";
         const bStatus = b.status || "pending";
 
@@ -101,7 +101,7 @@ function PrepItemListInner({
             />
           </svg>
         );
-      case "partial":
+      case "in_progress":
         return (
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="10" stroke="#eab308" strokeWidth="2" />
@@ -143,7 +143,7 @@ function PrepItemListInner({
             className={`
               flex items-center gap-3 px-4 py-3 rounded-lg
               ${
-                item.status === "partial"
+                item.status === "in_progress"
                   ? "bg-yellow-50 dark:bg-yellow-950/20"
                   : "bg-white dark:bg-slate-900"
               }

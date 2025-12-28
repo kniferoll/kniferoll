@@ -8,8 +8,8 @@ type PrepItemUpdate = Database["public"]["Tables"]["prep_items"]["Update"];
 // Helper function to cycle through status states
 function cycleStatus(current: PrepStatus | null): PrepStatus {
   const cycle: Record<PrepStatus, PrepStatus> = {
-    pending: "partial",
-    partial: "complete",
+    pending: "in_progress",
+    in_progress: "complete",
     complete: "pending",
   };
   return cycle[current || "pending"];
@@ -96,7 +96,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     }
   },
 
-  cycleStatus: async (itemId, userId?: string, isAnonymous = false) => {
+  cycleStatus: async (itemId, userId?: string) => {
     const { prepItems } = get();
     const item = prepItems.find((i) => i.id === itemId);
     if (!item) return { error: "Item not found" };
@@ -104,11 +104,14 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     const newStatus = cycleStatus(item.status as PrepStatus | null);
     const now = new Date().toISOString();
 
+    if (!userId) {
+      return { error: "User ID required" };
+    }
+
     const updates: PrepItemUpdate = {
       status: newStatus,
       status_changed_at: now,
-      status_changed_by_user: !isAnonymous ? (userId as any) : null,
-      status_changed_by_anon: isAnonymous ? (userId as any) : null,
+      status_changed_by_user: userId as any,
     };
 
     // Optimistic update

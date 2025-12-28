@@ -160,50 +160,9 @@ export async function canGenerateInvite(
 }
 
 /**
- * Ensure user profile exists (create if needed)
+ * Note: User profiles are now auto-created via trigger on auth.users insert
+ * This function is kept for reference but should not be called directly
+ *
+ * The trigger `on_auth_user_created` automatically creates a user_profiles
+ * entry with plan='free' whenever a new user signs up.
  */
-export async function ensureUserProfile(userId: string, displayName?: string) {
-  console.log("🔧 DEBUG ensureUserProfile: Starting for", {
-    userId,
-    displayName,
-  });
-
-  const existing = await getUserProfile(userId);
-  if (existing) {
-    console.log("✅ DEBUG ensureUserProfile: Profile already exists");
-    return existing;
-  }
-
-  console.log("📝 DEBUG ensureUserProfile: Creating new profile", {
-    id: userId,
-    plan: "free",
-    display_name: displayName || null,
-  });
-
-  // Create new profile with free plan
-  const { data, error } = await supabase
-    .from("user_profiles")
-    .insert({
-      id: userId,
-      plan: "free",
-      display_name: displayName || null,
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("❌ DEBUG ensureUserProfile: Error creating profile:", {
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-    });
-    return null;
-  }
-
-  console.log(
-    "✅ DEBUG ensureUserProfile: Profile created successfully:",
-    data
-  );
-  return data;
-}

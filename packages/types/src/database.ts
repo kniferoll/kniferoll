@@ -34,75 +34,44 @@ export type Database = {
   }
   public: {
     Tables: {
-      anonymous_users: {
-        Row: {
-          created_at: string | null
-          device_token: string
-          display_name: string | null
-          id: string
-          last_active_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          device_token: string
-          display_name?: string | null
-          id?: string
-          last_active_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          device_token?: string
-          display_name?: string | null
-          id?: string
-          last_active_at?: string | null
-        }
-        Relationships: []
-      }
       invite_links: {
         Row: {
           created_at: string | null
-          created_by_anon: string | null
-          created_by_user: string | null
+          created_by_user: string
           expires_at: string
           id: string
           kitchen_id: string
           max_uses: number
           revoked: boolean
           token: string
+          updated_at: string | null
           use_count: number
         }
         Insert: {
           created_at?: string | null
-          created_by_anon?: string | null
-          created_by_user?: string | null
+          created_by_user: string
           expires_at: string
           id?: string
           kitchen_id: string
           max_uses?: number
           revoked?: boolean
           token?: string
+          updated_at?: string | null
           use_count?: number
         }
         Update: {
           created_at?: string | null
-          created_by_anon?: string | null
-          created_by_user?: string | null
+          created_by_user?: string
           expires_at?: string
           id?: string
           kitchen_id?: string
           max_uses?: number
           revoked?: boolean
           token?: string
+          updated_at?: string | null
           use_count?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "invite_links_created_by_anon_fkey"
-            columns: ["created_by_anon"]
-            isOneToOne: false
-            referencedRelation: "anonymous_users"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "invite_links_kitchen_id_fkey"
             columns: ["kitchen_id"]
@@ -121,6 +90,7 @@ export type Database = {
           kitchen_id: string
           last_quantity_used: number | null
           last_used: string | null
+          updated_at: string | null
           use_count: number | null
         }
         Insert: {
@@ -131,6 +101,7 @@ export type Database = {
           kitchen_id: string
           last_quantity_used?: number | null
           last_used?: string | null
+          updated_at?: string | null
           use_count?: number | null
         }
         Update: {
@@ -141,6 +112,7 @@ export type Database = {
           kitchen_id?: string
           last_quantity_used?: number | null
           last_used?: string | null
+          updated_at?: string | null
           use_count?: number | null
         }
         Relationships: [
@@ -162,40 +134,33 @@ export type Database = {
       }
       kitchen_members: {
         Row: {
-          anonymous_user_id: string | null
           can_invite: boolean
           id: string
           joined_at: string | null
           kitchen_id: string
           role: Database["public"]["Enums"]["member_role"]
-          user_id: string | null
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
-          anonymous_user_id?: string | null
           can_invite?: boolean
           id?: string
           joined_at?: string | null
           kitchen_id: string
           role?: Database["public"]["Enums"]["member_role"]
-          user_id?: string | null
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
-          anonymous_user_id?: string | null
           can_invite?: boolean
           id?: string
           joined_at?: string | null
           kitchen_id?: string
           role?: Database["public"]["Enums"]["member_role"]
-          user_id?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "kitchen_members_anonymous_user_id_fkey"
-            columns: ["anonymous_user_id"]
-            isOneToOne: false
-            referencedRelation: "anonymous_users"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "kitchen_members_kitchen_id_fkey"
             columns: ["kitchen_id"]
@@ -292,6 +257,7 @@ export type Database = {
           id: string
           kitchen_id: string
           name: string
+          updated_at: string | null
         }
         Insert: {
           category?: string | null
@@ -300,6 +266,7 @@ export type Database = {
           id?: string
           kitchen_id: string
           name: string
+          updated_at?: string | null
         }
         Update: {
           category?: string | null
@@ -308,6 +275,7 @@ export type Database = {
           id?: string
           kitchen_id?: string
           name?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -346,8 +314,7 @@ export type Database = {
       prep_items: {
         Row: {
           created_at: string | null
-          created_by_anon: string | null
-          created_by_user: string | null
+          created_by_user: string
           description: string
           id: string
           quantity: number | null
@@ -357,15 +324,13 @@ export type Database = {
           station_id: string
           status: Database["public"]["Enums"]["prep_status"]
           status_changed_at: string | null
-          status_changed_by_anon: string | null
           status_changed_by_user: string | null
           unit_id: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          created_by_anon?: string | null
-          created_by_user?: string | null
+          created_by_user: string
           description: string
           id?: string
           quantity?: number | null
@@ -375,15 +340,13 @@ export type Database = {
           station_id: string
           status?: Database["public"]["Enums"]["prep_status"]
           status_changed_at?: string | null
-          status_changed_by_anon?: string | null
           status_changed_by_user?: string | null
           unit_id?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          created_by_anon?: string | null
-          created_by_user?: string | null
+          created_by_user?: string
           description?: string
           id?: string
           quantity?: number | null
@@ -393,31 +356,16 @@ export type Database = {
           station_id?: string
           status?: Database["public"]["Enums"]["prep_status"]
           status_changed_at?: string | null
-          status_changed_by_anon?: string | null
           status_changed_by_user?: string | null
           unit_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "prep_items_created_by_anon_fkey"
-            columns: ["created_by_anon"]
-            isOneToOne: false
-            referencedRelation: "anonymous_users"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "prep_items_station_id_fkey"
             columns: ["station_id"]
             isOneToOne: false
             referencedRelation: "stations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "prep_items_status_changed_by_anon_fkey"
-            columns: ["status_changed_by_anon"]
-            isOneToOne: false
-            referencedRelation: "anonymous_users"
             referencedColumns: ["id"]
           },
           {
@@ -436,6 +384,7 @@ export type Database = {
           id: string
           kitchen_id: string
           name: string
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
@@ -443,6 +392,7 @@ export type Database = {
           id?: string
           kitchen_id: string
           name: string
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
@@ -450,6 +400,7 @@ export type Database = {
           id?: string
           kitchen_id?: string
           name?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -464,7 +415,6 @@ export type Database = {
       user_profiles: {
         Row: {
           created_at: string | null
-          display_name: string | null
           id: string
           plan: Database["public"]["Enums"]["user_plan"]
           stripe_customer_id: string | null
@@ -472,10 +422,10 @@ export type Database = {
           subscription_status:
             | Database["public"]["Enums"]["subscription_status"]
             | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          display_name?: string | null
           id: string
           plan?: Database["public"]["Enums"]["user_plan"]
           stripe_customer_id?: string | null
@@ -483,10 +433,10 @@ export type Database = {
           subscription_status?:
             | Database["public"]["Enums"]["subscription_status"]
             | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          display_name?: string | null
           id?: string
           plan?: Database["public"]["Enums"]["user_plan"]
           stripe_customer_id?: string | null
@@ -494,6 +444,7 @@ export type Database = {
           subscription_status?:
             | Database["public"]["Enums"]["subscription_status"]
             | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -502,12 +453,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_anonymous_user: { Args: never; Returns: boolean }
+      is_registered_user: { Args: never; Returns: boolean }
     }
     Enums: {
       member_role: "owner" | "admin" | "member"
-      prep_status: "pending" | "partial" | "complete"
-      subscription_status: "active" | "canceled" | "past_due"
+      prep_status: "pending" | "in_progress" | "complete"
+      subscription_status: "active" | "canceled"
       user_plan: "free" | "pro"
     }
     CompositeTypes: {
@@ -640,8 +592,8 @@ export const Constants = {
   public: {
     Enums: {
       member_role: ["owner", "admin", "member"],
-      prep_status: ["pending", "partial", "complete"],
-      subscription_status: ["active", "canceled", "past_due"],
+      prep_status: ["pending", "in_progress", "complete"],
+      subscription_status: ["active", "canceled"],
       user_plan: ["free", "pro"],
     },
   },

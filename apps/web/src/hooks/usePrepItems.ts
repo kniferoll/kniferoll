@@ -59,14 +59,18 @@ export function useCreatePrepItem() {
     shiftDate: string,
     shiftName: string,
     description: string,
+    userId: string,
     quantity?: number,
     unitId?: string,
-    quantityRaw?: string,
-    userId?: string
+    quantityRaw?: string
   ): Promise<PrepItem | null> => {
     try {
       setLoading(true);
       setError(null);
+
+      if (!userId) {
+        throw new Error("User ID required to create prep item");
+      }
 
       const { data, error: err } = await supabase
         .from("prep_items")
@@ -79,7 +83,7 @@ export function useCreatePrepItem() {
           unit_id: unitId || null,
           quantity_raw: quantityRaw || null,
           status: "pending",
-          created_by_user: userId || null,
+          created_by_user: userId,
         })
         .select()
         .single();

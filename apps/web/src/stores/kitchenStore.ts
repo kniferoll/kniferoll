@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { supabase } from "../lib/supabase";
+import { signInAnonymously } from "../lib/auth";
 import { getTodayLocalDate } from "../lib/dateUtils";
 import type { DbKitchen, DbStation, DbKitchenMember } from "@kniferoll/types";
 
@@ -326,36 +327,28 @@ export const useKitchenStore = create<KitchenState>()(
               };
             }
           } else {
-            // Create or get anonymous user
-            let deviceToken = localStorage.getItem("kniferoll_device_token");
-            if (!deviceToken) {
-              deviceToken = crypto.randomUUID();
-              localStorage.setItem("kniferoll_device_token", deviceToken);
-            }
-
-            const { data: anonUser, error: anonError } = await supabase
-              .from("anonymous_users")
-              .upsert(
-                {
-                  device_token: deviceToken,
-                  display_name: displayName,
-                },
-                { onConflict: "device_token" }
-              )
-              .select()
-              .single();
+            // Sign in as anonymous user
+            const { user: anonUser, error: anonError } =
+              await signInAnonymously();
 
             if (!anonError && anonUser) {
+              // Update with display name
+              if (displayName) {
+                await supabase.auth.updateUser({
+                  data: { display_name: displayName },
+                });
+              }
+
               // Add anonymous user to kitchen_members
               const { data: m } = await supabase
                 .from("kitchen_members")
                 .upsert(
                   {
                     kitchen_id: kitchen.id,
-                    anonymous_user_id: anonUser.id,
+                    user_id: anonUser.id,
                     role: "member",
                   },
-                  { onConflict: "kitchen_id,anonymous_user_id" }
+                  { onConflict: "kitchen_id,user_id" }
                 )
                 .select()
                 .single();
@@ -363,7 +356,7 @@ export const useKitchenStore = create<KitchenState>()(
               membership = m;
               currentUser = {
                 id: anonUser.id,
-                displayName,
+                displayName: displayName || "Guest",
                 isAnonymous: true,
               };
             }

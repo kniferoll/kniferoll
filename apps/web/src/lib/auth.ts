@@ -1,5 +1,4 @@
 import { supabase } from "./supabase";
-import { ensureUserProfile } from "./entitlements";
 import type { UserProfile } from "@kniferoll/types";
 
 /**
@@ -37,46 +36,31 @@ export async function getCurrentUser() {
 }
 
 /**
- * Get or create anonymous user for device
+ * Check if current user is anonymous
  */
-export async function getOrCreateAnonymousUser(deviceToken: string) {
-  // Try to find existing anonymous user
-  const { data: existing, error: fetchError } = await supabase
-    .from("anonymous_users")
-    .select("*")
-    .eq("device_token", deviceToken)
-    .single();
+export async function isCurrentUserAnonymous(): Promise<boolean> {
+  const user = await getCurrentUser();
+  return user?.is_anonymous ?? false;
+}
 
-  if (!fetchError && existing) {
-    // Update last_active_at
-    await supabase
-      .from("anonymous_users")
-      .update({ last_active_at: new Date().toISOString() })
-      .eq("id", existing.id);
+/**
+ * Sign in anonymously
+ * Creates a temporary user that can be converted to permanent later
+ */
+export async function signInAnonymously() {
+  const { data, error } = await supabase.auth.signInAnonymously();
 
-    return existing;
+  if (error) {
+    console.error("Error signing in anonymously:", error);
+    return { user: null, error };
   }
 
-  // Create new anonymous user
-  const { data: newUser, error: createError } = await supabase
-    .from("anonymous_users")
-    .insert({
-      device_token: deviceToken,
-      display_name: `Guest ${Math.random().toString(36).substring(7)}`,
-    })
-    .select()
-    .single();
-
-  if (createError) {
-    console.error("Error creating anonymous user:", createError);
-    return null;
-  }
-
-  return newUser;
+  return { user: data.user, error: null };
 }
 
 /**
  * Sign up with email and password
+ * Note: user_profiles table is auto-created via trigger on auth.users insert
  */
 export async function signUp(
   email: string,
@@ -86,22 +70,16 @@ export async function signUp(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        display_name: displayName || null,
+      },
+    },
   });
 
   if (error) {
     console.error("Error signing up:", error);
     return { user: null, error };
-  }
-
-  // Create user profile
-  if (data.user) {
-    const profile = await ensureUserProfile(data.user.id);
-    if (profile && displayName) {
-      await supabase
-        .from("user_profiles")
-        .update({ display_name: displayName })
-        .eq("id", data.user.id);
-    }
   }
 
   return { user: data.user, error: null };
@@ -119,11 +97,6 @@ export async function signIn(email: string, password: string) {
   if (error) {
     console.error("Error signing in:", error);
     return { user: null, error };
-  }
-
-  // Ensure profile exists
-  if (data.user) {
-    await ensureUserProfile(data.user.id);
   }
 
   return { user: data.user, error: null };
@@ -187,21 +160,15 @@ export async function updateUserProfile(
 }
 
 /**
- * Update anonymous user display name
+ * Update user display name (stored in auth.users.raw_user_meta_data)
  */
-export async function updateAnonymousUserName(
-  anonymousUserId: string,
-  displayName: string
-) {
-  const { data, error } = await supabase
-    .from("anonymous_users")
-    .update({ display_name: displayName })
-    .eq("id", anonymousUserId)
-    .select()
-    .single();
+export async function updateUserDisplayName(displayName: string) {
+  const { data, error } = await supabase.auth.updateUser({
+    data: { display_name: displayName },
+  });
 
   if (error) {
-    console.error("Error updating anonymous user:", error);
+    console.error("Error updating display name:", error);
     return { error };
   }
 
@@ -214,14 +181,8 @@ export async function updateAnonymousUserName(
 export function onAuthStateChange(callback: (user: any | null) => void) {
   const {
     data: { subscription },
-  } = supabase.auth.onAuthStateChange(async (_event, session) => {
-    if (session?.user) {
-      // Ensure profile exists for authenticated users
-      await ensureUserProfile(session.user.id);
-      callback(session.user);
-    } else {
-      callback(null);
-    }
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    callback(session?.user ?? null);
   });
 
   return subscription;

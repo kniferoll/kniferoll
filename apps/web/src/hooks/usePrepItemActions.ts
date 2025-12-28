@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuthStore } from "../stores/authStore";
-import { getDeviceToken } from "../lib/supabase";
 import type { Database, PrepStatus } from "@kniferoll/types";
 
 type PrepItemInsert = Database["public"]["Tables"]["prep_items"]["Insert"];
@@ -28,23 +27,8 @@ export function usePrepItemActions() {
     setError(null);
 
     try {
-      // Get current user info
-      let createdByUser: string | null = null;
-      let createdByAnon: string | null = null;
-
-      if (user) {
-        createdByUser = user.id;
-      } else {
-        const deviceToken = getDeviceToken();
-        const { data: anonUser } = await supabase
-          .from("anonymous_users")
-          .select("id")
-          .eq("device_token", deviceToken)
-          .single();
-
-        if (anonUser) {
-          createdByAnon = anonUser.id;
-        }
+      if (!user) {
+        throw new Error("User not authenticated");
       }
 
       const item: PrepItemInsert = {
@@ -55,8 +39,7 @@ export function usePrepItemActions() {
         quantity: quantity ? Number(quantity) : null,
         unit_id: unitId || null,
         status: "pending",
-        created_by_user: createdByUser,
-        created_by_anon: createdByAnon,
+        created_by_user: user.id,
       };
 
       const { data: newItem, error: insertError } = await supabase
@@ -99,28 +82,16 @@ export function usePrepItemActions() {
     setError(null);
 
     try {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       const now = new Date().toISOString();
-      const updates: Record<string, any> = {
+      const updates = {
         status: newStatus,
         status_changed_at: now,
+        status_changed_by_user: user.id,
       };
-
-      if (user) {
-        updates.status_changed_by_user = user.id;
-        updates.status_changed_by_anon = null;
-      } else {
-        const deviceToken = getDeviceToken();
-        const { data: anonUser } = await supabase
-          .from("anonymous_users")
-          .select("id")
-          .eq("device_token", deviceToken)
-          .single();
-
-        if (anonUser) {
-          updates.status_changed_by_anon = anonUser.id;
-          updates.status_changed_by_user = null;
-        }
-      }
 
       const { error: updateError } = await supabase
         .from("prep_items")
