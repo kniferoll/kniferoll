@@ -524,6 +524,12 @@ export type Database = {
     }
     Functions: {
       is_anonymous_user: { Args: never; Returns: boolean }
+      is_kitchen_admin_or_owner: {
+        Args: { p_kitchen_id: string }
+        Returns: boolean
+      }
+      is_kitchen_member: { Args: { p_kitchen_id: string }; Returns: boolean }
+      is_kitchen_owner: { Args: { p_kitchen_id: string }; Returns: boolean }
       is_registered_user: { Args: never; Returns: boolean }
     }
     Enums: {

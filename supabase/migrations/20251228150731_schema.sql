@@ -1,4 +1,10 @@
 -- ============================================================================
+-- EXTENSIONS
+-- ============================================================================
+
+create extension if not exists pgcrypto;
+
+-- ============================================================================
 -- KNIFEROLL SCHEMA
 -- ============================================================================
 --
@@ -96,7 +102,7 @@ create table kitchen_members (
 create table invite_links (
   id uuid primary key default gen_random_uuid(),
   kitchen_id uuid not null references kitchens(id) on delete cascade,
-  token text unique not null default encode(gen_random_bytes(16), 'hex'),
+  token text unique not null default gen_random_uuid()::text,
   created_by_user uuid not null references auth.users(id) on delete cascade,
   expires_at timestamptz not null,
   max_uses int not null default 1,
@@ -242,7 +248,7 @@ create index idx_invite_links_token on invite_links(token);
 -- HELPER FUNCTIONS
 -- ============================================================================
 
-create function update_updated_at() returns trigger as $$
+create or replace function update_updated_at() returns trigger as $$
 begin
   new.updated_at = now();
   return new;
