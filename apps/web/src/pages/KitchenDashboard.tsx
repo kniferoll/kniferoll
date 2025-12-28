@@ -13,6 +13,8 @@ import { StationCard } from "../components/StationCard";
 import { SkeletonStationCard } from "../components/Skeleton";
 import { InviteLinkModal } from "../components/InviteLinkModal";
 
+import { jsDateToDatabaseDayOfWeek, toLocalDate } from "../lib/dateUtils";
+
 interface StationProgress {
   stationId: string;
   stationName: string;
@@ -21,8 +23,6 @@ interface StationProgress {
   partial: number;
   pending: number;
 }
-
-const DEFAULT_SHIFTS = ["Breakfast", "Lunch", "Dinner"];
 
 export function KitchenDashboard() {
   const { kitchenId } = useParams<{ kitchenId: string }>();
@@ -41,8 +41,12 @@ export function KitchenDashboard() {
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-
-  const availableShifts = DEFAULT_SHIFTS;
+  const [kitchenShifts, setKitchenShifts] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [shiftDays, setShiftDays] = useState<
+    Map<number, { is_open: boolean; shift_ids: string[] }>
+  >(new Map());
 
   // Load kitchen on mount
   useEffect(() => {
@@ -51,12 +55,77 @@ export function KitchenDashboard() {
     }
   }, [kitchenId, currentKitchen, loadKitchen]);
 
-  // Set initial shift
+  // Load kitchen shifts and shift days
   useEffect(() => {
-    if (!selectedShift && availableShifts.length > 0) {
-      setSelectedShift(availableShifts[0]);
+    if (!kitchenId) return;
+
+    const loadShiftsAndDays = async () => {
+      // Load shifts
+      const { data: shiftsData } = await supabase
+        .from("kitchen_shifts")
+        .select("id, name")
+        .eq("kitchen_id", kitchenId)
+        .order("display_order");
+
+      if (shiftsData) {
+        setKitchenShifts(shiftsData);
+      }
+
+      // Load shift days configuration
+      const { data: shiftDaysData } = await supabase
+        .from("kitchen_shift_days")
+        .select("day_of_week, is_open, shift_ids")
+        .eq("kitchen_id", kitchenId);
+
+      if (shiftDaysData) {
+        const dayMap = new Map(
+          shiftDaysData.map((day) => [
+            day.day_of_week,
+            { is_open: day.is_open, shift_ids: day.shift_ids || [] },
+          ])
+        );
+        setShiftDays(dayMap);
+      }
+    };
+
+    loadShiftsAndDays();
+  }, [kitchenId]);
+
+  // Get closed days for calendar (convert database day_of_week to day names for calendar)
+  const dayNamesForCalendar = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ];
+  const closedDaysArray = dayNamesForCalendar.filter((_dayName, jsDay) => {
+    const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
+    const dayConfig = shiftDays.get(dbDay);
+    return dayConfig && !dayConfig.is_open;
+  });
+
+  // Get available shifts for the selected date
+  const selectedDateObj = toLocalDate(selectedDate);
+  const selectedJsDay = selectedDateObj.getDay();
+  const selectedDbDay = jsDateToDatabaseDayOfWeek(selectedJsDay);
+  const selectedDayConfig = shiftDays.get(selectedDbDay);
+  const availableShiftIds = selectedDayConfig?.shift_ids ?? [];
+  const availableShifts = kitchenShifts
+    .filter((s) => availableShiftIds.includes(s.id))
+    .map((s) => s.name);
+
+  // Auto-select first available shift if current shift is no longer available
+  useEffect(() => {
+    if (availableShifts.length > 0) {
+      const isCurrentShiftAvailable = availableShifts.includes(selectedShift);
+      if (!isCurrentShiftAvailable) {
+        setSelectedShift(availableShifts[0]);
+      }
     }
-  }, [selectedShift, setSelectedShift]);
+  }, [selectedShift, setSelectedShift, availableShifts]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -179,7 +248,7 @@ export function KitchenDashboard() {
             <DateCalendar
               selectedDate={selectedDate}
               onDateSelect={setSelectedDate}
-              closedDays={[]}
+              closedDays={closedDaysArray}
             />
             <div className="relative">
               <button

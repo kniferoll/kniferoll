@@ -24,7 +24,9 @@ interface KitchenState {
   // Actions
   createKitchen: (
     name: string,
-    stationNames: string[]
+    stationNames: string[],
+    closedDays?: string[],
+    perDaySchedule?: Record<string, string[]>
   ) => Promise<{ kitchenId?: string; error?: string }>;
   loadKitchen: (id: string) => Promise<void>;
   joinKitchenViaInvite: (
@@ -48,7 +50,12 @@ export const useKitchenStore = create<KitchenState>()(
       selectedDate: getTodayLocalDate(),
       selectedShift: "",
 
-      createKitchen: async (name, stationNames) => {
+      createKitchen: async (
+        name,
+        stationNames,
+        closedDays = [],
+        perDaySchedule
+      ) => {
         set({ loading: true, error: null });
 
         try {
@@ -119,6 +126,81 @@ export const useKitchenStore = create<KitchenState>()(
           if (stationsError) {
             set({ loading: false, error: stationsError.message });
             return { error: stationsError.message };
+          }
+
+          // Collect all unique shifts from per-day schedule
+          const allShifts = new Set<string>();
+          if (perDaySchedule) {
+            Object.values(perDaySchedule).forEach((shifts) => {
+              shifts.forEach((shift) => allShifts.add(shift));
+            });
+          } else {
+            // Default shifts if no schedule provided
+            ["Breakfast", "Lunch", "Dinner"].forEach((s) => allShifts.add(s));
+          }
+
+          // Create shifts in order: Breakfast, Lunch, Dinner, then custom
+          const shiftOrder = [
+            "Breakfast",
+            "Lunch",
+            "Dinner",
+            ...Array.from(allShifts).filter(
+              (s) => !["Breakfast", "Lunch", "Dinner"].includes(s)
+            ),
+          ];
+          const shiftsToCreate = shiftOrder
+            .filter((s) => allShifts.has(s))
+            .map((name, index) => ({
+              kitchen_id: kitchen.id,
+              name,
+              display_order: index,
+            }));
+
+          const { data: shifts, error: shiftsError } = await supabase
+            .from("kitchen_shifts")
+            .insert(shiftsToCreate)
+            .select("id, name");
+
+          if (shiftsError || !shifts) {
+            set({ loading: false, error: shiftsError?.message });
+            return { error: shiftsError?.message };
+          }
+
+          // Create kitchen_shift_days with per-day schedule
+          const dayNames = [
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+            "sunday",
+          ];
+          const shiftNameToId = new Map(shifts.map((s) => [s.name, s.id]));
+
+          const shiftDaysToCreate = dayNames.map((dayName, dayOfWeek) => {
+            const isClosed = closedDays?.includes(dayName) ?? false;
+            const dayShiftNames = perDaySchedule?.[dayName] ?? [];
+
+            return {
+              kitchen_id: kitchen.id,
+              day_of_week: dayOfWeek,
+              is_open: !isClosed,
+              shift_ids: isClosed
+                ? []
+                : dayShiftNames
+                    .map((name) => shiftNameToId.get(name))
+                    .filter((id) => id !== undefined),
+            };
+          });
+
+          const { error: shiftDaysError } = await supabase
+            .from("kitchen_shift_days")
+            .insert(shiftDaysToCreate);
+
+          if (shiftDaysError) {
+            set({ loading: false, error: shiftDaysError.message });
+            return { error: shiftDaysError.message };
           }
 
           set({

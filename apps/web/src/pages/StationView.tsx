@@ -6,6 +6,10 @@ import { useKitchenStore } from "../stores/kitchenStore";
 import { useAuthStore } from "../stores/authStore";
 import { useRealtimePrepItems } from "../hooks/useRealtimePrepItems";
 import { supabase, getDeviceToken } from "../lib/supabase";
+import {
+  jsDateToDatabaseDayOfWeek,
+  toLocalDate,
+} from "../lib/dateUtils";
 
 import {
   DateCalendar,
@@ -46,6 +50,8 @@ export function StationView() {
   const station = stations.find((s) => s.id === stationId);
   const [kitchenShifts, setKitchenShifts] = useState<Array<{id: string; name: string}>>([]);
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
+  const [shiftDays, setShiftDays] = useState<Map<number, { is_open: boolean; shift_ids: string[] }>>(new Map());
+  const [isClosed, setIsClosed] = useState(false);
 
   // Load kitchen data on refresh if we have kitchen but no stations
   useEffect(() => {
@@ -54,32 +60,82 @@ export function StationView() {
     }
   }, [currentKitchen?.id, stations.length, loadKitchen]);
 
-  // Load kitchen shifts when kitchen loads
+  // Load kitchen shifts and shift days when kitchen loads
   useEffect(() => {
     if (!currentKitchen?.id) return;
 
-    const loadShifts = async () => {
-      const { data } = await supabase
+    const loadShiftsAndDays = async () => {
+      // Load shifts
+      const { data: shiftsData } = await supabase
         .from("kitchen_shifts")
         .select("id, name")
         .eq("kitchen_id", currentKitchen.id)
         .order("display_order");
 
-      if (data) {
-        setKitchenShifts(data);
+      if (shiftsData) {
+        setKitchenShifts(shiftsData);
         // Set initial shift ID to the first shift
-        if (data.length > 0 && !selectedShiftId) {
-          setSelectedShiftId(data[0].id);
+        if (shiftsData.length > 0 && !selectedShiftId) {
+          setSelectedShiftId(shiftsData[0].id);
         }
+      }
+
+      // Load shift days configuration
+      const { data: shiftDaysData } = await supabase
+        .from("kitchen_shift_days")
+        .select("day_of_week, is_open, shift_ids")
+        .eq("kitchen_id", currentKitchen.id);
+
+      if (shiftDaysData) {
+        const dayMap = new Map(
+          shiftDaysData.map((day) => [
+            day.day_of_week,
+            { is_open: day.is_open, shift_ids: day.shift_ids || [] },
+          ])
+        );
+        setShiftDays(dayMap);
       }
     };
 
-    loadShifts();
+    loadShiftsAndDays();
   }, [currentKitchen?.id, selectedShiftId]);
 
-  // Check if selected day is closed - for now assume no days are closed
-  // TODO: Load from kitchen_shift_days table when needed
-  const isClosed = false;
+  // Check if selected day is closed and default to next open day if needed
+  useEffect(() => {
+    const selectedDateObj = toLocalDate(selectedDate);
+    const jsDay = selectedDateObj.getDay();
+    const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
+    const dayConfig = shiftDays.get(dbDay);
+    
+    if (dayConfig && !dayConfig.is_open) {
+      setIsClosed(true);
+      
+      // Find the next open day
+      let daysChecked = 0;
+      let nextDate = new Date(selectedDateObj);
+      
+      while (daysChecked < 7) {
+        nextDate.setDate(nextDate.getDate() + 1);
+        const nextJsDay = nextDate.getDay();
+        const nextDbDay = jsDateToDatabaseDayOfWeek(nextJsDay);
+        const nextDayConfig = shiftDays.get(nextDbDay);
+        
+        if (nextDayConfig?.is_open) {
+          const year = nextDate.getFullYear();
+          const month = String(nextDate.getMonth() + 1).padStart(2, "0");
+          const day = String(nextDate.getDate()).padStart(2, "0");
+          const nextDateStr = `${year}-${month}-${day}`;
+          setSelectedDate(nextDateStr);
+          setIsClosed(false);
+          break;
+        }
+        
+        daysChecked++;
+      }
+    } else {
+      setIsClosed(false);
+    }
+  }, [selectedDate, shiftDays, setSelectedDate]);
 
   // Subscribe to real-time updates
   useRealtimePrepItems(stationId, selectedDate);
@@ -117,7 +173,7 @@ export function StationView() {
 
     const userId = sessionUser?.id || getDeviceToken();
 
-    await addItemWithUpdates(
+    return await addItemWithUpdates(
       currentKitchen.id,
       stationId,
       selectedDate,
@@ -168,6 +224,47 @@ export function StationView() {
       </div>
     );
   }
+
+  // Get closed days for calendar (convert database day_of_week to day names for calendar)
+  const dayNamesForCalendar = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ];
+  const closedDaysArray = dayNamesForCalendar.filter((_dayName, jsDay) => {
+    const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
+    const dayConfig = shiftDays.get(dbDay);
+    return dayConfig && !dayConfig.is_open;
+  });
+
+  // Get available shifts for the selected date
+  const selectedDateObj = toLocalDate(selectedDate);
+  const selectedJsDay = selectedDateObj.getDay();
+  const selectedDbDay = jsDateToDatabaseDayOfWeek(selectedJsDay);
+  const selectedDayConfig = shiftDays.get(selectedDbDay);
+  const availableShiftIds = selectedDayConfig?.shift_ids ?? [];
+  const availableShifts = kitchenShifts.filter((s) =>
+    availableShiftIds.includes(s.id)
+  );
+
+  // Auto-select first available shift if current shift is no longer available
+  useEffect(() => {
+    if (selectedShiftId && availableShifts.length > 0) {
+      const isCurrentShiftAvailable = availableShifts.some(
+        (s) => s.id === selectedShiftId
+      );
+      if (!isCurrentShiftAvailable) {
+        setSelectedShiftId(availableShifts[0].id);
+      }
+    } else if (availableShifts.length > 0 && !selectedShiftId) {
+      setSelectedShiftId(availableShifts[0].id);
+    }
+  }, [availableShifts, selectedShiftId, setSelectedShiftId]);
+
   // Calculate status counts for progress bar
   const completedCount = prepItems.filter(
     (item) => item.status === "complete"
@@ -201,7 +298,7 @@ export function StationView() {
             <DateCalendar
               selectedDate={selectedDate}
               onDateSelect={setSelectedDate}
-              closedDays={[]}
+              closedDays={closedDaysArray}
             />
             <div className="w-12" /> {/* Spacer for centering */}
           </div>
@@ -210,10 +307,10 @@ export function StationView() {
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1" />
             <ShiftToggle
-              shifts={kitchenShifts.map(s => s.name)}
-              currentShift={kitchenShifts.find(s => s.id === selectedShiftId)?.name || ""}
+              shifts={availableShifts.map(s => s.name)}
+              currentShift={availableShifts.find(s => s.id === selectedShiftId)?.name || ""}
               onShiftChange={(shiftName) => {
-                const shift = kitchenShifts.find(s => s.name === shiftName);
+                const shift = availableShifts.find(s => s.name === shiftName);
                 if (shift) setSelectedShiftId(shift.id);
               }}
               disabled={isClosed}

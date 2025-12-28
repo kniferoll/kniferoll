@@ -264,9 +264,13 @@ export function KitchenOnboarding() {
       return;
     }
 
-    // TODO: Save schedule configuration (shifts, days, custom day shifts)
-    // Currently just creating kitchen with stations
-    const result = await createKitchen(kitchenName, stations);
+    // Save schedule configuration with per-day shifts
+    const result = await createKitchen(
+      kitchenName,
+      stations,
+      closedDays,
+      perDaySchedule
+    );
 
     if (result.error) {
       setError(result.error);
