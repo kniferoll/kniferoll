@@ -6,7 +6,6 @@
 import { supabase } from "./supabase";
 
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 if (!STRIPE_PUBLISHABLE_KEY) {
   console.warn("VITE_STRIPE_PUBLISHABLE_KEY is not set");
@@ -22,39 +21,24 @@ export async function redirectToCheckout(options: {
   cancelUrl: string;
 }): Promise<void> {
   try {
-    // Get the current session token
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      throw new Error("No active session");
-    }
-
-    // Call edge function to create checkout session
-    const response = await fetch(
-      `${API_BASE_URL}/functions/v1/create-checkout-session`,
+    // Call edge function using supabase.functions.invoke (handles auth automatically)
+    const { data, error } = await supabase.functions.invoke(
+      "create-checkout-session",
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+        body: {
           userId: options.userId,
           planTier: options.planTier,
           successUrl: options.successUrl,
           cancelUrl: options.cancelUrl,
-        }),
+        },
       }
     );
 
-    if (!response.ok) {
-      const error = await response.json();
+    if (error) {
       throw new Error(error.message || "Failed to create checkout session");
     }
 
-    const { sessionUrl } = await response.json();
+    const { sessionUrl } = data;
 
     // Redirect to Stripe Checkout
     if (sessionUrl) {
@@ -76,36 +60,22 @@ export async function getCustomerPortalUrl(options: {
   returnUrl: string;
 }): Promise<string> {
   try {
-    // Get the current session token
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      throw new Error("No active session");
-    }
-
-    const response = await fetch(
-      `${API_BASE_URL}/functions/v1/create-portal-session`,
+    // Call edge function using supabase.functions.invoke (handles auth automatically)
+    const { data, error } = await supabase.functions.invoke(
+      "create-portal-session",
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+        body: {
           userId: options.userId,
           returnUrl: options.returnUrl,
-        }),
+        },
       }
     );
 
-    if (!response.ok) {
-      const error = await response.json();
+    if (error) {
       throw new Error(error.message || "Failed to create portal session");
     }
 
-    const { portalUrl } = await response.json();
+    const { portalUrl } = data;
     return portalUrl;
   } catch (error) {
     console.error("Stripe portal error:", error);

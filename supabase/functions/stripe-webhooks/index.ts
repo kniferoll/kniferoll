@@ -1,16 +1,23 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import Stripe from "https://esm.sh/stripe@14.0.0";
+import Stripe from "stripe";
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "");
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
+  apiVersion: "2024-11-20",
+});
+const cryptoProvider = Stripe.createSubtleCryptoProvider();
 const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-const supabaseServiceRoleKey = Deno.env.get("SERVICE_ROLE_KEY") || "";
+const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
 Deno.serve(async (req: Request) => {
   // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response("ok", {
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers":
+          "authorization, x-client-info, apikey, content-type, stripe-signature",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+      },
     });
   }
 
@@ -35,7 +42,13 @@ Deno.serve(async (req: Request) => {
     // Verify webhook signature
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(
+        body,
+        signature,
+        webhookSecret,
+        undefined,
+        cryptoProvider
+      );
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
       return new Response(JSON.stringify({ error: "Invalid signature" }), {
@@ -149,7 +162,6 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
         subscription_period_end: subscriptionPeriodEnd,
       }),
     });
-
   } catch (error) {
     console.error("Error handling subscription update:", error);
   }
@@ -180,7 +192,6 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
         subscription_period_end: null,
       }),
     });
-
   } catch (error) {
     console.error("Error handling subscription cancellation:", error);
   }

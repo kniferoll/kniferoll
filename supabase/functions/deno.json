@@ -1,10 +1,6 @@
 {
-  "compilerOptions": {
-    "lib": ["deno.window"],
-    "types": ["deno.window"]
-  },
   "imports": {
-    "jsr:@supabase/functions-js/": "https://jsr.io/@supabase/functions-js/",
-    "stripe": "https://esm.sh/stripe@14.0.0"
+    "stripe": "https://esm.sh/stripe@14?target=denonext",
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@2"
   }
 }
