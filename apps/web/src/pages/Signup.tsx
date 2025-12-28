@@ -29,11 +29,6 @@ export function Signup() {
     setLoading(true);
 
     try {
-      console.log("🚀 DEBUG Signup: Starting signup process", {
-        email,
-        displayName,
-      });
-
       // Sign up with Supabase Auth
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
@@ -41,14 +36,6 @@ export function Signup() {
         options: {
           data: { display_name: displayName },
         },
-      });
-
-      console.log("🔐 DEBUG Signup: Auth signup result", {
-        hasUser: !!data.user,
-        userId: data.user?.id,
-        userEmail: data.user?.email,
-        session: !!data.session,
-        error: signupError,
       });
 
       if (signupError) {
@@ -62,20 +49,6 @@ export function Signup() {
         setLoading(false);
         return;
       }
-
-      console.log("👤 DEBUG Signup: Ensuring user profile exists");
-
-      // Check current session
-      const { data: sessionData } = await supabase.auth.getSession();
-      console.log("🔐 DEBUG Signup: Current session state", {
-        hasSession: !!sessionData.session,
-        sessionUserId: sessionData.session?.user?.id,
-        accessToken:
-          sessionData.session?.access_token?.substring(0, 20) + "...",
-      });
-
-      // User profile is auto-created via database trigger on_auth_user_created
-      console.log("📊 DEBUG Signup: User profile auto-created via trigger");
 
       // Redirect to dashboard to continue onboarding
       navigate("/dashboard");

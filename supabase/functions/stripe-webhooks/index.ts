@@ -150,9 +150,6 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       }),
     });
 
-    console.log(
-      `Updated user ${userId} subscription status to ${subscriptionStatus}`
-    );
   } catch (error) {
     console.error("Error handling subscription update:", error);
   }
@@ -184,7 +181,6 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
       }),
     });
 
-    console.log(`Downgraded user ${userId} to free plan`);
   } catch (error) {
     console.error("Error handling subscription cancellation:", error);
   }

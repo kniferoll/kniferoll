@@ -18,8 +18,6 @@ export function getUserLimits(plan: UserPlan) {
  * Get the user's profile and plan
  */
 export async function getUserProfile(userId: string) {
-  console.log("🔍 DEBUG getUserProfile: Fetching profile for", userId);
-
   const { data, error } = await supabase
     .from("user_profiles")
     .select("*")
@@ -27,21 +25,8 @@ export async function getUserProfile(userId: string) {
     .maybeSingle();
 
   if (error) {
-    console.log("⚠️ DEBUG getUserProfile: Error fetching profile:", {
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-    });
     return null;
   }
-
-  if (!data) {
-    console.log("ℹ️ DEBUG getUserProfile: No profile found (will create)");
-    return null;
-  }
-
-  console.log("✅ DEBUG getUserProfile: Profile found:", data);
   return data;
 }
 

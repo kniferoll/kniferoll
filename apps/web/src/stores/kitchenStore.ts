@@ -56,33 +56,10 @@ export const useKitchenStore = create<KitchenState>()(
             data: { user },
           } = await supabase.auth.getUser();
 
-          console.log("🔍 DEBUG: Auth state:", {
-            hasUser: !!user,
-            userId: user?.id,
-            userEmail: user?.email,
-            userRole: user?.role,
-            userAud: user?.aud,
-          });
-
-          // Check what role Supabase sees
-          const { data: sessionData } = await supabase.auth.getSession();
-          console.log("🔐 DEBUG: Session details:", {
-            hasSession: !!sessionData.session,
-            accessToken:
-              sessionData.session?.access_token?.substring(0, 30) + "...",
-            userRole: sessionData.session?.user?.role,
-          });
-
           if (!user) {
-            console.error("❌ DEBUG: No authenticated user");
             set({ loading: false, error: "Not authenticated" });
             return { error: "Not authenticated" };
           }
-
-          console.log("📝 DEBUG: Attempting kitchen insert:", {
-            name,
-            owner_id: user.id,
-          });
 
           // Create kitchen
           const { data: kitchen, error: kitchenError } = await supabase
@@ -106,20 +83,6 @@ export const useKitchenStore = create<KitchenState>()(
             return { error: kitchenError?.message };
           }
 
-          console.log("✅ DEBUG: Kitchen created successfully:", {
-            kitchenId: kitchen.id,
-            kitchenName: kitchen.name,
-            ownerId: kitchen.owner_id,
-          });
-
-          console.log("✅ DEBUG: Kitchen created successfully:", {
-            kitchenId: kitchen.id,
-            kitchenName: kitchen.name,
-            ownerId: kitchen.owner_id,
-          });
-
-          console.log("👥 DEBUG: Adding owner to kitchen_members");
-
           // Add owner to kitchen_members table
           const { data: membership, error: membershipError } = await supabase
             .from("kitchen_members")
@@ -140,13 +103,6 @@ export const useKitchenStore = create<KitchenState>()(
             set({ loading: false, error: membershipError.message });
             return { error: membershipError.message };
           }
-
-          console.log("✅ DEBUG: Membership created:", {
-            membershipId: membership.id,
-            role: membership.role,
-          });
-
-          console.log("🏢 DEBUG: Creating stations:", stationNames);
 
           // Create stations
           const stationsToInsert = stationNames.map((stationName, index) => ({
