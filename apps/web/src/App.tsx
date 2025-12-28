@@ -16,11 +16,18 @@ const Signup = lazy(() =>
 const InviteJoin = lazy(() =>
   import("./pages/InviteJoin").then((m) => ({ default: m.InviteJoin }))
 );
-const CreateKitchen = lazy(() =>
-  import("./pages/CreateKitchen").then((m) => ({ default: m.CreateKitchen }))
+const KitchenOnboarding = lazy(() =>
+  import("./pages/KitchenOnboarding").then((m) => ({
+    default: m.KitchenOnboarding,
+  }))
 );
 const Dashboard = lazy(() =>
   import("./pages/Dashboard").then((m) => ({ default: m.Dashboard }))
+);
+const KitchenDashboard = lazy(() =>
+  import("./pages/KitchenDashboard").then((m) => ({
+    default: m.KitchenDashboard,
+  }))
 );
 const StationView = lazy(() =>
   import("./pages/StationView").then((m) => ({ default: m.StationView }))
@@ -71,8 +78,12 @@ function App() {
           {user && (
             <>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/create-kitchen" element={<CreateKitchen />} />
-              <Route path="/kitchen/:kitchenId" element={<StationView />} />
+              <Route path="/kitchen/new" element={<KitchenOnboarding />} />
+              <Route
+                path="/kitchen/:kitchenId"
+                element={<KitchenDashboard />}
+              />
+              <Route path="/station/:stationId" element={<StationView />} />
               <Route
                 path="/kitchen/:kitchenId/settings"
                 element={<KitchenSettings />}

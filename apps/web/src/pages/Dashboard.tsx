@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useKitchens } from "../hooks/useKitchens";
@@ -18,28 +18,12 @@ export function Dashboard() {
   const { limits } = usePlanLimits();
   const { showPaywall, showKitchenPaywall, closePaywall } = usePaywall();
   const { handleCheckout } = useStripeCheckout();
-  const [lastKitchenId, setLastKitchenId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
       navigate("/login");
     }
   }, [user, navigate]);
-
-  // Load last accessed kitchen from localStorage
-  useEffect(() => {
-    if (user) {
-      const lastId = localStorage.getItem("kniferoll_last_kitchen");
-      setLastKitchenId(lastId);
-    }
-  }, [user]);
-
-  // Auto-navigate to last kitchen if only one exists
-  useEffect(() => {
-    if (kitchens.length === 1 && lastKitchenId === kitchens[0].id) {
-      navigate(`/kitchen/${kitchens[0].id}`);
-    }
-  }, [kitchens, lastKitchenId, navigate]);
 
   const handleSelectKitchen = (kitchen: Kitchen) => {
     localStorage.setItem("kniferoll_last_kitchen", kitchen.id);
@@ -55,7 +39,7 @@ export function Dashboard() {
       showKitchenPaywall();
       return;
     }
-    navigate("/create-kitchen");
+    navigate("/kitchen/new");
   };
 
   if (loading) {

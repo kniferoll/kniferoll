@@ -7,6 +7,7 @@ import { useStations } from "../hooks/useStations";
 import { useRealtimePrepItems } from "../hooks/useRealtimePrepItems";
 import { useRealtimeStations } from "../hooks/useRealtimeStations";
 import { usePrepItemActions } from "../hooks/usePrepItemActions";
+import { supabase } from "../lib/supabase";
 import { getTodayLocalDate } from "../lib/dateUtils";
 import { Button } from "../components/Button";
 import { ErrorAlert } from "../components/ErrorAlert";
@@ -18,7 +19,7 @@ type Station = Database["public"]["Tables"]["stations"]["Row"];
 const DEFAULT_SHIFTS = ["Breakfast", "Lunch", "Dinner"];
 
 export function StationView() {
-  const { kitchenId } = useParams<{ kitchenId: string }>();
+  const { stationId } = useParams<{ stationId: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const {
@@ -29,6 +30,7 @@ export function StationView() {
     setSelectedShift,
     loadKitchen,
   } = useKitchenStore();
+  const [kitchenId, setKitchenId] = useState<string | undefined>(undefined);
   const [currentStation, setCurrentStation] = useState<Station | null>(null);
   const { stations, loading: stationsLoading } = useStations(kitchenId);
   const { prepItems, loading: itemsLoading } = usePrepItems(
@@ -51,19 +53,42 @@ export function StationView() {
   const [error, setError] = useState("");
   const [addingItem, setAddingItem] = useState(false);
 
-  // Load kitchen on mount
+  // Fetch station and load kitchen on mount
   useEffect(() => {
-    if (kitchenId && !currentKitchen) {
-      loadKitchen(kitchenId);
-    }
-  }, [kitchenId, currentKitchen, loadKitchen]);
+    if (!stationId) return;
+
+    const fetchStationAndKitchen = async () => {
+      try {
+        const { data: station, error: err } = await supabase
+          .from("stations")
+          .select("kitchen_id")
+          .eq("id", stationId)
+          .single();
+
+        if (err || !station) {
+          console.error("Failed to fetch station:", err);
+          return;
+        }
+
+        setKitchenId(station.kitchen_id);
+        if (!currentKitchen) {
+          await loadKitchen(station.kitchen_id);
+        }
+      } catch (err) {
+        console.error("Error loading station:", err);
+      }
+    };
+
+    fetchStationAndKitchen();
+  }, [stationId, currentKitchen, loadKitchen]);
 
   // Initialize station and shift
   useEffect(() => {
     if (stations.length > 0 && !currentStation) {
-      setCurrentStation(stations[0]);
+      const station = stations.find((s) => s.id === stationId);
+      setCurrentStation(station || stations[0]);
     }
-  }, [stations, currentStation]);
+  }, [stations, currentStation, stationId]);
 
   useEffect(() => {
     if (!selectedShift && DEFAULT_SHIFTS.length > 0) {
@@ -71,7 +96,7 @@ export function StationView() {
     }
   }, [selectedShift, setSelectedShift]);
 
-  if (!user || !kitchenId) {
+  if (!user || !stationId) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading...</p>
@@ -193,13 +218,13 @@ export function StationView() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate("/dashboard")}
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                onClick={() => kitchenId && navigate(`/kitchen/${kitchenId}`)}
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center gap-1"
               >
-                ← Back
+                ← Kitchen Overview
               </button>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {currentKitchen?.name}
+                {currentStation?.name}
               </h1>
             </div>
 
