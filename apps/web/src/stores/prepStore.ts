@@ -30,10 +30,7 @@ interface PrepState {
     shiftId: string
   ) => Promise<void>;
   addPrepItem: (item: PrepItemInsert) => Promise<{ error?: string }>;
-  cycleStatus: (
-    itemId: string,
-    userName?: string
-  ) => Promise<{ error?: string }>;
+  cycleStatus: (itemId: string) => Promise<{ error?: string }>;
   deletePrepItem: (itemId: string) => Promise<{ error?: string }>;
   updatePrepItem: (
     itemId: string,
@@ -113,7 +110,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     }
   },
 
-  cycleStatus: async (itemId, userId?: string) => {
+  cycleStatus: async (itemId) => {
     const { prepItems } = get();
     const item = prepItems.find((i) => i.id === itemId);
     if (!item) return { error: "Item not found" };
@@ -121,14 +118,16 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     const newStatus = cycleStatus(item.status as PrepStatus | null);
     const now = new Date().toISOString();
 
-    if (!userId) {
-      return { error: "User ID required" };
-    }
+    // Get the current user to check if they're authenticated
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     const updates: PrepItemUpdate = {
       status: newStatus,
       status_changed_at: now,
-      status_changed_by_user: userId as any,
+      // Only set status_changed_by_user if user is authenticated (has a real user ID)
+      ...(user ? { status_changed_by_user: user.id } : {}),
     };
 
     // Optimistic update

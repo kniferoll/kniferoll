@@ -164,6 +164,30 @@ export function StationView() {
     setShouldSort(true); // Reset sorting on date/shift change
   }, [stationId, selectedDate, selectedShiftId, loadPrepItems]);
 
+  // Get available shifts for the selected date (computed early so it's available for hooks)
+  const selectedDateObj = toLocalDate(selectedDate);
+  const selectedJsDay = selectedDateObj.getDay();
+  const selectedDbDay = jsDateToDatabaseDayOfWeek(selectedJsDay);
+  const selectedDayConfig = shiftDays.get(selectedDbDay);
+  const availableShiftIds = selectedDayConfig?.shift_ids ?? [];
+  const availableShifts = kitchenShifts.filter((s) =>
+    availableShiftIds.includes(s.id)
+  );
+
+  // Auto-select first available shift if current shift is no longer available
+  useEffect(() => {
+    if (selectedShiftId && availableShifts.length > 0) {
+      const isCurrentShiftAvailable = availableShifts.some(
+        (s) => s.id === selectedShiftId
+      );
+      if (!isCurrentShiftAvailable) {
+        setSelectedShiftId(availableShifts[0].id);
+      }
+    } else if (availableShifts.length > 0 && !selectedShiftId) {
+      setSelectedShiftId(availableShifts[0].id);
+    }
+  }, [availableShifts, selectedShiftId, setSelectedShiftId]);
+
   const handleAddItem = async (
     description: string,
     unitId: string | null,
@@ -186,8 +210,7 @@ export function StationView() {
   };
 
   const handleCycleStatus = async (itemId: string) => {
-    const userName = sessionUser?.displayName || user?.email || undefined;
-    await cycleStatus(itemId, userName);
+    await cycleStatus(itemId);
     setShouldSort(false); // Keep items in place after status change
   };
 
@@ -240,30 +263,6 @@ export function StationView() {
     const dayConfig = shiftDays.get(dbDay);
     return dayConfig && !dayConfig.is_open;
   });
-
-  // Get available shifts for the selected date
-  const selectedDateObj = toLocalDate(selectedDate);
-  const selectedJsDay = selectedDateObj.getDay();
-  const selectedDbDay = jsDateToDatabaseDayOfWeek(selectedJsDay);
-  const selectedDayConfig = shiftDays.get(selectedDbDay);
-  const availableShiftIds = selectedDayConfig?.shift_ids ?? [];
-  const availableShifts = kitchenShifts.filter((s) =>
-    availableShiftIds.includes(s.id)
-  );
-
-  // Auto-select first available shift if current shift is no longer available
-  useEffect(() => {
-    if (selectedShiftId && availableShifts.length > 0) {
-      const isCurrentShiftAvailable = availableShifts.some(
-        (s) => s.id === selectedShiftId
-      );
-      if (!isCurrentShiftAvailable) {
-        setSelectedShiftId(availableShifts[0].id);
-      }
-    } else if (availableShifts.length > 0 && !selectedShiftId) {
-      setSelectedShiftId(availableShifts[0].id);
-    }
-  }, [availableShifts, selectedShiftId, setSelectedShiftId]);
 
   // Calculate status counts for progress bar
   const completedCount = prepItems.filter(
