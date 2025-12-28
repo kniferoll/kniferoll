@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { useKitchenStore } from "../stores/kitchenStore";
+import { usePlanLimits } from "../hooks/usePlanLimits";
 import { CenteredPage } from "../components/CenteredPage";
 import { Button } from "../components/Button";
 import { ErrorAlert } from "../components/ErrorAlert";
@@ -31,6 +32,7 @@ export function CreateKitchen() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { createKitchen } = useKitchenStore();
+  const { limits } = usePlanLimits();
   const [step, setStep] = useState(1);
   const [kitchenName, setKitchenName] = useState("");
   const [openDays, setOpenDays] = useState<string[]>([
@@ -47,7 +49,10 @@ export function CreateKitchen() {
   const [customShiftInput, setCustomShiftInput] = useState("");
   const [customizeByDay, setCustomizeByDay] = useState(false);
   const [shiftsByDay, setShiftsByDay] = useState<ShiftConfig>({});
-  const [stations, setStations] = useState<string[]>(DEFAULT_STATIONS);
+  const [stations, setStations] = useState<string[]>(() => {
+    // Initialize with default stations, but will be limited by plan
+    return DEFAULT_STATIONS;
+  });
   const [customStationInput, setCustomStationInput] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,6 +67,18 @@ export function CreateKitchen() {
       setShiftsByDay(config);
     }
   }, [customizeByDay, openDays, shifts, shiftsByDay]);
+
+  // Enforce station limit based on plan
+  useEffect(() => {
+    if (limits && limits.maxStationsPerKitchen !== Infinity) {
+      setStations((prevStations) => {
+        if (prevStations.length > limits.maxStationsPerKitchen) {
+          return prevStations.slice(0, limits.maxStationsPerKitchen);
+        }
+        return prevStations;
+      });
+    }
+  }, [limits]);
 
   if (!user) {
     return (
@@ -105,14 +122,32 @@ export function CreateKitchen() {
   };
 
   const handleAddStation = () => {
-    if (customStationInput.trim()) {
-      setStations([...stations, customStationInput.trim()]);
-      setCustomStationInput("");
+    if (!customStationInput.trim()) {
+      return;
     }
+
+    // Check station limit
+    if (
+      limits &&
+      limits.maxStationsPerKitchen !== Infinity &&
+      stations.length >= limits.maxStationsPerKitchen
+    ) {
+      setError(
+        `Your plan allows up to ${limits.maxStationsPerKitchen} station${
+          limits.maxStationsPerKitchen === 1 ? "" : "s"
+        } per kitchen. Upgrade to Pro for unlimited stations.`
+      );
+      return;
+    }
+
+    setStations([...stations, customStationInput.trim()]);
+    setCustomStationInput("");
+    setError("");
   };
 
   const handleRemoveStation = (index: number) => {
     setStations(stations.filter((_, i) => i !== index));
+    setError("");
   };
 
   const handleCreateKitchen = async () => {
@@ -341,9 +376,29 @@ export function CreateKitchen() {
           {/* Step 5: Stations */}
           {((step === 4 && !customizeByDay) || step === 5) && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                What stations does your kitchen have?
-              </h2>
+              <div className="mb-4">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  What stations does your kitchen have?
+                </h2>
+                {limits && limits.maxStationsPerKitchen !== Infinity && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Your plan allows up to {limits.maxStationsPerKitchen}{" "}
+                    station
+                    {limits.maxStationsPerKitchen === 1 ? "" : "s"} per kitchen.{" "}
+                    {limits.maxStationsPerKitchen === 1 && (
+                      <span>
+                        <a
+                          href="/upgrade"
+                          className="text-blue-600 dark:text-blue-400 hover:underline"
+                        >
+                          Upgrade to Pro
+                        </a>{" "}
+                        for unlimited stations.
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
               <div className="space-y-3 mb-6">
                 {stations.map((station, index) => (
                   <div
@@ -375,11 +430,25 @@ export function CreateKitchen() {
                     }
                   }}
                   placeholder="Add station name"
-                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-800 dark:text-white"
+                  disabled={
+                    !!(
+                      limits &&
+                      limits.maxStationsPerKitchen !== Infinity &&
+                      stations.length >= limits.maxStationsPerKitchen
+                    )
+                  }
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <button
                   onClick={handleAddStation}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  disabled={
+                    !!(
+                      limits &&
+                      limits.maxStationsPerKitchen !== Infinity &&
+                      stations.length >= limits.maxStationsPerKitchen
+                    )
+                  }
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Add
                 </button>
