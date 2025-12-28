@@ -1,0 +1,8 @@
+[create-checkout-session]
+verify_jwt = false
+
+[create-portal-session]
+verify_jwt = false
+
+[stripe-webhook]
+verify_jwt = false

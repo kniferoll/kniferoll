@@ -1,14 +1,17 @@
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
-  apiVersion: "2024-11-20",
-});
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string);
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const supabaseSecretKey = Deno.env.get("SERVICE_ROLE_KEY") || "";
 
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 type RequestBody = {
   userId: string;
@@ -18,37 +21,46 @@ type RequestBody = {
 Deno.serve(async (req: Request) => {
   // Handle CORS
   if (req.method === "OPTIONS") {
-    return new Response("ok", {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers":
-          "authorization, x-client-info, apikey, content-type",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-      },
-    });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Verify JWT token from Authorization header
+    // Extract headers from the incoming request
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    const apiKey = req.headers.get("apikey");
+
+    if (!authHeader || !apiKey) {
+      return new Response(JSON.stringify({ error: "Missing auth headers" }), {
         status: 401,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    // Create a client using the request's credentials to verify the user
+    const supabaseAuth = createClient(supabaseUrl, apiKey, {
+      global: {
+        headers: { Authorization: authHeader },
+      },
+    });
 
-    // Verify token with Supabase
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    // Verify the user's JWT
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
       console.error("Auth verification failed:", authError);
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          details: authError?.message,
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     const body: RequestBody = await req.json();
@@ -57,28 +69,40 @@ Deno.serve(async (req: Request) => {
     if (!body.userId || body.userId !== user.id) {
       return new Response(JSON.stringify({ error: "User ID mismatch" }), {
         status: 400,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    // Get user's Stripe customer ID
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const { data: userProfile } = await fetch(
-      `${supabaseUrl}/rest/v1/user_profiles?id=eq.${user.id}`,
-      {
-        headers: {
-          apikey: serviceRoleKey || "",
-          Authorization: `Bearer ${serviceRoleKey || ""}`,
-        },
-      }
-    ).then((r) => r.json());
+    // Create admin client with secret key for database operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseSecretKey);
 
-    const customerId = userProfile?.[0]?.stripe_customer_id;
+    // Get user's Stripe customer ID
+    const { data: userProfile, error: profileError } = await supabaseAdmin
+      .from("user_profiles")
+      .select("stripe_customer_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Error fetching user profile:", profileError);
+      return new Response(
+        JSON.stringify({ error: "Failed to fetch user profile" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    const customerId = userProfile?.stripe_customer_id;
 
     if (!customerId) {
       return new Response(
         JSON.stringify({ error: "No Stripe customer found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
       );
     }
 
@@ -89,7 +113,7 @@ Deno.serve(async (req: Request) => {
     });
 
     return new Response(JSON.stringify({ portalUrl: session.url }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...corsHeaders },
       status: 200,
     });
   } catch (error) {
@@ -100,7 +124,7 @@ Deno.serve(async (req: Request) => {
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }

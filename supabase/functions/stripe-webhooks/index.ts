@@ -1,12 +1,11 @@
 import Stripe from "stripe";
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
-  apiVersion: "2024-11-20",
-});
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string);
+
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const supabaseServiceRoleKey = Deno.env.get("SERVICE_ROLE_KEY") || "";
 
 Deno.serve(async (req: Request) => {
   // Handle CORS
