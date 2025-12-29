@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
-import { signInAnonymously } from "@/lib/auth";
-import { useAuthStore } from "@/stores/authStore";
-import { useDarkModeContext } from "@/context/DarkModeContext";
+import { supabase } from "@/lib";
+import { signInAnonymously } from "@/lib";
+import { useAuthStore } from "@/stores";
+import { useDarkModeContext } from "@/context";
 import { Button, Card, FormInput } from "@/components";
 import type { Database } from "@kniferoll/types";
 

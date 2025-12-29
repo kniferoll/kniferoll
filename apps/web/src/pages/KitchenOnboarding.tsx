@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useKitchenStore } from "@/stores/kitchenStore";
-import { usePlanLimits, usePaywall } from "@/hooks/usePlanLimits";
+import { useKitchenStore } from "@/stores";
+import { usePlanLimits, usePaywall } from "@/hooks";
 
 type Step = "name" | "days" | "shifts" | "schedule-mode" | "stations";
 type DayOfWeek =

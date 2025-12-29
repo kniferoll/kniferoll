@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib";
 import { Button } from "@/components/ui/Button";
 import type { Database } from "@kniferoll/types";
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib";
 import type { Kitchen, KitchenMember } from "@kniferoll/types";
 
 /**

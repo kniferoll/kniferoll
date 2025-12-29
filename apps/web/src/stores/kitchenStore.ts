@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { supabase } from "@/lib/supabase";
-import { signInAnonymously } from "@/lib/auth";
-import { getTodayLocalDate } from "@/lib/dateUtils";
+import { supabase } from "@/lib";
+import { signInAnonymously } from "@/lib";
+import { getTodayLocalDate } from "@/lib";
 import type { DbKitchen, DbStation, DbKitchenMember } from "@kniferoll/types";
 
 interface CurrentUser {

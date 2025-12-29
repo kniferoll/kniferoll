@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useAuthStore } from "@/stores/authStore";
+import { supabase } from "@/lib";
+import { useAuthStore } from "@/stores";
 import type { Database, PrepStatus } from "@kniferoll/types";
 
 type PrepItemInsert = Database["public"]["Tables"]["prep_items"]["Insert"];

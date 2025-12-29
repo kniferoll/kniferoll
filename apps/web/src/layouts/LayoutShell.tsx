@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { useDarkModeContext } from "@/context/DarkModeContext";
-import { useHeader } from "@/hooks/useHeader";
+import { useDarkModeContext } from "@/context";
+import { useHeader } from "@/hooks";
 import { PageHeader } from "@/components";
 
 interface LayoutShellProps {

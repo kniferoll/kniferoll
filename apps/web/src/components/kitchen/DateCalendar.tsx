@@ -1,9 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  getTodayLocalDate,
-  toLocalDate,
-  formatToDateString,
-} from "@/lib/dateUtils";
+import { getTodayLocalDate, toLocalDate, formatToDateString } from "@/lib";
 
 interface DateCalendarProps {
   selectedDate: string; // ISO date string (YYYY-MM-DD)

@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
-import { useKitchenStore } from "@/stores/kitchenStore";
-import { useStations } from "@/hooks/useStations";
-import { useRealtimeStations } from "@/hooks/useRealtimeStations";
-import { useHeaderConfig } from "@/hooks/useHeader";
-import { useDarkModeContext } from "@/context/DarkModeContext";
-import { supabase } from "@/lib/supabase";
+import { useAuthStore, useKitchenStore } from "@/stores";
+import { useStations, useRealtimeStations, useHeaderConfig } from "@/hooks";
+import { useDarkModeContext } from "@/context";
+import { supabase } from "@/lib";
 import {
   BackButton,
   Button,
@@ -16,7 +13,7 @@ import {
   StationCard,
 } from "@/components";
 
-import { jsDateToDatabaseDayOfWeek, toLocalDate } from "@/lib/dateUtils";
+import { jsDateToDatabaseDayOfWeek, toLocalDate } from "@/lib";
 
 interface StationProgress {
   stationId: string;

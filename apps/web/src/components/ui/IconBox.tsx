@@ -1,5 +1,5 @@
 import { type ReactNode } from "react";
-import { useDarkModeContext } from "@/context/DarkModeContext";
+import { useDarkModeContext } from "@/context";
 
 interface IconBoxProps {
   size?: "sm" | "md" | "lg" | "xl";

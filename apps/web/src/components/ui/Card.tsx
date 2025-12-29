@@ -1,5 +1,5 @@
 import { type HTMLAttributes, type ReactNode } from "react";
-import { useDarkModeContext } from "@/context/DarkModeContext";
+import { useDarkModeContext } from "@/context";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "dashed" | "interactive";

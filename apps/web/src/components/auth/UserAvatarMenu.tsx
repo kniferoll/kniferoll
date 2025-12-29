@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
-import { useDarkModeContext } from "@/context/DarkModeContext";
+import { useAuthStore } from "@/stores";
+import { useDarkModeContext } from "@/context";
 
 export function UserAvatarMenu() {
   const navigate = useNavigate();

@@ -1,4 +1,4 @@
-import { useDarkModeContext } from "@/context/DarkModeContext";
+import { useDarkModeContext } from "@/context";
 import { Card } from "@/components/ui/Card";
 
 interface StepCardProps {

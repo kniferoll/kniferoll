@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { usePrepStore } from "@/stores/prepStore";
+import { supabase } from "@/lib";
+import { usePrepStore } from "@/stores";
 import type { DbPrepItem } from "@kniferoll/types";
 
 export function useRealtimePrepItems(

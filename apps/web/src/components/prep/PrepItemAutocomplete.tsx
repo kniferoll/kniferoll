@@ -1,8 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  useItemSuggestions,
-  getLastQuantity,
-} from "@/hooks/useItemSuggestions";
+import { useItemSuggestions, getLastQuantity } from "@/hooks";
 import type { DbPrepItemSuggestion } from "@kniferoll/types";
 
 type KitchenItemSuggestion = DbPrepItemSuggestion & { description?: string };

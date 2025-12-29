@@ -1,4 +1,4 @@
-import { useDarkModeContext } from "@/context/DarkModeContext";
+import { useDarkModeContext } from "@/context";
 
 /**
  * Privacy Policy page

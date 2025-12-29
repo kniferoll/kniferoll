@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useDarkModeContext } from "@/context/DarkModeContext";
+import { useDarkModeContext } from "@/context";
 import { Logo } from "@/components/layout/Logo";
 
 /**

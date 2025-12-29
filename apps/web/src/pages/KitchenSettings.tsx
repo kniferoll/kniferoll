@@ -1,21 +1,24 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
-import { useKitchen } from "@/hooks/useKitchens";
-import { usePlanLimits, usePaywall } from "@/hooks/usePlanLimits";
-import { useMemberActions } from "@/hooks/useMemberActions";
-import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
-import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { useAuthStore } from "@/stores";
+import {
+  useKitchen,
+  useMemberActions,
+  usePaywall,
+  usePlanLimits,
+  useRealtimeMembers,
+  useStripeCheckout,
+} from "@/hooks";
 import {
   useKitchenShifts,
   useKitchenShiftActions,
   DAYS_OF_WEEK,
-} from "@/hooks/useKitchenShifts";
-import { useUserSubscription } from "@/hooks/useUserSubscription";
-import { useHeaderConfig } from "@/hooks/useHeader";
-import { useDarkModeContext } from "@/context/DarkModeContext";
-import { redirectToCustomerPortal } from "@/lib/stripe";
-import { supabase } from "@/lib/supabase";
+} from "@/hooks";
+import { useUserSubscription } from "@/hooks";
+import { useHeaderConfig } from "@/hooks";
+import { useDarkModeContext } from "@/context";
+import { redirectToCustomerPortal } from "@/lib";
+import { supabase } from "@/lib";
 import {
   BackButton,
   Button,

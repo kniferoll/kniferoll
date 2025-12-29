@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useDarkModeContext } from "@/context/DarkModeContext";
+import { useDarkModeContext } from "@/context";
 
 export function DashboardLink() {
   const navigate = useNavigate();

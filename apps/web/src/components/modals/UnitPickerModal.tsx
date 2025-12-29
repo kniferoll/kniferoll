@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useKitchenStore } from "@/stores/kitchenStore";
-import { supabase, getDeviceToken } from "@/lib/supabase";
+import { useKitchenStore } from "@/stores";
+import { supabase, getDeviceToken } from "@/lib";
 import type { KitchenUnit } from "@kniferoll/types";
 
 interface UnitPickerModalProps {

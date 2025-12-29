@@ -1,7 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/stores/authStore";
-import { HeaderProvider } from "@/context/HeaderContext";
-import { useHeaderConfig } from "@/hooks/useHeader";
+import { useAuthStore } from "@/stores";
+import { HeaderProvider } from "@/context";
+import { useHeaderConfig } from "@/hooks";
 import {
   AuthButtons,
   DashboardLink,

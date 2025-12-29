@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import { useKitchenStore } from "@/stores/kitchenStore";
+import { supabase } from "@/lib";
+import { useKitchenStore } from "@/stores";
 import type { DbStation } from "@kniferoll/types";
 
 export function useRealtimeStations(kitchenId: string | undefined) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/stores/authStore";
-import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/stores";
+import { supabase } from "@/lib";
 import type { Database } from "@kniferoll/types";
 
 type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];

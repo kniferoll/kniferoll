@@ -1,11 +1,11 @@
 import { create } from "zustand";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib";
 import type {
   DbKitchenUnit,
   DbPrepItem,
   RecencyScoredSuggestion,
 } from "@kniferoll/types";
-import { rankSuggestions } from "@/lib/suggestionUtils";
+import { rankSuggestions } from "@/lib";
 
 /**
  * Compute which suggestions should be displayed (top N that aren't dismissed or duplicates)

@@ -1,4 +1,4 @@
-import { useDarkModeContext } from "@/context/DarkModeContext";
+import { useDarkModeContext } from "@/context";
 import { KniferollIcon } from "@/components/icons/KniferollIcon";
 
 interface LogoProps {
