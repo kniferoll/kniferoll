@@ -1,55 +1,63 @@
+import { useId } from "react";
 import { useDarkModeContext } from "@/context";
 
 interface FormInputProps {
   id?: string;
-  label: string;
+  label?: string;
   type?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   placeholder?: string;
   disabled?: boolean;
   required?: boolean;
   minLength?: number;
   helperText?: string;
+  autoFocus?: boolean;
 }
 
-/**
- * FormInput - styled input field that matches the Kniferoll design system.
- */
 export function FormInput({
   id,
   label,
   type = "text",
   value,
   onChange,
+  onKeyDown,
   placeholder,
   disabled = false,
   required = true,
   minLength,
   helperText,
+  autoFocus,
 }: FormInputProps) {
   const { isDark } = useDarkModeContext();
-  const inputId = id || label.toLowerCase().replace(/\s+/g, "-");
+  const generatedId = useId();
+  const inputId =
+    id || (label ? label.toLowerCase().replace(/\s+/g, "-") : generatedId);
 
   return (
     <div>
-      <label
-        htmlFor={inputId}
-        className={`block text-sm font-medium mb-2 ${
-          isDark ? "text-gray-300" : "text-gray-700"
-        }`}
-      >
-        {label}
-      </label>
+      {label && (
+        <label
+          htmlFor={inputId}
+          className={`block text-sm font-medium mb-2 ${
+            isDark ? "text-gray-300" : "text-gray-700"
+          }`}
+        >
+          {label}
+        </label>
+      )}
       <input
         id={inputId}
         type={type}
         value={value}
         onChange={onChange}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         disabled={disabled}
         required={required}
         minLength={minLength}
+        autoFocus={autoFocus}
         className={`w-full px-4 py-3 rounded-xl border transition-all ${
           isDark
             ? "bg-slate-700/50 border-slate-600 text-white placeholder-gray-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
