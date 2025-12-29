@@ -11,6 +11,7 @@ import {
   Logo,
   NavLinks,
   UserAvatarMenu,
+  KitchenOnboardingModal,
 } from "../components";
 import type { Database } from "@kniferoll/types";
 
@@ -25,6 +26,7 @@ export function Dashboard() {
   const { isDark } = useDarkModeContext();
   const [settingsMenuOpen, setSettingsMenuOpen] = useState<string | null>(null);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -60,7 +62,13 @@ export function Dashboard() {
       setUpgradeModalOpen(true);
       return;
     }
-    navigate("/kitchen/new");
+    setOnboardingModalOpen(true);
+  };
+
+  const handleKitchenCreated = (kitchenId: string) => {
+    setOnboardingModalOpen(false);
+    localStorage.setItem("kniferoll_last_kitchen", kitchenId);
+    navigate(`/kitchen/${kitchenId}`);
   };
 
   const canAddKitchen = limits?.canCreateKitchen ?? false;
@@ -471,6 +479,13 @@ export function Dashboard() {
               </div>
             </div>
           )}
+
+          {/* Kitchen Onboarding Modal */}
+          <KitchenOnboardingModal
+            isOpen={onboardingModalOpen}
+            onClose={() => setOnboardingModalOpen(false)}
+            onSuccess={handleKitchenCreated}
+          />
         </>
       }
       footer={false}

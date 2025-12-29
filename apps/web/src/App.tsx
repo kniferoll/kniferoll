@@ -16,11 +16,6 @@ const Signup = lazy(() =>
 const InviteJoin = lazy(() =>
   import("./pages/InviteJoin").then((m) => ({ default: m.InviteJoin }))
 );
-const KitchenOnboarding = lazy(() =>
-  import("./pages/KitchenOnboarding").then((m) => ({
-    default: m.KitchenOnboarding,
-  }))
-);
 const Dashboard = lazy(() =>
   import("./pages/Dashboard").then((m) => ({ default: m.Dashboard }))
 );
@@ -90,7 +85,6 @@ function App() {
           {user && (
             <>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/kitchen/new" element={<KitchenOnboarding />} />
               <Route
                 path="/kitchen/:kitchenId"
                 element={<KitchenDashboard />}

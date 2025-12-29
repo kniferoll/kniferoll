@@ -37,3 +37,4 @@ export {
 } from "./Skeleton";
 export { PrepItemAutocomplete } from "./PrepItemAutocomplete";
 export { InviteLinkModal } from "./InviteLinkModal";
+export { KitchenOnboardingModal } from "./KitchenOnboardingModal";
