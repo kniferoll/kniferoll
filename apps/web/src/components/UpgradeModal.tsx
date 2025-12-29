@@ -48,7 +48,7 @@ export function UpgradeModal({
             >
               Upgrade to Pro
             </Button>
-            <Button onClick={onCancel} variant="outline" className="w-full">
+            <Button onClick={onCancel} variant="secondary" className="w-full">
               Not Now
             </Button>
           </div>

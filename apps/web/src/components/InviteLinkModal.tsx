@@ -255,7 +255,7 @@ export function InviteLinkModal({
 
         {/* Footer */}
         <div className="flex justify-end gap-2 p-6 border-t border-gray-200 dark:border-gray-700">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="secondary" onClick={onClose}>
             Close
           </Button>
         </div>

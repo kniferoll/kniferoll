@@ -17,7 +17,7 @@ export function PublicFooter() {
       <div className="max-w-3xl mx-auto px-6 md:px-10 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-gradient-to-br from-orange-500 to-orange-600 rounded-md flex items-center justify-center">
+          <div className="w-7 h-7 bg-linear-to-br from-orange-500 to-orange-600 rounded-md flex items-center justify-center">
             <svg
               width="14"
               height="14"

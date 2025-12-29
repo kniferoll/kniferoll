@@ -568,7 +568,7 @@ export function KitchenSettings() {
                         </p>
                         <Button
                           onClick={showStationPaywall}
-                          variant="outline"
+                          variant="secondary"
                           className="border-amber-300 dark:border-amber-700"
                         >
                           Upgrade to Pro
@@ -752,7 +752,7 @@ export function KitchenSettings() {
                             );
                           }
                         }}
-                        variant="outline"
+                        variant="secondary"
                         className="w-full"
                       >
                         Manage Subscription

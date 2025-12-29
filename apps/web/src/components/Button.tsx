@@ -1,47 +1,93 @@
-import { memo, type ReactNode } from "react";
+import { type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useDarkModeContext } from "../context/DarkModeContext";
 
-interface ButtonProps {
-  children: ReactNode;
-  onClick?: () => void;
-  type?: "button" | "submit";
-  variant?: "primary" | "secondary" | "danger" | "outline";
-  disabled?: boolean;
-  className?: string;
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary" | "ghost";
+  size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
+  children: ReactNode;
 }
 
-const ButtonInner = ({
-  children,
-  onClick,
-  type = "button",
+/**
+ * Button component with consistent styling across the app.
+ *
+ * Variants:
+ * - primary: Orange gradient, main CTA
+ * - secondary: Bordered, secondary actions
+ * - ghost: No border, subtle actions
+ *
+ * Sizes:
+ * - sm: Compact (py-2 px-4)
+ * - md: Default (py-2.5 px-5)
+ * - lg: Large CTA (py-3.5 px-8)
+ */
+export function Button({
   variant = "primary",
-  disabled = false,
-  className = "",
+  size = "md",
   fullWidth = false,
-}: ButtonProps) => {
-  const baseStyles = "py-2 px-4 rounded-lg font-semibold transition-colors";
-  const variantStyles = {
-    primary:
-      "bg-blue-600 dark:bg-blue-700 text-white hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50",
-    secondary:
-      "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 border-2 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700",
-    danger:
-      "bg-red-600 dark:bg-red-700 text-white hover:bg-red-700 dark:hover:bg-red-600 disabled:opacity-50",
-    outline:
-      "border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-50",
+  children,
+  className = "",
+  disabled,
+  ...props
+}: ButtonProps) {
+  const { isDark } = useDarkModeContext();
+
+  const baseStyles =
+    "font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
+
+  const sizeStyles = {
+    sm: "py-2 px-4 text-sm",
+    md: "py-2.5 px-5 text-sm",
+    lg: "py-3.5 px-8 text-base",
   };
-  const widthStyle = fullWidth ? "w-full" : "";
+
+  const variantStyles = {
+    primary: `
+      bg-gradient-to-r from-orange-500 to-orange-600 
+      text-white 
+      shadow-lg shadow-orange-500/30 
+      hover:shadow-xl hover:shadow-orange-500/40 
+      hover:-translate-y-0.5 
+      disabled:hover:translate-y-0 
+      disabled:hover:shadow-lg
+    `,
+    secondary: isDark
+      ? `
+        border-2 border-slate-600 
+        text-white 
+        hover:bg-slate-800 hover:border-slate-500
+      `
+      : `
+        border-2 border-stone-300 
+        text-gray-900 
+        hover:bg-white hover:border-stone-400
+      `,
+    ghost: isDark
+      ? `
+        text-gray-300 
+        hover:text-white hover:bg-slate-700
+      `
+      : `
+        text-gray-600 
+        hover:text-gray-900 hover:bg-stone-200/50
+      `,
+  };
+
+  const widthStyles = fullWidth ? "w-full" : "";
 
   return (
     <button
-      type={type}
-      onClick={onClick}
+      className={`
+        ${baseStyles} 
+        ${sizeStyles[size]} 
+        ${variantStyles[variant]} 
+        ${widthStyles} 
+        ${className}
+      `}
       disabled={disabled}
-      className={`${baseStyles} ${variantStyles[variant]} ${widthStyle} ${className}`}
+      {...props}
     >
       {children}
     </button>
   );
-};
-
-export const Button = memo(ButtonInner);
+}

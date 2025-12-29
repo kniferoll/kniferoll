@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useDarkModeContext } from "../context/DarkModeContext";
+import { Button } from "./Button";
+import { Card } from "./Card";
 
 interface AuthFormProps {
   title: string;
@@ -19,7 +21,7 @@ interface AuthFormProps {
 
 /**
  * AuthForm - a styled form card for authentication pages.
- * 
+ *
  * This is just the form content - it expects to be rendered inside
  * a layout (PublicLayout) that provides the page shell, header, and footer.
  */
@@ -51,13 +53,7 @@ export function AuthForm({
       </div>
 
       {/* Card */}
-      <div
-        className={`rounded-2xl border p-8 ${
-          isDark
-            ? "bg-slate-800/50 border-slate-700"
-            : "bg-white border-stone-200 shadow-lg shadow-stone-900/5"
-        }`}
-      >
+      <Card padding="lg">
         <form onSubmit={onSubmit} className="space-y-5">
           {error && (
             <div
@@ -73,21 +69,19 @@ export function AuthForm({
 
           {children}
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
             disabled={loading}
-            className="w-full py-3 text-base font-semibold rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
           >
             {loading ? "Loading..." : submitButtonText}
-          </button>
+          </Button>
         </form>
 
         <div className="mt-6 text-center">
-          <p
-            className={`text-sm ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             {footerText}{" "}
             <Link
               to={footerLink.to}
@@ -97,7 +91,7 @@ export function AuthForm({
             </Link>
           </p>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

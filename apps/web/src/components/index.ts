@@ -8,17 +8,13 @@ export { DashboardLink } from "./DashboardLink";
 export { AuthButtons } from "./AuthButtons";
 export { UserAvatarMenu } from "./UserAvatarMenu";
 export { CenteredPage } from "./CenteredPage";
-export { FormInput } from "./FormInput";
-export { AuthForm } from "./AuthForm";
 export { ShiftToggle } from "./ShiftToggle";
 export { ProgressBar } from "./ProgressBar";
 export { StationCard } from "./StationCard";
 export { ErrorAlert } from "./ErrorAlert";
-export { Button } from "./Button";
 export { PrepItemForm } from "./PrepItemForm";
 export { PrepItemEntryForm } from "./PrepItemEntryForm";
 export { PrepItemList } from "./PrepItemList";
-export { FeatureCard } from "./FeatureCard";
 export { DateCalendar } from "./DateCalendar";
 export { StationList } from "./StationList";
 export { CodeInput } from "./CodeInput";
@@ -38,5 +34,22 @@ export {
 export { PrepItemAutocomplete } from "./PrepItemAutocomplete";
 export { InviteLinkModal } from "./InviteLinkModal";
 export { KitchenOnboardingModal } from "./KitchenOnboardingModal";
-export { BackButton } from "./BackButton";
 export { ScrollToTop } from "./ScrollToTop";
+
+// Core UI
+export { Button } from "./Button";
+export { Card } from "./Card";
+export { IconBox } from "./IconBox";
+export { FormInput } from "./FormInput";
+
+// Cards
+export { StepCard } from "./StepCard";
+export { FeatureCard } from "./FeatureCard";
+
+// Layout
+export { SectionHeader } from "./SectionHeader";
+export { BackButton } from "./BackButton";
+export { PublicFooter } from "./PublicFooter";
+
+// Auth
+export { AuthForm } from "./AuthForm";
