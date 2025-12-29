@@ -1,5 +1,7 @@
 import { useDarkModeContext } from "@/context";
-import { Modal, Button, IconBox } from "@/components";
+import { Modal } from "../ui/Modal";
+import { Button } from "../ui/Button";
+import { IconBox } from "../ui/IconBox";
 
 interface UpgradeModalProps {
   isOpen: boolean;

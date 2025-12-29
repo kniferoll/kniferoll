@@ -1,6 +1,6 @@
-import { type ReactNode } from "react";
 import { useDarkModeContext } from "@/context";
-import { Card, IconBox } from "@/components";
+import { Card } from "../ui/Card";
+import { IconBox } from "../ui/IconBox";
 
 interface AddCardProps {
   label: string;

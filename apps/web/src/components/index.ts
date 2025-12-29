@@ -21,3 +21,6 @@ export * from "./auth";
 
 // Icons
 export * from "./icons";
+
+// Settings
+export * from "./settings";

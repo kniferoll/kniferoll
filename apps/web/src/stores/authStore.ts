@@ -46,24 +46,40 @@ export const useAuthStore = create<AuthState>()(
 
       signIn: async (email, password) => {
         set({ loading: true });
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-        set({ loading: false });
+        if (data.session) {
+          set({
+            session: data.session,
+            user: data.session.user,
+            loading: false,
+          });
+        } else {
+          set({ loading: false });
+        }
         return { error: error?.message };
       },
 
       signUp: async (email, password, name) => {
         set({ loading: true });
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { name },
           },
         });
-        set({ loading: false });
+        if (data.session) {
+          set({
+            session: data.session,
+            user: data.session.user,
+            loading: false,
+          });
+        } else {
+          set({ loading: false });
+        }
         return { error: error?.message };
       },
 

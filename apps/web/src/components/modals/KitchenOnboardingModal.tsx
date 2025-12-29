@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useKitchenStore } from "@/stores";
 import { usePlanLimits, useStripeCheckout } from "@/hooks";
-import { WizardModal } from "@/components";
+import { WizardModal } from "./WizardModal";
 import {
   StepKitchenName,
   StepOperatingDays,

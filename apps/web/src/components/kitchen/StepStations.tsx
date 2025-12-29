@@ -1,7 +1,8 @@
 // src/components/kitchen/StepStations.tsx
 import { useState } from "react";
 import { useDarkModeContext } from "@/context";
-import { Button, FormInput } from "@/components";
+import { Button } from "../ui/Button";
+import { FormInput } from "../ui/FormInput";
 
 const DEFAULT_STATIONS = ["Garde Manger", "Grill", "Sauté", "Pastry", "Prep"];
 

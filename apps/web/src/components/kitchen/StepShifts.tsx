@@ -1,7 +1,8 @@
 // src/components/kitchen/StepShifts.tsx
 import { useState } from "react";
 import { useDarkModeContext } from "@/context";
-import { Button, FormInput } from "@/components";
+import { Button } from "../ui/Button";
+import { FormInput } from "../ui/FormInput";
 
 const PRESET_SHIFTS = ["Breakfast", "Lunch", "Dinner"];
 

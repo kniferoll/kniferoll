@@ -1,5 +1,5 @@
 import { useDarkModeContext } from "@/context";
-import { FormInput } from "@/components";
+import { FormInput } from "../ui/FormInput";
 
 interface StepKitchenNameProps {
   value: string;

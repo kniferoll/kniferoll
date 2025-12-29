@@ -1,5 +1,6 @@
 import { useDarkModeContext } from "@/context";
-import { Button, IconBox } from "@/components";
+import { Button } from "../ui/Button";
+import { IconBox } from "../ui/IconBox";
 
 interface StepUpgradeProps {
   feature: "stations" | "kitchens";

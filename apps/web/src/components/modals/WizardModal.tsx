@@ -1,7 +1,8 @@
 import { type ReactNode } from "react";
 import { useDarkModeContext } from "@/context";
 import { CheckCircleIcon } from "@heroicons/react/20/solid";
-import { XIcon, Alert } from "@/components";
+import { XIcon } from "../icons/XIcon";
+import { Alert } from "../ui/Alert";
 
 interface WizardStep {
   id: string;

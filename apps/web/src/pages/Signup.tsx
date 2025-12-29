@@ -1,27 +1,35 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
+import { useDarkModeContext } from "@/context";
 import { AuthForm, FormInput } from "@/components";
 
-/**
- * Signup page
- *
- * Uses the default header from PublicLayout.
- * AuthForm is just the card content - the layout provides the page shell.
- */
 export function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { signUp, loading, user } = useAuthStore();
+  const { isDark } = useDarkModeContext();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
   }, [user, navigate]);
+
+  // Show nothing while redirecting to prevent white flash
+  if (user || isSubmitting) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+          Creating account...
+        </p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,11 +40,11 @@ export function Signup() {
       return;
     }
 
+    setIsSubmitting(true);
     const result = await signUp(email, password, name);
     if (result.error) {
       setError(result.error);
-    } else {
-      navigate("/dashboard");
+      setIsSubmitting(false);
     }
   };
 

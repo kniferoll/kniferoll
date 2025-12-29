@@ -1,6 +1,5 @@
 // src/components/kitchen/StepScheduleMode.tsx
 import { useDarkModeContext } from "@/context";
-import { Card } from "@/components";
 import { DAYS, type DayOfWeek } from "./StepOperatingDays";
 
 type ScheduleMode = "same" | "varies";

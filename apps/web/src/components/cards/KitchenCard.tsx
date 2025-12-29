@@ -1,7 +1,8 @@
 import { type ReactNode } from "react";
 import { useDarkModeContext } from "@/context";
-import { Card, IconBox } from "@/components";
-import { KniferollIcon } from "@/components/icons";
+import { Card } from "../ui/Card";
+import { IconBox } from "../ui/IconBox";
+import { KniferollIcon } from "../icons/KniferollIcon";
 
 interface KitchenCardProps {
   name: string;
