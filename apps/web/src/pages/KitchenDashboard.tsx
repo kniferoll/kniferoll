@@ -4,13 +4,14 @@ import { useAuthStore } from "../stores/authStore";
 import { useKitchenStore } from "../stores/kitchenStore";
 import { useStations } from "../hooks/useStations";
 import { useRealtimeStations } from "../hooks/useRealtimeStations";
+import { useHeaderConfig } from "../hooks/useHeader";
+import { useDarkModeContext } from "../context/DarkModeContext";
 import { supabase } from "../lib/supabase";
 import { Button } from "../components/Button";
-import { Header } from "../components/Header";
+import { BackButton } from "../components/BackButton";
 import { DateCalendar } from "../components/DateCalendar";
 import { ShiftToggle } from "../components/ShiftToggle";
 import { StationCard } from "../components/StationCard";
-import { SkeletonStationCard } from "../components/Skeleton";
 import { InviteLinkModal } from "../components/InviteLinkModal";
 
 import { jsDateToDatabaseDayOfWeek, toLocalDate } from "../lib/dateUtils";
@@ -27,7 +28,8 @@ interface StationProgress {
 export function KitchenDashboard() {
   const { kitchenId } = useParams<{ kitchenId: string }>();
   const navigate = useNavigate();
-  const { user, signOut } = useAuthStore();
+  const { user } = useAuthStore();
+  const { isDark } = useDarkModeContext();
   const {
     currentKitchen,
     loadKitchen,
@@ -40,7 +42,6 @@ export function KitchenDashboard() {
   const [progress, setProgress] = useState<StationProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
   const [kitchenShifts, setKitchenShifts] = useState<
     Array<{ id: string; name: string }>
   >([]);
@@ -48,27 +49,66 @@ export function KitchenDashboard() {
     Map<number, { is_open: boolean; shift_ids: string[] }>
   >(new Map());
 
+  // Get closed days for calendar
+  const dayNamesForCalendar = [
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+  ];
+  const closedDaysArray = dayNamesForCalendar.filter((_dayName, jsDay) => {
+    const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
+    const dayConfig = shiftDays.get(dbDay);
+    return dayConfig && !dayConfig.is_open;
+  });
+
+  // Configure custom header
+  useHeaderConfig(
+    {
+      startContent: (
+        <BackButton onClick={() => navigate("/dashboard")} label="Back" />
+      ),
+      centerContent: (
+        <span
+          className={`text-lg font-semibold ${
+            isDark ? "text-white" : "text-gray-900"
+          }`}
+        >
+          {currentKitchen?.name || "Kitchen"}
+        </span>
+      ),
+      endContent: (
+        <DateCalendar
+          selectedDate={selectedDate}
+          onDateSelect={setSelectedDate}
+          closedDays={closedDaysArray}
+        />
+      ),
+    },
+    [currentKitchen?.name, selectedDate, closedDaysArray, isDark, navigate]
+  );
+
   // Load kitchen on mount or when kitchenId changes
   useEffect(() => {
     if (!kitchenId) return;
 
-    // If the cached kitchen doesn't match the URL, clear it immediately
     if (currentKitchen && currentKitchen.id !== kitchenId) {
       useKitchenStore.getState().clearKitchen();
     }
 
-    // Load the correct kitchen
     if (currentKitchen?.id !== kitchenId) {
       loadKitchen(kitchenId);
     }
-  }, [kitchenId, currentKitchen?.id, loadKitchen]);
+  }, [kitchenId, currentKitchen?.id, loadKitchen, currentKitchen]);
 
   // Load kitchen shifts and shift days
   useEffect(() => {
     if (!kitchenId) return;
 
     const loadShiftsAndDays = async () => {
-      // Load shifts
       const { data: shiftsData } = await supabase
         .from("kitchen_shifts")
         .select("id, name")
@@ -79,7 +119,6 @@ export function KitchenDashboard() {
         setKitchenShifts(shiftsData);
       }
 
-      // Load shift days configuration
       const { data: shiftDaysData } = await supabase
         .from("kitchen_shift_days")
         .select("day_of_week, is_open, shift_ids")
@@ -98,22 +137,6 @@ export function KitchenDashboard() {
 
     loadShiftsAndDays();
   }, [kitchenId]);
-
-  // Get closed days for calendar (convert database day_of_week to day names for calendar)
-  const dayNamesForCalendar = [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-  ];
-  const closedDaysArray = dayNamesForCalendar.filter((_dayName, jsDay) => {
-    const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
-    const dayConfig = shiftDays.get(dbDay);
-    return dayConfig && !dayConfig.is_open;
-  });
 
   // Get available shifts for the selected date
   const selectedDateObj = toLocalDate(selectedDate);
@@ -134,11 +157,6 @@ export function KitchenDashboard() {
       }
     }
   }, [selectedShift, setSelectedShift, availableShifts]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
 
   // Subscribe to real-time station updates
   useRealtimeStations(kitchenId);
@@ -197,7 +215,6 @@ export function KitchenDashboard() {
 
     fetchProgress();
 
-    // Subscribe to real-time changes
     const channel = supabase
       .channel(`dashboard_${kitchenId}`)
       .on(
@@ -218,18 +235,21 @@ export function KitchenDashboard() {
     };
   }, [stations, selectedDate, kitchenId]);
 
+  // Loading states
   if (!user || !kitchenId) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading...</p>
       </div>
     );
   }
 
   if (!currentKitchen || currentKitchen.id !== kitchenId) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
-        <p className="text-gray-600 dark:text-gray-400">Loading kitchen...</p>
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+          Loading kitchen...
+        </p>
       </div>
     );
   }
@@ -239,56 +259,7 @@ export function KitchenDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-      {/* Header */}
-      <Header
-        title={currentKitchen?.name || "Kitchen"}
-        leftContent={
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white inline-flex items-center"
-          >
-            ←
-          </button>
-        }
-        rightContent={
-          <>
-            <DateCalendar
-              selectedDate={selectedDate}
-              onDateSelect={setSelectedDate}
-              closedDays={closedDaysArray}
-            />
-            <div className="relative">
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="inline-flex items-center justify-center rounded-md text-gray-600 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 p-2 transition-colors"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 8c1.1 0 2-1 2-2s-1-2-2-2-2 1-2 2 1 2 2 2zm0 2c-1.1 0-2 1-2 2s1 2 2 2 2-1 2-2-1-2-2-2zm0 6c-1.1 0-2 1-2 2s1 2 2 2 2-1 2-2-1-2-2-2z" />
-                </svg>
-              </button>
-              {showMenu && (
-                <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 py-1 z-20">
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      setShowMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
-        }
-      />
-
+    <>
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Shift Toggle and Send Invite Button */}
         <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -298,14 +269,22 @@ export function KitchenDashboard() {
             onShiftChange={setSelectedShift}
           />
 
-          <Button onClick={() => setShowInviteModal(true)}>Send Invite</Button>
+          <Button variant="primary" onClick={() => setShowInviteModal(true)}>
+            Send Invite
+          </Button>
         </div>
 
         {/* Station Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {stationsLoading || loading ? (
             Array.from({ length: Math.max(3, stations.length) }).map((_, i) => (
-              <SkeletonStationCard key={i} />
+              <div key={i} className="animate-pulse">
+                <div
+                  className={`h-24 rounded-lg ${
+                    isDark ? "bg-slate-700" : "bg-gray-200"
+                  }`}
+                />
+              </div>
             ))
           ) : progress.length > 0 ? (
             progress.map((station) => (
@@ -320,7 +299,7 @@ export function KitchenDashboard() {
             ))
           ) : stations.length === 0 ? (
             <div className="col-span-full text-center py-12">
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className={isDark ? "text-gray-400" : "text-gray-600"}>
                 No stations yet
               </p>
             </div>
@@ -336,6 +315,6 @@ export function KitchenDashboard() {
           onClose={() => setShowInviteModal(false)}
         />
       )}
-    </div>
+    </>
   );
 }

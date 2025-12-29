@@ -15,7 +15,7 @@ import {
   PrepItemEntryForm,
   PrepItemList,
   ProgressBar,
-  SkeletonList,
+  // SkeletonList,
   CookInviteButton,
   BackButton,
 } from "../components";
@@ -422,7 +422,10 @@ export function StationView() {
               </p>
             </div>
           ) : loading ? (
-            <SkeletonList count={5} />
+            // <SkeletonList count={5} />
+            <div className="text-center py-12 text-gray-500 dark:text-slate-400">
+              <p>Loading prep items...</p>
+            </div>
           ) : (
             <PrepItemList
               items={prepItems as any}

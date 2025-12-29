@@ -12,11 +12,13 @@ import {
   DAYS_OF_WEEK,
 } from "../hooks/useKitchenShifts";
 import { useUserSubscription } from "../hooks/useUserSubscription";
+import { useHeaderConfig } from "../hooks/useHeader";
+import { useDarkModeContext } from "../context/DarkModeContext";
 import { redirectToCustomerPortal } from "../lib/stripe";
 import { supabase } from "../lib/supabase";
-import { CenteredPage } from "../components/CenteredPage";
 import { Button } from "../components/Button";
-import { ErrorAlert } from "../components/ErrorAlert";
+import { BackButton } from "../components/BackButton";
+import { Card } from "../components/Card";
 import { InviteLinkModal } from "../components/InviteLinkModal";
 import { UpgradeModal } from "../components/UpgradeModal";
 import type { Database } from "@kniferoll/types";
@@ -27,6 +29,7 @@ export function KitchenSettings() {
   const { kitchenId } = useParams<{ kitchenId: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { isDark } = useDarkModeContext();
   const { kitchen, loading: kitchenLoading } = useKitchen(kitchenId);
   const { members: realtimeMembers } = useRealtimeMembers(kitchenId);
   const { limits } = usePlanLimits();
@@ -54,6 +57,23 @@ export function KitchenSettings() {
   const [saving, setSaving] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
+
+  // Configure header
+  useHeaderConfig(
+    {
+      startContent: <BackButton onClick={() => navigate(-1)} label="Back" />,
+      centerContent: (
+        <span
+          className={`text-lg font-semibold ${
+            isDark ? "text-white" : "text-gray-900"
+          }`}
+        >
+          {kitchen?.name || "Kitchen"} Settings
+        </span>
+      ),
+    },
+    [kitchen?.name, isDark, navigate]
+  );
 
   useEffect(() => {
     if (kitchen) {
@@ -111,7 +131,6 @@ export function KitchenSettings() {
       return;
     }
 
-    // Check station limit
     if (
       !limits ||
       !limits.maxStationsPerKitchen ||
@@ -275,57 +294,64 @@ export function KitchenSettings() {
   };
 
   const isOwner = kitchen && user && kitchen.owner_id === user.id;
-  const members = realtimeMembers; // Use realtime members
+  const members = realtimeMembers;
 
+  // Loading state
   if (kitchenLoading) {
     return (
-      <CenteredPage>
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
-      </CenteredPage>
+      <div className="flex items-center justify-center h-[50vh]">
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading...</p>
+      </div>
     );
   }
 
+  // Error state
   if (!kitchen) {
     return (
-      <CenteredPage>
-        <ErrorAlert
-          title="Kitchen Not Found"
-          message="Could not load kitchen settings"
-        />
-      </CenteredPage>
+      <div className="max-w-md mx-auto px-4 py-16">
+        <Card padding="lg">
+          <h2
+            className={`text-xl font-semibold mb-2 ${
+              isDark ? "text-white" : "text-gray-900"
+            }`}
+          >
+            Kitchen Not Found
+          </h2>
+          <p className={`mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+            Could not load kitchen settings
+          </p>
+          <Button variant="primary" onClick={() => navigate("/dashboard")}>
+            Back to Dashboard
+          </Button>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+    <>
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
-          >
-            ← Back
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {kitchen.name} Settings
-          </h1>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 rounded-lg shadow">
+        <Card padding="none">
           {/* Tabs */}
-          <div className="border-b border-gray-200 dark:border-gray-800 flex">
+          <div
+            className={`border-b ${
+              isDark ? "border-slate-700" : "border-stone-200"
+            } flex overflow-x-auto`}
+          >
             {(
               ["general", "schedule", "stations", "members", "billing"] as const
             ).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-6 py-4 font-semibold capitalize border-b-2 transition-colors ${
+                className={`px-6 py-4 font-semibold capitalize border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === tab
-                    ? "border-blue-600 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    ? "border-orange-500 text-orange-500"
+                    : `border-transparent ${
+                        isDark
+                          ? "text-gray-400 hover:text-white"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`
                 }`}
               >
                 {tab}
@@ -334,9 +360,28 @@ export function KitchenSettings() {
           </div>
 
           <div className="p-8">
-            {error && <ErrorAlert title="Error" message={error} />}
+            {/* Error message */}
+            {error && (
+              <div
+                className={`mb-4 p-3 rounded-lg text-sm ${
+                  isDark
+                    ? "bg-red-950/50 text-red-400 border border-red-900/50"
+                    : "bg-red-50 text-red-600 border border-red-100"
+                }`}
+              >
+                {error}
+              </div>
+            )}
+
+            {/* Success message */}
             {successMessage && (
-              <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-green-700 dark:text-green-300">
+              <div
+                className={`mb-4 p-3 rounded-lg text-sm ${
+                  isDark
+                    ? "bg-green-950/50 text-green-400 border border-green-900/50"
+                    : "bg-green-50 text-green-600 border border-green-100"
+                }`}
+              >
                 {successMessage}
               </div>
             )}
@@ -345,7 +390,11 @@ export function KitchenSettings() {
             {activeTab === "general" && (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label
+                    className={`block text-sm font-semibold mb-2 ${
+                      isDark ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
                     Kitchen Name
                   </label>
                   <div className="flex gap-4">
@@ -354,10 +403,15 @@ export function KitchenSettings() {
                       value={kitchenName}
                       onChange={(e) => setKitchenName(e.target.value)}
                       disabled={!isOwner}
-                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-800 dark:text-white disabled:opacity-50"
+                      className={`flex-1 px-4 py-3 rounded-xl border transition-all ${
+                        isDark
+                          ? "bg-slate-700/50 border-slate-600 text-white"
+                          : "bg-white border-stone-300 text-gray-900"
+                      } disabled:opacity-50`}
                     />
                     {isOwner && (
                       <Button
+                        variant="primary"
                         onClick={handleSaveKitchenName}
                         disabled={saving || kitchenName === kitchen.name}
                       >
@@ -368,14 +422,19 @@ export function KitchenSettings() {
                 </div>
 
                 {isOwner && (
-                  <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold dark:text-white mb-4 text-red-600">
+                  <div
+                    className={`pt-6 border-t ${
+                      isDark ? "border-slate-700" : "border-stone-200"
+                    }`}
+                  >
+                    <h3 className="text-lg font-semibold text-red-500 mb-4">
                       Danger Zone
                     </h3>
                     <Button
+                      variant="secondary"
                       onClick={handleDeleteKitchen}
                       disabled={saving}
-                      className="bg-red-600 hover:bg-red-700 text-white"
+                      className="border-red-500 text-red-500 hover:bg-red-500/10"
                     >
                       Delete Kitchen
                     </Button>
@@ -389,17 +448,29 @@ export function KitchenSettings() {
               <div className="space-y-6">
                 {/* Shifts Management */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      isDark ? "text-white" : "text-gray-900"
+                    }`}
+                  >
                     Kitchen Shifts
                   </h3>
-                  <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4 mb-4">
+                  <div
+                    className={`rounded-lg p-4 mb-4 ${
+                      isDark ? "bg-slate-800" : "bg-stone-50"
+                    }`}
+                  >
                     <div className="space-y-2 mb-4">
                       {shiftsLoading ? (
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p
+                          className={isDark ? "text-gray-400" : "text-gray-600"}
+                        >
                           Loading shifts...
                         </p>
                       ) : shifts.length === 0 ? (
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p
+                          className={isDark ? "text-gray-400" : "text-gray-600"}
+                        >
                           No custom shifts yet. Using default shifts (Breakfast,
                           Lunch, Dinner).
                         </p>
@@ -407,17 +478,23 @@ export function KitchenSettings() {
                         shifts.map((shift) => (
                           <div
                             key={shift.id}
-                            className="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded border border-gray-200 dark:border-gray-700"
+                            className={`flex items-center justify-between p-3 rounded-lg border ${
+                              isDark
+                                ? "bg-slate-900 border-slate-700"
+                                : "bg-white border-stone-200"
+                            }`}
                           >
-                            <div>
-                              <p className="font-semibold text-gray-900 dark:text-white">
-                                {shift.name}
-                              </p>
-                            </div>
+                            <p
+                              className={`font-semibold ${
+                                isDark ? "text-white" : "text-gray-900"
+                              }`}
+                            >
+                              {shift.name}
+                            </p>
                             {isOwner && (
                               <button
                                 onClick={() => deleteShift(shift.id)}
-                                className="text-red-600 hover:text-red-700 px-3 py-1"
+                                className="text-red-500 hover:text-red-600 px-3 py-1 cursor-pointer"
                               >
                                 Delete
                               </button>
@@ -428,8 +505,16 @@ export function KitchenSettings() {
                     </div>
 
                     {isOwner && (
-                      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      <div
+                        className={`border-t pt-4 ${
+                          isDark ? "border-slate-700" : "border-stone-200"
+                        }`}
+                      >
+                        <label
+                          className={`block text-sm font-semibold mb-2 ${
+                            isDark ? "text-gray-300" : "text-gray-700"
+                          }`}
+                        >
                           Add New Shift
                         </label>
                         <div className="flex gap-2">
@@ -438,9 +523,14 @@ export function KitchenSettings() {
                             placeholder="Shift name (e.g., Late Dinner)"
                             value={newShiftName}
                             onChange={(e) => setNewShiftName(e.target.value)}
-                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-900 dark:text-white"
+                            className={`flex-1 px-4 py-3 rounded-xl border ${
+                              isDark
+                                ? "bg-slate-900 border-slate-600 text-white"
+                                : "bg-white border-stone-300 text-gray-900"
+                            }`}
                           />
                           <Button
+                            variant="primary"
                             onClick={async () => {
                               if (newShiftName.trim()) {
                                 try {
@@ -468,7 +558,11 @@ export function KitchenSettings() {
 
                 {/* Days Configuration */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      isDark ? "text-white" : "text-gray-900"
+                    }`}
+                  >
                     Operating Days
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -481,7 +575,11 @@ export function KitchenSettings() {
                       return (
                         <label
                           key={dayIndex}
-                          className="flex items-center gap-2 p-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 cursor-pointer"
+                          className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-colors ${
+                            isDark
+                              ? "border-slate-600 hover:bg-slate-800"
+                              : "border-stone-300 hover:bg-stone-50"
+                          }`}
                         >
                           <input
                             type="checkbox"
@@ -492,7 +590,11 @@ export function KitchenSettings() {
                             disabled={!isOwner}
                             className="w-4 h-4"
                           />
-                          <span className="font-medium text-gray-900 dark:text-white">
+                          <span
+                            className={`font-medium ${
+                              isDark ? "text-white" : "text-gray-900"
+                            }`}
+                          >
                             {day}
                           </span>
                         </label>
@@ -507,7 +609,11 @@ export function KitchenSettings() {
             {activeTab === "stations" && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      isDark ? "text-white" : "text-gray-900"
+                    }`}
+                  >
                     Current Stations ({stations.length}/
                     {limits?.maxStationsPerKitchen || 1})
                   </h3>
@@ -515,16 +621,22 @@ export function KitchenSettings() {
                     {stations.map((station) => (
                       <div
                         key={station.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 rounded-lg"
+                        className={`flex items-center justify-between p-4 rounded-lg ${
+                          isDark ? "bg-slate-800" : "bg-stone-50"
+                        }`}
                       >
-                        <span className="font-medium text-gray-900 dark:text-white">
+                        <span
+                          className={`font-medium ${
+                            isDark ? "text-white" : "text-gray-900"
+                          }`}
+                        >
                           {station.name}
                         </span>
                         {isOwner && (
                           <button
                             onClick={() => handleDeleteStation(station.id)}
                             disabled={saving}
-                            className="text-red-600 hover:text-red-800 dark:hover:text-red-400 font-semibold disabled:opacity-50"
+                            className="text-red-500 hover:text-red-600 font-semibold disabled:opacity-50 cursor-pointer"
                           >
                             Delete
                           </button>
@@ -535,10 +647,18 @@ export function KitchenSettings() {
                 </div>
 
                 {isOwner && (
-                  <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div
+                    className={`pt-6 border-t ${
+                      isDark ? "border-slate-700" : "border-stone-200"
+                    }`}
+                  >
                     {stations.length < (limits?.maxStationsPerKitchen || 1) ? (
                       <>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <h3
+                          className={`text-lg font-semibold mb-4 ${
+                            isDark ? "text-white" : "text-gray-900"
+                          }`}
+                        >
                           Add Station
                         </h3>
                         <div className="flex gap-4">
@@ -547,9 +667,14 @@ export function KitchenSettings() {
                             value={newStationName}
                             onChange={(e) => setNewStationName(e.target.value)}
                             placeholder="Station name"
-                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-800 dark:text-white"
+                            className={`flex-1 px-4 py-3 rounded-xl border ${
+                              isDark
+                                ? "bg-slate-700/50 border-slate-600 text-white"
+                                : "bg-white border-stone-300 text-gray-900"
+                            }`}
                           />
                           <Button
+                            variant="primary"
                             onClick={handleAddStation}
                             disabled={saving || !newStationName.trim()}
                           >
@@ -558,18 +683,31 @@ export function KitchenSettings() {
                         </div>
                       </>
                     ) : (
-                      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      <div
+                        className={`rounded-lg p-4 ${
+                          isDark
+                            ? "bg-amber-950/30 border border-amber-900/50"
+                            : "bg-amber-50 border border-amber-200"
+                        }`}
+                      >
+                        <h3
+                          className={`text-lg font-semibold mb-2 ${
+                            isDark ? "text-white" : "text-gray-900"
+                          }`}
+                        >
                           Station Limit Reached
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        <p
+                          className={`mb-4 ${
+                            isDark ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
                           You've reached the maximum number of stations for your
                           plan. Upgrade to Pro to create more.
                         </p>
                         <Button
-                          onClick={showStationPaywall}
                           variant="secondary"
-                          className="border-amber-300 dark:border-amber-700"
+                          onClick={showStationPaywall}
                         >
                           Upgrade to Pro
                         </Button>
@@ -584,22 +722,36 @@ export function KitchenSettings() {
             {activeTab === "members" && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      isDark ? "text-white" : "text-gray-900"
+                    }`}
+                  >
                     Kitchen Members ({members.length})
                   </h3>
                   <div className="space-y-4">
                     {members.map((member) => (
                       <div
                         key={member.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800 rounded-lg"
+                        className={`flex items-center justify-between p-4 rounded-lg ${
+                          isDark ? "bg-slate-800" : "bg-stone-50"
+                        }`}
                       >
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900 dark:text-white">
+                          <p
+                            className={`font-medium ${
+                              isDark ? "text-white" : "text-gray-900"
+                            }`}
+                          >
                             {member.user_id
                               ? "Registered User"
                               : "Anonymous User"}
                           </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                          <p
+                            className={`text-sm capitalize ${
+                              isDark ? "text-gray-400" : "text-gray-600"
+                            }`}
+                          >
                             {member.role}
                           </p>
                         </div>
@@ -616,7 +768,11 @@ export function KitchenSettings() {
                                 )
                               }
                               disabled={updatingMemberId === member.id}
-                              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-slate-700 dark:text-white text-sm disabled:opacity-50"
+                              className={`px-3 py-1 border rounded-lg text-sm disabled:opacity-50 ${
+                                isDark
+                                  ? "bg-slate-700 border-slate-600 text-white"
+                                  : "bg-white border-stone-300 text-gray-900"
+                              }`}
                             >
                               <option value="member">Member</option>
                               <option value="admin">Admin</option>
@@ -636,7 +792,11 @@ export function KitchenSettings() {
                                 disabled={updatingMemberId === member.id}
                                 className="disabled:opacity-50"
                               />
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                              <span
+                                className={`text-sm ${
+                                  isDark ? "text-gray-400" : "text-gray-600"
+                                }`}
+                              >
                                 Can invite
                               </span>
                             </label>
@@ -644,7 +804,7 @@ export function KitchenSettings() {
                             <button
                               onClick={() => handleRemoveMember(member.id)}
                               disabled={updatingMemberId === member.id}
-                              className="text-red-600 hover:text-red-800 dark:hover:text-red-400 font-semibold text-sm disabled:opacity-50"
+                              className="text-red-500 hover:text-red-600 font-semibold text-sm disabled:opacity-50 cursor-pointer"
                             >
                               Remove
                             </button>
@@ -652,11 +812,15 @@ export function KitchenSettings() {
                         )}
 
                         {member.role === "owner" && (
-                          <div className="flex items-center">
-                            <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-semibold">
-                              Owner
-                            </span>
-                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                              isDark
+                                ? "bg-orange-500/20 text-orange-400"
+                                : "bg-orange-100 text-orange-600"
+                            }`}
+                          >
+                            Owner
+                          </span>
                         )}
                       </div>
                     ))}
@@ -665,10 +829,14 @@ export function KitchenSettings() {
 
                 {(isOwner ||
                   members.find((m) => m.user_id === user?.id)?.can_invite) && (
-                  <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
+                  <div
+                    className={`pt-6 border-t ${
+                      isDark ? "border-slate-700" : "border-stone-200"
+                    }`}
+                  >
                     <Button
+                      variant="primary"
                       onClick={() => setShowInviteModal(true)}
-                      className="bg-green-600 hover:bg-green-700 text-white"
                     >
                       Generate Invite Link
                     </Button>
@@ -680,20 +848,40 @@ export function KitchenSettings() {
             {/* Billing Tab */}
             {activeTab === "billing" && isOwner && (
               <div className="space-y-6">
-                <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <div
+                  className={`rounded-lg p-6 ${
+                    isDark ? "bg-slate-800" : "bg-stone-50"
+                  }`}
+                >
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${
+                      isDark ? "text-white" : "text-gray-900"
+                    }`}
+                  >
                     Current Plan
                   </h3>
                   <div className="mb-6">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <p
+                      className={`text-sm mb-2 ${
+                        isDark ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
                       Plan Status
                     </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white capitalize">
+                    <p
+                      className={`text-2xl font-bold capitalize ${
+                        isDark ? "text-white" : "text-gray-900"
+                      }`}
+                    >
                       {userProfile?.plan === "pro" ? "Pro" : "Free"}
                     </p>
                     {userProfile?.plan === "pro" &&
                       userProfile?.subscription_period_end && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                        <p
+                          className={`text-sm mt-2 ${
+                            isDark ? "text-gray-400" : "text-gray-600"
+                          }`}
+                        >
                           Subscription renews on{" "}
                           {new Date(
                             userProfile.subscription_period_end
@@ -704,11 +892,25 @@ export function KitchenSettings() {
 
                   {userProfile?.plan === "free" ? (
                     <div>
-                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-                        <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-3">
+                      <div
+                        className={`rounded-lg p-4 mb-6 ${
+                          isDark
+                            ? "bg-orange-500/10 border border-orange-500/20"
+                            : "bg-orange-50 border border-orange-100"
+                        }`}
+                      >
+                        <h4
+                          className={`font-semibold mb-3 ${
+                            isDark ? "text-orange-400" : "text-orange-600"
+                          }`}
+                        >
                           Pro Features:
                         </h4>
-                        <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-300">
+                        <ul
+                          className={`space-y-2 text-sm ${
+                            isDark ? "text-orange-300" : "text-orange-700"
+                          }`}
+                        >
                           <li>✓ Unlimited kitchens</li>
                           <li>✓ Unlimited stations per kitchen</li>
                           <li>✓ Invite team members</li>
@@ -716,6 +918,8 @@ export function KitchenSettings() {
                         </ul>
                       </div>
                       <Button
+                        variant="primary"
+                        fullWidth
                         onClick={async () => {
                           try {
                             await handleCheckout();
@@ -726,19 +930,30 @@ export function KitchenSettings() {
                             );
                           }
                         }}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                       >
                         Upgrade to Pro - $9/month
                       </Button>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                        <p className="text-sm text-green-700 dark:text-green-300">
+                      <div
+                        className={`rounded-lg p-4 ${
+                          isDark
+                            ? "bg-green-950/30 border border-green-900/50"
+                            : "bg-green-50 border border-green-100"
+                        }`}
+                      >
+                        <p
+                          className={`text-sm ${
+                            isDark ? "text-green-400" : "text-green-700"
+                          }`}
+                        >
                           ✓ Your Pro subscription is active
                         </p>
                       </div>
                       <Button
+                        variant="secondary"
+                        fullWidth
                         onClick={async () => {
                           try {
                             await redirectToCustomerPortal({
@@ -752,8 +967,6 @@ export function KitchenSettings() {
                             );
                           }
                         }}
-                        variant="secondary"
-                        className="w-full"
                       >
                         Manage Subscription
                       </Button>
@@ -763,7 +976,7 @@ export function KitchenSettings() {
               </div>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Invite Link Modal */}
@@ -791,12 +1004,11 @@ export function KitchenSettings() {
               await handleCheckout();
             } catch (error) {
               console.error("Checkout failed:", error);
-              // Modal will stay open so user can try again
             }
           }}
           onCancel={closePaywall}
         />
       )}
-    </div>
+    </>
   );
 }
