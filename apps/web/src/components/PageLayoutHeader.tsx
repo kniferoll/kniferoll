@@ -1,17 +1,17 @@
 import type { ReactNode } from "react";
 import { useDarkModeContext } from "../context/DarkModeContext";
 
-interface PageHeaderProps {
+interface PageLayoutHeaderProps {
   startContent: ReactNode;
   endContent: ReactNode;
   centerContent?: ReactNode;
 }
 
-export function PageHeader({
+export function PageLayoutHeader({
   startContent,
   endContent,
   centerContent,
-}: PageHeaderProps) {
+}: PageLayoutHeaderProps) {
   const { isDark } = useDarkModeContext();
 
   return (
