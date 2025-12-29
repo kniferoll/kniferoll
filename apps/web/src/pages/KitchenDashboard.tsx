@@ -48,12 +48,20 @@ export function KitchenDashboard() {
     Map<number, { is_open: boolean; shift_ids: string[] }>
   >(new Map());
 
-  // Load kitchen on mount
+  // Load kitchen on mount or when kitchenId changes
   useEffect(() => {
-    if (kitchenId && !currentKitchen) {
+    if (!kitchenId) return;
+
+    // If the cached kitchen doesn't match the URL, clear it immediately
+    if (currentKitchen && currentKitchen.id !== kitchenId) {
+      useKitchenStore.getState().clearKitchen();
+    }
+
+    // Load the correct kitchen
+    if (currentKitchen?.id !== kitchenId) {
       loadKitchen(kitchenId);
     }
-  }, [kitchenId, currentKitchen, loadKitchen]);
+  }, [kitchenId, currentKitchen?.id, loadKitchen]);
 
   // Load kitchen shifts and shift days
   useEffect(() => {
@@ -218,7 +226,7 @@ export function KitchenDashboard() {
     );
   }
 
-  if (!currentKitchen) {
+  if (!currentKitchen || currentKitchen.id !== kitchenId) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex items-center justify-center">
         <p className="text-gray-600 dark:text-gray-400">Loading kitchen...</p>
