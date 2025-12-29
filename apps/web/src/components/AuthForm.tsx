@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { useDarkModeContext } from "../context/DarkModeContext";
 
 interface AuthFormProps {
   title: string;
@@ -14,12 +15,14 @@ interface AuthFormProps {
     text: string;
     to: string;
   };
-  backLink?: {
-    text: string;
-    to: string;
-  };
 }
 
+/**
+ * AuthForm - a styled form card for authentication pages.
+ * 
+ * This is just the form content - it expects to be rendered inside
+ * a layout (PublicLayout) that provides the page shell, header, and footer.
+ */
 export function AuthForm({
   title,
   subtitle,
@@ -30,64 +33,70 @@ export function AuthForm({
   error,
   footerText,
   footerLink,
-  backLink,
 }: AuthFormProps) {
+  const { isDark } = useDarkModeContext();
+
   return (
-    <div className="relative min-h-screen bg-white dark:bg-slate-950 flex flex-col items-center justify-center p-4 overflow-hidden">
-      {/* Gradient background blobs */}
-      <div className="absolute -top-44 -right-60 h-60 w-80 md:right-0 bg-linear-to-b from-[#fff1be] via-[#ee87cb] to-[#b060ff] rotate-[-10deg] rounded-full blur-3xl opacity-40 dark:opacity-20 pointer-events-none" />
-      <div className="absolute -bottom-32 -left-40 h-64 w-80 bg-linear-to-t from-[#b060ff] via-[#ee87cb] to-[#fff1be] rotate-10 rounded-full blur-3xl opacity-30 dark:opacity-10 pointer-events-none" />
+    <div className="w-full max-w-md mx-auto px-4 py-16">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1
+          className={`text-3xl font-bold mb-2 ${
+            isDark ? "text-white" : "text-gray-900"
+          }`}
+        >
+          {title}
+        </h1>
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>{subtitle}</p>
+      </div>
 
-      <div className="relative w-full max-w-md z-10">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-50 mb-2">
-            {title}
-          </h1>
-          <p className="text-gray-600 dark:text-slate-400">{subtitle}</p>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md dark:shadow-xl dark:border dark:border-slate-800 p-8">
-          <form onSubmit={onSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 p-3 rounded-md text-sm">
-                {error}
-              </div>
-            )}
-
-            {children}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 dark:bg-blue-700 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50"
+      {/* Card */}
+      <div
+        className={`rounded-2xl border p-8 ${
+          isDark
+            ? "bg-slate-800/50 border-slate-700"
+            : "bg-white border-stone-200 shadow-lg shadow-stone-900/5"
+        }`}
+      >
+        <form onSubmit={onSubmit} className="space-y-5">
+          {error && (
+            <div
+              className={`p-3 rounded-lg text-sm ${
+                isDark
+                  ? "bg-red-950/50 text-red-400 border border-red-900/50"
+                  : "bg-red-50 text-red-600 border border-red-100"
+              }`}
             >
-              {loading ? "Loading..." : submitButtonText}
-            </button>
-          </form>
+              {error}
+            </div>
+          )}
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-slate-400">
-              {footerText}{" "}
-              <Link
-                to={footerLink.to}
-                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-              >
-                {footerLink.text}
-              </Link>
-            </p>
-          </div>
-        </div>
+          {children}
 
-        {backLink && (
-          <div className="mt-6 text-center">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 text-base font-semibold rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+          >
+            {loading ? "Loading..." : submitButtonText}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p
+            className={`text-sm ${
+              isDark ? "text-gray-400" : "text-gray-600"
+            }`}
+          >
+            {footerText}{" "}
             <Link
-              to={backLink.to}
-              className="text-sm text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200"
+              to={footerLink.to}
+              className="text-orange-500 hover:text-orange-600 font-medium"
             >
-              {backLink.text}
+              {footerLink.text}
             </Link>
-          </div>
-        )}
+          </p>
+        </div>
       </div>
     </div>
   );

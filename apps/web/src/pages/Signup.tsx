@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
-import { AuthForm, FormInput } from "../components";
+import { AuthForm } from "../components/AuthForm";
+import { FormInput } from "../components/FormInput";
 
+/**
+ * Signup page
+ * 
+ * Uses the default header from PublicLayout.
+ * AuthForm is just the card content - the layout provides the page shell.
+ */
 export function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,7 +20,7 @@ export function Signup() {
 
   useEffect(() => {
     if (user) {
-      navigate("/kitchen/new");
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
@@ -30,21 +37,20 @@ export function Signup() {
     if (result.error) {
       setError(result.error);
     } else {
-      navigate("/kitchen/new");
+      navigate("/dashboard");
     }
   };
 
   return (
     <AuthForm
-      title="Create Chef Account"
-      subtitle="Get started with your first kitchen"
+      title="Create Account"
+      subtitle="Get started with your first prep list"
       onSubmit={handleSubmit}
       submitButtonText="Create Account"
       loading={loading}
       error={error}
       footerText="Already have an account?"
       footerLink={{ text: "Sign in", to: "/login" }}
-      backLink={{ text: "← Back to home", to: "/" }}
     >
       <FormInput
         id="name"

@@ -1,8 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
-import { AuthForm, FormInput } from "../components";
+import { AuthForm } from "../components/AuthForm";
+import { FormInput } from "../components/FormInput";
 
+/**
+ * Login page
+ * 
+ * Uses the default header from PublicLayout.
+ * AuthForm is just the card content - the layout provides the page shell.
+ */
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +39,6 @@ export function Login() {
       error={error}
       footerText="Don't have an account?"
       footerLink={{ text: "Sign up", to: "/signup" }}
-      backLink={{ text: "← Back to home", to: "/" }}
     >
       <FormInput
         id="email"

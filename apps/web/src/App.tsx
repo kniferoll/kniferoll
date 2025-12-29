@@ -2,6 +2,8 @@ import { useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { useAuthStore } from "./stores/authStore";
+import { PublicLayout, AppLayout } from "./layouts";
+import { ScrollToTop } from "./components";
 
 // Lazy load pages
 const Landing = lazy(() =>
@@ -71,31 +73,36 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/join/:token" element={<InviteJoin />} />
-          <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
+          {/* 
+            Public routes - accessible to everyone
+            Uses PublicLayout with marketing header/footer
+          */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/join/:token" element={<InviteJoin />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+          </Route>
 
-          {/* Protected routes - require authentication */}
-          {user && (
-            <>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route
-                path="/kitchen/:kitchenId"
-                element={<KitchenDashboard />}
-              />
-              <Route path="/station/:stationId" element={<StationView />} />
-              <Route
-                path="/kitchen/:kitchenId/settings"
-                element={<KitchenSettings />}
-              />
-            </>
-          )}
+          {/* 
+            App routes - require authentication
+            Uses AppLayout which redirects to /login if not authenticated
+            Each page can customize the header via useHeaderConfig
+          */}
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/kitchen/:kitchenId" element={<KitchenDashboard />} />
+            <Route path="/station/:stationId" element={<StationView />} />
+            <Route
+              path="/kitchen/:kitchenId/settings"
+              element={<KitchenSettings />}
+            />
+          </Route>
 
           {/* Catch all - redirect to landing or dashboard */}
           <Route
