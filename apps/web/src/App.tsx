@@ -47,7 +47,12 @@ const PrivacyPolicy = lazy(() =>
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-950" />
+    <div
+      className="min-h-screen bg-linear-to-br from-amber-50 via-amber-50/80 to-orange-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
+      style={{
+        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
+    />
   );
 }
 

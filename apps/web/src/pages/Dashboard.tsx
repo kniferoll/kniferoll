@@ -12,7 +12,7 @@ import {
   UpgradeModal,
 } from "@/components";
 import type { Database } from "@kniferoll/types";
-
+import { preloadKitchenDashboard } from "@/lib/preload";
 type Kitchen = Database["public"]["Tables"]["kitchens"]["Row"];
 
 /**
@@ -21,6 +21,9 @@ type Kitchen = Database["public"]["Tables"]["kitchens"]["Row"];
  * Uses the default header from AppLayout (Logo + UserAvatarMenu).
  */
 export function Dashboard() {
+  useEffect(() => {
+    preloadKitchenDashboard();
+  }, []);
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { kitchens, loading } = useKitchens(user?.id);

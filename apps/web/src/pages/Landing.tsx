@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useDarkModeContext } from "@/context";
 import {
@@ -12,7 +13,7 @@ import {
   ShieldIcon,
   CalendarIcon,
 } from "@/components";
-
+import { preloadLogin, preloadSignup } from "@/lib/preload";
 // Data
 const steps = [
   {
@@ -76,7 +77,10 @@ const features = [
  */
 export function Landing() {
   const { isDark } = useDarkModeContext();
-
+  useEffect(() => {
+    preloadLogin();
+    preloadSignup();
+  }, []);
   return (
     <>
       {/* Hero */}

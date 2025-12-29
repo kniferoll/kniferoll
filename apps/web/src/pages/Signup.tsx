@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { useDarkModeContext } from "@/context";
+import { preloadDashboard } from "@/lib/preload";
 import { AuthForm, FormInput } from "@/components";
 
 export function Signup() {
@@ -14,13 +15,17 @@ export function Signup() {
   const { isDark } = useDarkModeContext();
   const navigate = useNavigate();
 
+  // Preload dashboard - user will likely go there after signup
+  useEffect(() => {
+    preloadDashboard();
+  }, []);
+
   useEffect(() => {
     if (user) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, navigate]);
 
-  // Show nothing while redirecting to prevent white flash
   if (user || isSubmitting) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
