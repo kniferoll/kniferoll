@@ -37,6 +37,16 @@ const KitchenSettings = lazy(() =>
     default: m.KitchenSettings,
   }))
 );
+const TermsOfService = lazy(() =>
+  import("./pages/TermsOfService").then((m) => ({
+    default: m.TermsOfService,
+  }))
+);
+const PrivacyPolicy = lazy(() =>
+  import("./pages/PrivacyPolicy").then((m) => ({
+    default: m.PrivacyPolicy,
+  }))
+);
 
 function LoadingFallback() {
   return (
@@ -73,6 +83,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/join/:token" element={<InviteJoin />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
 
           {/* Protected routes - require authentication */}
           {user && (

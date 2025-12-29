@@ -1,117 +1,21 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
+import { Link } from "react-router-dom";
 import { useDarkModeContext } from "../context/DarkModeContext";
+import { Page } from "../components";
 
 export function Landing() {
-  const { user } = useAuthStore();
   const { isDark } = useDarkModeContext();
-  const navigate = useNavigate();
-
-  const userInitials = user?.email?.substring(0, 2).toUpperCase() || "SC";
 
   return (
-    <div
-      className={`min-h-screen transition-colors ${
-        isDark ? "bg-slate-900 text-white" : "bg-stone-50 text-gray-900"
-      }`}
-      style={{
-        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-      }}
-    >
-      {/* Gradient overlay */}
-      <div
-        className={`fixed inset-0 pointer-events-none ${
-          isDark
-            ? "bg-linear-to-br from-slate-900 via-slate-800 to-slate-900"
-            : "bg-linear-to-br from-amber-50/80 via-orange-50/40 to-stone-100/80"
-        }`}
-      />
-
-      {/* Header */}
-      <header
-        className={`relative z-10 flex justify-between items-center px-6 md:px-10 py-5 border-b ${
-          isDark ? "border-slate-700/50" : "border-stone-200/60"
-        }`}
-      >
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-linear-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-500/25">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-              <line x1="3" y1="6" x2="21" y2="6" />
-            </svg>
-          </div>
-          <span className="text-xl font-semibold tracking-tight">
-            Kniferoll
-          </span>
-        </div>
-
-        {/* Nav */}
-        <div className="flex items-center gap-3">
-          {user ? (
-            <>
-              <button
-                onClick={() => navigate("/dashboard")}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  isDark
-                    ? "text-gray-300 hover:text-white hover:bg-slate-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-stone-200/50"
-                }`}
-              >
-                Dashboard
-              </button>
-              <button
-                onClick={() => navigate("/dashboard")}
-                className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm ${
-                  isDark
-                    ? "bg-linear-to-br from-gray-600 to-gray-700 text-gray-200"
-                    : "bg-linear-to-br from-orange-200 to-orange-300 text-orange-900"
-                }`}
-              >
-                {userInitials}
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => navigate("/login")}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  isDark
-                    ? "text-gray-300 hover:text-white hover:bg-slate-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-stone-200/50"
-                }`}
-              >
-                Log In
-              </button>
-              <button
-                onClick={() => navigate("/signup")}
-                className="px-4 py-2 text-sm font-semibold rounded-lg bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/30 transition-all"
-              >
-                Sign Up
-              </button>
-            </>
-          )}
-        </div>
-      </header>
-
+    <Page>
       {/* Hero */}
       <main className="relative z-1">
         <section className="max-w-3xl mx-auto px-6 md:px-10 pt-24 pb-28 text-center">
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4 leading-[1.15]">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4 leading-[1.15] cursor-default">
             Kniferoll
           </h1>
 
           <p
-            className={`text-lg md:text-xl mb-3 ${
+            className={`text-lg md:text-xl mb-3 cursor-default ${
               isDark ? "text-gray-300" : "text-gray-700"
             }`}
           >
@@ -119,7 +23,7 @@ export function Landing() {
           </p>
 
           <p
-            className={`text-base max-w-xl mx-auto mb-10 leading-relaxed ${
+            className={`text-base max-w-xl mx-auto mb-10 leading-relaxed cursor-default ${
               isDark ? "text-gray-400" : "text-gray-600"
             }`}
           >
@@ -131,13 +35,13 @@ export function Landing() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
             <Link to="/signup" className="w-full sm:w-auto">
-              <button className="w-full px-8 py-3.5 text-base font-semibold rounded-xl bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all">
+              <button className="w-full px-8 py-3.5 text-base font-semibold rounded-xl bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all cursor-pointer">
                 Get Started
               </button>
             </Link>
             <Link to="/join" className="w-full sm:w-auto">
               <button
-                className={`w-full px-8 py-3.5 text-base font-semibold rounded-xl border-2 transition-all ${
+                className={`w-full px-8 py-3.5 text-base font-semibold rounded-xl border-2 transition-all cursor-pointer ${
                   isDark
                     ? "border-slate-600 text-white hover:bg-slate-800 hover:border-slate-500"
                     : "border-stone-300 text-gray-900 hover:bg-white hover:border-stone-400"
@@ -149,22 +53,24 @@ export function Landing() {
           </div>
 
           <p
-            className={`text-sm ${isDark ? "text-gray-500" : "text-gray-500"}`}
+            className={`text-sm cursor-default ${
+              isDark ? "text-gray-500" : "text-gray-500"
+            }`}
           >
             Have a join code?{" "}
-            <button
-              onClick={() => navigate("/join")}
-              className="text-orange-500 hover:text-orange-600 font-medium"
+            <Link
+              to="/join"
+              className="text-orange-500 hover:text-orange-600 font-medium cursor-pointer"
             >
               Enter it here →
-            </button>
+            </Link>
           </p>
         </section>
 
         {/* How it works */}
         <section>
           <div className="max-w-3xl mx-auto px-6 md:px-10 py-12">
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-center mb-14">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-center mb-14 cursor-default">
               How it works
             </h2>
 
@@ -203,9 +109,11 @@ export function Landing() {
                   >
                     {item.step}
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                  <h3 className="text-lg font-semibold mb-2 cursor-default">
+                    {item.title}
+                  </h3>
                   <p
-                    className={`text-sm leading-relaxed ${
+                    className={`text-sm leading-relaxed cursor-default ${
                       isDark ? "text-gray-400" : "text-gray-600"
                     }`}
                   >
@@ -220,7 +128,7 @@ export function Landing() {
         {/* Features */}
         <section>
           <div className="max-w-3xl mx-auto px-6 md:px-10 py-12">
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-center mb-14">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-center mb-14 cursor-default">
               Features
             </h2>
 
@@ -356,9 +264,11 @@ export function Landing() {
                     {feature.icon}
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-1">{feature.title}</h3>
+                    <h3 className="font-semibold mb-1 cursor-default">
+                      {feature.title}
+                    </h3>
                     <p
-                      className={`text-sm leading-relaxed ${
+                      className={`text-sm leading-relaxed cursor-default ${
                         isDark ? "text-gray-400" : "text-gray-600"
                       }`}
                     >
@@ -374,67 +284,24 @@ export function Landing() {
         {/* CTA */}
         <section>
           <div className="max-w-3xl mx-auto px-6 md:px-10 py-12 text-center">
-            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-4">
+            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-4 cursor-default">
               Ready to try it?
             </h2>
-            <p className={`mb-8 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+            <p
+              className={`mb-8 cursor-default ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
               Free to get started. Set up your first kitchen in minutes.
             </p>
             <Link to="/signup">
-              <button className="px-8 py-3.5 text-base font-semibold rounded-xl bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all">
+              <button className="px-8 py-3.5 text-base font-semibold rounded-xl bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all cursor-pointer">
                 Get Started
               </button>
             </Link>
           </div>
         </section>
       </main>
-
-      {/* Footer */}
-      <footer
-        className={`relative z-10 border-t ${
-          isDark ? "border-slate-700/50" : "border-stone-200/60"
-        } mt-8`}
-      >
-        <div className="max-w-3xl mx-auto px-6 md:px-10 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-linear-to-br from-orange-500 to-orange-600 rounded-md flex items-center justify-center">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-              </svg>
-            </div>
-            <span className="text-sm font-medium">Kniferoll</span>
-          </div>
-          <div
-            className={`flex items-center gap-6 text-sm ${
-              isDark ? "text-gray-400" : "text-gray-500"
-            }`}
-          >
-            <a href="#" className="hover:text-orange-500 transition-colors">
-              Support
-            </a>
-            <a href="#" className="hover:text-orange-500 transition-colors">
-              Privacy
-            </a>
-            <a href="#" className="hover:text-orange-500 transition-colors">
-              Terms
-            </a>
-          </div>
-        </div>
-      </footer>
-
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-      `}</style>
-    </div>
+    </Page>
   );
 }

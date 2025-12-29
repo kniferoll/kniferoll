@@ -1,4 +1,7 @@
 export { Header } from "./Header";
+export { Page } from "./Page";
+export { PageHeader } from "./PageHeader";
+export { PageFooter } from "./PageFooter";
 export { CenteredPage } from "./CenteredPage";
 export { FormInput } from "./FormInput";
 export { AuthForm } from "./AuthForm";
