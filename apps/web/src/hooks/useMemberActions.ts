@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import type { Database } from "@kniferoll/types";
 
 type KitchenMember = Database["public"]["Tables"]["kitchen_members"]["Row"];

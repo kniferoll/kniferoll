@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import type { DbPrepItem, Database, PrepStatus } from "@kniferoll/types";
 
 type PrepItemInsert = Database["public"]["Tables"]["prep_items"]["Insert"];

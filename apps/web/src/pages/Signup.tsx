@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
-import { AuthForm } from "../components/AuthForm";
-import { FormInput } from "../components/FormInput";
+import { useAuthStore } from "@/stores/authStore";
+import { AuthForm, FormInput } from "@/components";
 
 /**
  * Signup page
- * 
+ *
  * Uses the default header from PublicLayout.
  * AuthForm is just the card content - the layout provides the page shell.
  */

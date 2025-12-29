@@ -1,10 +1,8 @@
 import { Outlet, Navigate, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
-import { HeaderProvider } from "../context/HeaderContext";
-import { useHeaderConfig } from "../hooks/useHeader";
-import { Logo } from "../components/Logo";
-import { NavLinks } from "../components/NavLinks";
-import { UserAvatarMenu } from "../components/UserAvatarMenu";
+import { useAuthStore } from "@/stores/authStore";
+import { HeaderProvider } from "@/context/HeaderContext";
+import { useHeaderConfig } from "@/hooks/useHeader";
+import { Logo, NavLinks, UserAvatarMenu } from "@/components";
 import { LayoutShell } from "./LayoutShell";
 
 /**

@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import { HeaderContext, type HeaderConfig } from "../context/HeaderContext";
+import { HeaderContext, type HeaderConfig } from "@/context/HeaderContext";
 
 export function useHeader() {
   const context = useContext(HeaderContext);

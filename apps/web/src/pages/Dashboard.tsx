@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
-import { useKitchens } from "../hooks/useKitchens";
-import { usePlanLimits } from "../hooks/usePlanLimits";
-import { useStripeCheckout } from "../hooks/useStripeCheckout";
-import { useDarkModeContext } from "../context/DarkModeContext";
-import { KitchenOnboardingModal } from "../components";
+import { useAuthStore } from "@/stores/authStore";
+import { useKitchens } from "@/hooks/useKitchens";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { useDarkModeContext } from "@/context/DarkModeContext";
+import { KitchenOnboardingModal } from "@/components";
 import type { Database } from "@kniferoll/types";
 
 type Kitchen = Database["public"]["Tables"]["kitchens"]["Row"];

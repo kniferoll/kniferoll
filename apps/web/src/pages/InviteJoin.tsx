@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { supabase } from "../lib/supabase";
-import { signInAnonymously } from "../lib/auth";
-import { useAuthStore } from "../stores/authStore";
-import { useDarkModeContext } from "../context/DarkModeContext";
-import { Card } from "../components/Card";
-import { FormInput } from "../components/FormInput";
-import { Button } from "../components/Button";
+import { supabase } from "@/lib/supabase";
+import { signInAnonymously } from "@/lib/auth";
+import { useAuthStore } from "@/stores/authStore";
+import { useDarkModeContext } from "@/context/DarkModeContext";
+import { Button, Card, FormInput } from "@/components";
 import type { Database } from "@kniferoll/types";
 
 type InviteLink = Database["public"]["Tables"]["invite_links"]["Row"];

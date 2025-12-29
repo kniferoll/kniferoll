@@ -1,13 +1,15 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
-import { HeaderProvider } from "../context/HeaderContext";
-import { useHeaderConfig } from "../hooks/useHeader";
-import { Logo } from "../components/Logo";
-import { NavLinks } from "../components/NavLinks";
-import { DashboardLink } from "../components/DashboardLink";
-import { AuthButtons } from "../components/AuthButtons";
-import { UserAvatarMenu } from "../components/UserAvatarMenu";
-import { PublicFooter } from "../components/PublicFooter";
+import { useAuthStore } from "@/stores/authStore";
+import { HeaderProvider } from "@/context/HeaderContext";
+import { useHeaderConfig } from "@/hooks/useHeader";
+import {
+  AuthButtons,
+  DashboardLink,
+  Logo,
+  NavLinks,
+  PublicFooter,
+  UserAvatarMenu,
+} from "@/components";
 import { LayoutShell } from "./LayoutShell";
 
 /**

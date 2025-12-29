@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore } from "@/stores/authStore";
 import {
   getUserProfile,
   getOwnedKitchenCount,
   getStationCount,
   getUserLimits,
-} from "../lib/entitlements";
+} from "@/lib/entitlements";
 import type { Database } from "@kniferoll/types";
 
 type UserPlan = Database["public"]["Enums"]["user_plan"];

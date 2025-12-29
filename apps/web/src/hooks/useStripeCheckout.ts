@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { useAuthStore } from "../stores/authStore";
-import { redirectToCheckout } from "../lib/stripe";
+import { useAuthStore } from "@/stores/authStore";
+import { redirectToCheckout } from "@/lib/stripe";
 
 /**
  * Hook for handling Stripe checkout redirects

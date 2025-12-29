@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { usePrepStore } from "../stores/prepStore";
-import { usePrepEntryStore } from "../stores/prepEntryStore";
-import { useKitchenStore } from "../stores/kitchenStore";
-import { useAuthStore } from "../stores/authStore";
-import { useRealtimePrepItems } from "../hooks/useRealtimePrepItems";
-import { useHeaderConfig } from "../hooks/useHeader";
-import { supabase, getDeviceToken } from "../lib/supabase";
-import { jsDateToDatabaseDayOfWeek, toLocalDate } from "../lib/dateUtils";
+import { usePrepStore } from "@/stores/prepStore";
+import { usePrepEntryStore } from "@/stores/prepEntryStore";
+import { useKitchenStore } from "@/stores/kitchenStore";
+import { useAuthStore } from "@/stores/authStore";
+import { useRealtimePrepItems } from "@/hooks/useRealtimePrepItems";
+import { useHeaderConfig } from "@/hooks/useHeader";
+import { supabase, getDeviceToken } from "@/lib/supabase";
+import { jsDateToDatabaseDayOfWeek, toLocalDate } from "@/lib/dateUtils";
 
 import {
   DateCalendar,
@@ -15,10 +15,9 @@ import {
   PrepItemEntryForm,
   PrepItemList,
   ProgressBar,
-  // SkeletonList,
   CookInviteButton,
   BackButton,
-} from "../components";
+} from "@/components";
 
 /**
  * StationView - the main prep list interface for a station

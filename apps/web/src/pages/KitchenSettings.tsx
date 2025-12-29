@@ -1,26 +1,28 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
-import { useKitchen } from "../hooks/useKitchens";
-import { usePlanLimits, usePaywall } from "../hooks/usePlanLimits";
-import { useMemberActions } from "../hooks/useMemberActions";
-import { useRealtimeMembers } from "../hooks/useRealtimeMembers";
-import { useStripeCheckout } from "../hooks/useStripeCheckout";
+import { useAuthStore } from "@/stores/authStore";
+import { useKitchen } from "@/hooks/useKitchens";
+import { usePlanLimits, usePaywall } from "@/hooks/usePlanLimits";
+import { useMemberActions } from "@/hooks/useMemberActions";
+import { useRealtimeMembers } from "@/hooks/useRealtimeMembers";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
 import {
   useKitchenShifts,
   useKitchenShiftActions,
   DAYS_OF_WEEK,
-} from "../hooks/useKitchenShifts";
-import { useUserSubscription } from "../hooks/useUserSubscription";
-import { useHeaderConfig } from "../hooks/useHeader";
-import { useDarkModeContext } from "../context/DarkModeContext";
-import { redirectToCustomerPortal } from "../lib/stripe";
-import { supabase } from "../lib/supabase";
-import { Button } from "../components/Button";
-import { BackButton } from "../components/BackButton";
-import { Card } from "../components/Card";
-import { InviteLinkModal } from "../components/InviteLinkModal";
-import { UpgradeModal } from "../components/UpgradeModal";
+} from "@/hooks/useKitchenShifts";
+import { useUserSubscription } from "@/hooks/useUserSubscription";
+import { useHeaderConfig } from "@/hooks/useHeader";
+import { useDarkModeContext } from "@/context/DarkModeContext";
+import { redirectToCustomerPortal } from "@/lib/stripe";
+import { supabase } from "@/lib/supabase";
+import {
+  BackButton,
+  Button,
+  Card,
+  InviteLinkModal,
+  UpgradeModal,
+} from "@/components";
 import type { Database } from "@kniferoll/types";
 
 type Station = Database["public"]["Tables"]["stations"]["Row"];

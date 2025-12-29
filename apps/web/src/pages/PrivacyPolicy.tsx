@@ -1,8 +1,8 @@
-import { useDarkModeContext } from "../context/DarkModeContext";
+import { useDarkModeContext } from "@/context/DarkModeContext";
 
 /**
  * Privacy Policy page
- * 
+ *
  * Uses the default header from PublicLayout.
  * Just renders the content - no Page wrapper needed.
  */

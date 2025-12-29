@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../stores/authStore";
-import { useKitchenStore } from "../stores/kitchenStore";
-import { useStations } from "../hooks/useStations";
-import { useRealtimeStations } from "../hooks/useRealtimeStations";
-import { useHeaderConfig } from "../hooks/useHeader";
-import { useDarkModeContext } from "../context/DarkModeContext";
-import { supabase } from "../lib/supabase";
-import { Button } from "../components/Button";
-import { BackButton } from "../components/BackButton";
-import { DateCalendar } from "../components/DateCalendar";
-import { ShiftToggle } from "../components/ShiftToggle";
-import { StationCard } from "../components/StationCard";
-import { InviteLinkModal } from "../components/InviteLinkModal";
+import { useAuthStore } from "@/stores/authStore";
+import { useKitchenStore } from "@/stores/kitchenStore";
+import { useStations } from "@/hooks/useStations";
+import { useRealtimeStations } from "@/hooks/useRealtimeStations";
+import { useHeaderConfig } from "@/hooks/useHeader";
+import { useDarkModeContext } from "@/context/DarkModeContext";
+import { supabase } from "@/lib/supabase";
+import {
+  BackButton,
+  Button,
+  DateCalendar,
+  InviteLinkModal,
+  ShiftToggle,
+  StationCard,
+} from "@/components";
 
-import { jsDateToDatabaseDayOfWeek, toLocalDate } from "../lib/dateUtils";
+import { jsDateToDatabaseDayOfWeek, toLocalDate } from "@/lib/dateUtils";
 
 interface StationProgress {
   stationId: string;

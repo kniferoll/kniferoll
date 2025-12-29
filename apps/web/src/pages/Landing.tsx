@@ -1,17 +1,17 @@
 import { Link } from "react-router-dom";
-import { useDarkModeContext } from "../context/DarkModeContext";
-import { Button } from "../components/Button";
-import { StepCard } from "../components/StepCard";
-import { FeatureCard } from "../components/FeatureCard";
-import { SectionHeader } from "../components/SectionHeader";
+import { useDarkModeContext } from "@/context/DarkModeContext";
 import {
+  Button,
+  FeatureCard,
+  SectionHeader,
+  StepCard,
   ClockIcon,
   DeviceIcon,
   TeamIcon,
   UnitsIcon,
   ShieldIcon,
   CalendarIcon,
-} from "../components/icons";
+} from "@/components";
 
 // Data
 const steps = [

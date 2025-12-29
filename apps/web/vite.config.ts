@@ -14,6 +14,11 @@ const rootDir = path.resolve(
 
 export default defineConfig({
   envDir: rootDir,
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   plugins: [
     react(),
     VitePWA({
