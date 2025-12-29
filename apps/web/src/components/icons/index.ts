@@ -4,3 +4,4 @@ export { TeamIcon } from "./TeamIcon";
 export { UnitsIcon } from "./UnitsIcon";
 export { ShieldIcon } from "./ShieldIcon";
 export { CalendarIcon } from "./CalendarIcon";
+export { KniferollIcon } from "./KniferollIcon";
