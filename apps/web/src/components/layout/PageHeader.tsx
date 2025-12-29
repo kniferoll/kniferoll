@@ -16,7 +16,7 @@ export function PageHeader({
 
   return (
     <header
-      className={`relative z-10 flex justify-between items-center px-8 py-6 border-b ${
+      className={`relative flex justify-between items-center px-8 py-6 border-b ${
         isDark ? "border-slate-700/50" : "border-stone-200/50"
       }`}
     >
