@@ -16,7 +16,7 @@ function AppLayoutInner() {
   // Individual pages (like StationView) can override this
   useHeaderConfig(
     {
-      startContent: <Logo onClick={() => navigate("/")} />,
+      startContent: <Logo onClick={() => navigate("/dashboard")} />,
       endContent: <NavLinks end={<UserAvatarMenu />} />,
     },
     [navigate]
