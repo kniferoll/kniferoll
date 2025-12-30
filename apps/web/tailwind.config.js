@@ -13,21 +13,7 @@ export default {
           border: "#334155",
         },
       },
-      keyframes: {
-        slideDown: {
-          from: {
-            opacity: "0",
-            transform: "translateY(-8px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
-        },
-      },
-      animation: {
-        slideDown: "slideDown 0.2s ease-out",
-      },
+      // Animations are defined in index.css using @theme directive (Tailwind v4)
     },
   },
   plugins: [],

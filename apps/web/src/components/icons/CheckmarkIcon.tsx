@@ -15,7 +15,7 @@ export function CheckmarkIcon({
       fill="none"
       className={className}
     >
-      <circle cx="12" cy="12" r="10" fill="#3b82f6" />
+      <circle cx="12" cy="12" r="10" fill="#10b981" />
       <path
         d="M8 12l3 3 5-5"
         stroke="white"

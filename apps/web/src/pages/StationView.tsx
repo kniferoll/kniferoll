@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   useAuthStore,
@@ -21,6 +22,9 @@ import {
   UserAvatarMenu,
   Logo,
   NavLinks,
+  ControlsToggle,
+  ToolsMenu,
+  InviteLinkModal,
 } from "@/components";
 import { useDarkModeContext } from "@/context";
 
@@ -67,6 +71,24 @@ export function StationView() {
     Map<number, { is_open: boolean; shift_ids: string[] }>
   >(new Map());
   const [isClosed, setIsClosed] = useState(false);
+
+  // UI state for controls
+  const [controlsCollapsed, setControlsCollapsed] = useState(false);
+  const [isCompact, setIsCompact] = useState(() => {
+    const stored = localStorage.getItem("kniferoll:compactView");
+    return stored === "true";
+  });
+  const [sortTrigger, setSortTrigger] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+
+  // Persist compact view preference
+  const handleToggleCompact = useCallback(() => {
+    setIsCompact((prev) => {
+      const newValue = !prev;
+      localStorage.setItem("kniferoll:compactView", String(newValue));
+      return newValue;
+    });
+  }, []);
 
   // Get closed days for calendar
   const dayNamesForCalendar = [
@@ -121,9 +143,18 @@ export function StationView() {
           </span>
         </div>
       ),
-      endContent: <NavLinks end={<UserAvatarMenu />} />,
+      endContent: (
+        <NavLinks
+          end={
+            <UserAvatarMenu
+              kitchenId={currentKitchen?.id}
+              onInvite={() => setShowInviteModal(true)}
+            />
+          }
+        />
+      ),
     },
-    [station?.name, isDark, navigate]
+    [station?.name, isDark, navigate, currentKitchen?.id]
   );
 
   // Load kitchen data on refresh if we have kitchen but no stations
@@ -297,6 +328,14 @@ export function StationView() {
     );
   };
 
+  // Trigger a one-time sort of the prep list
+  const handleSort = useCallback(() => {
+    // Set to true to trigger the sort effect
+    setSortTrigger(true);
+    // Reset after a tick so it can be triggered again
+    setTimeout(() => setSortTrigger(false), 100);
+  }, []);
+
   if (!station) {
     return (
       <div className="flex items-center justify-center h-[50vh] px-4">
@@ -326,62 +365,105 @@ export function StationView() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Controls Row - Shift Toggle, Calendar, Progress Bar */}
+      {/* Controls Area */}
       {!isClosed && (
-        <div className="px-4 py-4 bg-transparent">
+        <div className="px-4 pt-2 pb-1 relative z-20">
           <div className="max-w-5xl mx-auto">
-            {/* Mobile: Stacked */}
-            <div className="md:hidden flex flex-col gap-4">
-              <ShiftToggle
-                shifts={availableShifts.map((s) => s.name)}
-                currentShift={
-                  availableShifts.find((s) => s.id === selectedShiftId)?.name ||
-                  ""
-                }
-                onShiftChange={(shiftName) => {
-                  const shift = availableShifts.find(
-                    (s) => s.name === shiftName
-                  );
-                  if (shift) setSelectedShiftId(shift.id);
-                }}
-                disabled={isClosed}
-              />
-              <DateCalendar
-                selectedDate={selectedDate}
-                onDateSelect={setSelectedDate}
-                closedDays={closedDaysArray}
+            {/* Toggle Button - centered pill (both mobile and desktop) */}
+            <div>
+              <ControlsToggle
+                isCollapsed={controlsCollapsed}
+                onToggle={() => setControlsCollapsed(!controlsCollapsed)}
               />
             </div>
 
-            {/* Desktop: Horizontal with Progress Bar */}
-            <div className="hidden md:flex md:items-center md:gap-4">
-              <ShiftToggle
-                shifts={availableShifts.map((s) => s.name)}
-                currentShift={
-                  availableShifts.find((s) => s.id === selectedShiftId)?.name ||
-                  ""
-                }
-                onShiftChange={(shiftName) => {
-                  const shift = availableShifts.find(
-                    (s) => s.name === shiftName
-                  );
-                  if (shift) setSelectedShiftId(shift.id);
-                }}
-                disabled={isClosed}
-              />
-              <div className="flex-1 min-w-0">
-                <ProgressBar
-                  completed={completedCount}
-                  partial={inProgressCount}
-                  pending={pendingCount}
-                />
+            {/* Controls container with framer-motion height animation */}
+            <motion.div
+              initial={false}
+              animate={{
+                height: controlsCollapsed ? 0 : "auto",
+                opacity: controlsCollapsed ? 0 : 1,
+              }}
+              transition={{
+                duration: 0.3,
+                ease: [0.4, 0, 0.2, 1],
+              }}
+              style={{ overflow: controlsCollapsed ? "hidden" : "visible" }}
+            >
+              <div className="pt-2 pb-3">
+                {/* Desktop Layout: Single row - Shift | Progress | Calendar | Tools */}
+                <div className="hidden md:block">
+                  <div className="flex items-center gap-4">
+                    <ShiftToggle
+                      shifts={availableShifts.map((s) => s.name)}
+                      currentShift={
+                        availableShifts.find((s) => s.id === selectedShiftId)
+                          ?.name || ""
+                      }
+                      onShiftChange={(shiftName) => {
+                        const shift = availableShifts.find(
+                          (s) => s.name === shiftName
+                        );
+                        if (shift) setSelectedShiftId(shift.id);
+                      }}
+                      disabled={isClosed}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <ProgressBar
+                        completed={completedCount}
+                        partial={inProgressCount}
+                        pending={pendingCount}
+                      />
+                    </div>
+                    <DateCalendar
+                      selectedDate={selectedDate}
+                      onDateSelect={setSelectedDate}
+                      closedDays={closedDaysArray}
+                    />
+                    <ToolsMenu
+                      onSort={handleSort}
+                      isCompact={isCompact}
+                      onToggleCompact={handleToggleCompact}
+                    />
+                  </div>
+                </div>
+
+                {/* Mobile Layout: Stacked rows */}
+                <div className="md:hidden">
+                  <div className="flex flex-col gap-3">
+                    {/* Row 1: Calendar (left) + Tools (right) */}
+                    <div className="flex items-center justify-between">
+                      <DateCalendar
+                        selectedDate={selectedDate}
+                        onDateSelect={setSelectedDate}
+                        closedDays={closedDaysArray}
+                      />
+                      <ToolsMenu
+                        onSort={handleSort}
+                        isCompact={isCompact}
+                        onToggleCompact={handleToggleCompact}
+                      />
+                    </div>
+
+                    {/* Row 2: Shift Toggle */}
+                    <ShiftToggle
+                      shifts={availableShifts.map((s) => s.name)}
+                      currentShift={
+                        availableShifts.find((s) => s.id === selectedShiftId)
+                          ?.name || ""
+                      }
+                      onShiftChange={(shiftName) => {
+                        const shift = availableShifts.find(
+                          (s) => s.name === shiftName
+                        );
+                        if (shift) setSelectedShiftId(shift.id);
+                      }}
+                      disabled={isClosed}
+                    />
+                  </div>
+                </div>
               </div>
-              <DateCalendar
-                selectedDate={selectedDate}
-                onDateSelect={setSelectedDate}
-                closedDays={closedDaysArray}
-              />
-            </div>
+            </motion.div>
           </div>
         </div>
       )}
@@ -406,7 +488,8 @@ export function StationView() {
               items={prepItems as any}
               onCycleStatus={handleCycleStatus}
               onDelete={handleDelete}
-              shouldSort={true}
+              shouldSort={sortTrigger}
+              isCompact={isCompact}
             />
           )}
         </div>
@@ -429,6 +512,15 @@ export function StationView() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Invite Modal */}
+      {showInviteModal && currentKitchen && (
+        <InviteLinkModal
+          kitchenId={currentKitchen.id}
+          kitchenName={currentKitchen.name}
+          onClose={() => setShowInviteModal(false)}
+        />
       )}
     </div>
   );

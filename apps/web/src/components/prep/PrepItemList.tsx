@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import type { PrepStatus } from "@kniferoll/types";
 import { StatusIcon, CheckIcon, TrashIcon, XIcon } from "@/components/icons";
 
@@ -18,23 +18,57 @@ interface PrepItemListProps {
   onDelete: (itemId: string) => Promise<void>;
   disabled?: boolean;
   shouldSort?: boolean;
+  isCompact?: boolean;
 }
+
+type AnimationState = "adding" | "completing" | "sorting" | "deleting" | null;
 
 function PrepItemListInner({
   items,
   onCycleStatus,
   onDelete,
   disabled = false,
-  shouldSort = true,
+  shouldSort = false,
+  isCompact = false,
 }: PrepItemListProps) {
-  // Maintain display order in local state
+  // Maintain display order in local state - items stay in place until explicit sort
   const [displayOrder, setDisplayOrder] = useState<string[]>([]);
   // Track which item is in delete confirmation mode
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  // Track whether initial load has happened
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  // Track animation states per item
+  const [animatingItems, setAnimatingItems] = useState<Map<string, AnimationState>>(new Map());
+  // Track previous item statuses to detect status changes
+  const prevStatusRef = useRef<Map<string, PrepStatus | null>>(new Map());
 
-  // Sort items when shouldSort is true, otherwise maintain current order
+  // Helper to set animation for an item
+  const setItemAnimation = (itemId: string, animation: AnimationState) => {
+    setAnimatingItems((prev) => {
+      const next = new Map(prev);
+      if (animation) {
+        next.set(itemId, animation);
+      } else {
+        next.delete(itemId);
+      }
+      return next;
+    });
+  };
+
+  // Clear animation after it completes
+  const clearAnimationAfterDelay = (itemId: string, delay: number) => {
+    setTimeout(() => {
+      setAnimatingItems((prev) => {
+        const next = new Map(prev);
+        next.delete(itemId);
+        return next;
+      });
+    }, delay);
+  };
+
+  // Handle explicit sort request via shouldSort prop
   useEffect(() => {
-    if (shouldSort) {
+    if (shouldSort && items.length > 0) {
       const sorted = [...items].sort((a, b) => {
         const statusOrder = { pending: 0, in_progress: 1, complete: 2 };
         const aStatus = a.status || "pending";
@@ -43,37 +77,105 @@ function PrepItemListInner({
         const statusDiff = statusOrder[aStatus] - statusOrder[bStatus];
         if (statusDiff !== 0) return statusDiff;
 
-        // Within same status, sort by created_at ascending
+        return a.description.localeCompare(b.description);
+      });
+      setDisplayOrder(sorted.map((item) => item.id));
+      // Animate all items with sorting animation
+      sorted.forEach((item, index) => {
+        setTimeout(() => {
+          setItemAnimation(item.id, "sorting");
+          clearAnimationAfterDelay(item.id, 400);
+        }, index * 50);
+      });
+    }
+  }, [shouldSort]);
+
+  // Handle new items being added or removed
+  useEffect(() => {
+    if (items.length === 0) {
+      setDisplayOrder([]);
+      setInitialLoadDone(false);
+      prevStatusRef.current = new Map();
+      return;
+    }
+
+    // Initial load: sort by status then created_at
+    if (!initialLoadDone) {
+      const sorted = [...items].sort((a, b) => {
+        const statusOrder = { pending: 0, in_progress: 1, complete: 2 };
+        const aStatus = a.status || "pending";
+        const bStatus = b.status || "pending";
+
+        const statusDiff = statusOrder[aStatus] - statusOrder[bStatus];
+        if (statusDiff !== 0) return statusDiff;
+
         if (!a.created_at || !b.created_at) return 0;
         return (
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         );
       });
       setDisplayOrder(sorted.map((item) => item.id));
-    } else {
-      // When not sorting, add any new items to the end
-      setDisplayOrder((prevOrder) => {
-        const currentIds = new Set(prevOrder);
-        const newItems = items.filter((item) => !currentIds.has(item.id));
-        if (newItems.length > 0) {
-          return [...prevOrder, ...newItems.map((item) => item.id)];
-        }
-        return prevOrder;
-      });
+      // Initialize status tracking
+      prevStatusRef.current = new Map(items.map((item) => [item.id, item.status]));
+      setInitialLoadDone(true);
+      return;
     }
-  }, [items, shouldSort]);
 
-  // Initialize display order on first load
-  useEffect(() => {
-    if (displayOrder.length === 0 && items.length > 0) {
-      setDisplayOrder(items.map((item) => item.id));
-    }
-  }, [items, displayOrder.length]);
+    // After initial load: preserve order, add new items at top
+    setDisplayOrder((prevOrder) => {
+      const existingIds = new Set(items.map((item) => item.id));
+      const prevIds = new Set(prevOrder);
+
+      // Find new items
+      const newItems = items.filter((item) => !prevIds.has(item.id));
+
+      // Animate new items
+      newItems.forEach((item) => {
+        setItemAnimation(item.id, "adding");
+        clearAnimationAfterDelay(item.id, 400);
+      });
+
+      // Filter out deleted items
+      const remainingOrder = prevOrder.filter((id) => existingIds.has(id));
+
+      return [...newItems.map((item) => item.id), ...remainingOrder];
+    });
+
+    // Detect status changes for completing animation
+    items.forEach((item) => {
+      const prevStatus = prevStatusRef.current.get(item.id);
+      if (prevStatus !== undefined && prevStatus !== item.status) {
+        // Status changed - if now complete, animate
+        if (item.status === "complete") {
+          setItemAnimation(item.id, "completing");
+          clearAnimationAfterDelay(item.id, 500);
+        }
+      }
+    });
+
+    // Update status tracking
+    prevStatusRef.current = new Map(items.map((item) => [item.id, item.status]));
+  }, [items, initialLoadDone]);
+
+  // Handle delete with animation
+  const handleDeleteWithAnimation = async (itemId: string) => {
+    setItemAnimation(itemId, "deleting");
+    // Wait for animation then actually delete
+    setTimeout(async () => {
+      await onDelete(itemId);
+      setDeletingItemId(null);
+      setAnimatingItems((prev) => {
+        const next = new Map(prev);
+        next.delete(itemId);
+        return next;
+      });
+    }, 300);
+  };
 
   if (items.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-slate-400">No prep items yet</p>
+        <p className="text-stone-600 dark:text-slate-400">No prep items yet</p>
       </div>
     );
   }
@@ -97,30 +199,61 @@ function PrepItemListInner({
     return null;
   };
 
+  // Compact vs normal sizing
+  const itemPadding = isCompact ? "px-3 py-2" : "px-4 py-3";
+  const itemGap = isCompact ? "gap-2" : "gap-3";
+  const statusButtonSize = isCompact ? "w-9 h-9" : "w-12 h-12";
+  const statusIconSize = isCompact ? 20 : 24;
+  const textSize = isCompact ? "text-sm" : "text-base";
+  const pillSize = isCompact ? "px-2 py-0.5 text-xs" : "px-2.5 py-1 text-sm";
+  const deleteButtonSize = isCompact ? "w-8 h-8" : "w-11 h-11";
+  const confirmButtonSize = isCompact ? "w-7 h-7" : "w-9 h-9";
+
+  // Get animation class for an item
+  const getAnimationClass = (itemId: string) => {
+    const animation = animatingItems.get(itemId);
+    switch (animation) {
+      case "adding":
+        return "animate-itemSlideIn";
+      case "completing":
+        return "animate-itemComplete";
+      case "sorting":
+        return "animate-itemSort";
+      case "deleting":
+        return "animate-itemDelete";
+      default:
+        return "";
+    }
+  };
+
   return (
-    <div className="space-y-2">
+    <div className={isCompact ? "space-y-1.5" : "space-y-2"}>
       {displayItems.map((item) => {
         const pillText = formatQuantityPill(
           item.quantity,
           item.unit_name || null
         );
+        const isDeleting = deletingItemId === item.id;
+        const animationClass = getAnimationClass(item.id);
 
         return (
           <div
             key={item.id}
             className={`
-              flex items-center gap-3 px-4 py-3 rounded-lg
-              border border-gray-200 dark:border-slate-700
+              flex items-center ${itemGap} ${itemPadding} rounded-xl
+              border border-stone-200 dark:border-slate-700
               shadow-sm
               ${
                 item.status === "in_progress"
-                  ? "bg-yellow-50 dark:bg-yellow-950/20"
+                  ? "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-900/50"
                   : "bg-white dark:bg-slate-900"
               }
-              ${item.status === "complete" ? "opacity-70" : ""}
+              ${item.status === "complete" ? "opacity-60" : ""}
+              ${animationClass}
             `.trim()}
+            style={{ transformOrigin: "top center" }}
           >
-            {/* Status Icon - 48x48px tap target */}
+            {/* Status Icon */}
             <button
               onClick={() => {
                 if (!disabled) {
@@ -128,10 +261,10 @@ function PrepItemListInner({
                 }
               }}
               disabled={disabled}
-              className="shrink-0 w-12 h-12 flex items-center justify-center disabled:opacity-50"
+              className={`shrink-0 ${statusButtonSize} flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 active:scale-95 transition-transform disabled:opacity-50`}
               aria-label="Cycle status"
             >
-              <StatusIcon status={item.status} size={24} />
+              <StatusIcon status={item.status} size={statusIconSize} />
             </button>
 
             {/* Description */}
@@ -139,10 +272,10 @@ function PrepItemListInner({
               {/* Mobile: description and pill stacked */}
               <div className="sm:hidden">
                 <span
-                  className={`block text-base ${
+                  className={`block ${textSize} font-medium ${
                     item.status === "complete"
-                      ? "text-gray-400 dark:text-slate-500 line-through"
-                      : "text-gray-900 dark:text-slate-50"
+                      ? "text-stone-400 dark:text-slate-500 line-through"
+                      : "text-stone-900 dark:text-slate-50"
                   }`}
                 >
                   {item.description}
@@ -150,12 +283,12 @@ function PrepItemListInner({
                 {pillText && (
                   <span
                     className={`
-                      block mt-1
-                      px-2.5 py-1 rounded-full text-sm font-medium w-fit
+                      inline-block mt-1
+                      ${pillSize} rounded-full font-medium
                       ${
                         item.status === "complete"
-                          ? "bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500"
-                          : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
+                          ? "bg-stone-200 dark:bg-slate-700 text-stone-400 dark:text-slate-500"
+                          : "bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400"
                       }
                     `.trim()}
                   >
@@ -165,10 +298,10 @@ function PrepItemListInner({
               </div>
               {/* Desktop: description only */}
               <span
-                className={`hidden sm:block text-base ${
+                className={`hidden sm:block ${textSize} font-medium ${
                   item.status === "complete"
-                    ? "text-gray-400 dark:text-slate-500 line-through"
-                    : "text-gray-900 dark:text-slate-50"
+                    ? "text-stone-400 dark:text-slate-500 line-through"
+                    : "text-stone-900 dark:text-slate-50"
                 }`}
               >
                 {item.description}
@@ -180,11 +313,11 @@ function PrepItemListInner({
               <span
                 className={`
                   hidden sm:inline-flex
-                  px-2.5 py-1 rounded-full text-sm font-medium shrink-0
+                  ${pillSize} rounded-full font-medium shrink-0
                   ${
                     item.status === "complete"
-                      ? "bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-slate-500"
-                      : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
+                      ? "bg-stone-200 dark:bg-slate-700 text-stone-400 dark:text-slate-500"
+                      : "bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400"
                   }
                 `.trim()}
               >
@@ -193,38 +326,35 @@ function PrepItemListInner({
             )}
 
             {/* Delete/Confirm Button */}
-            {deletingItemId === item.id ? (
-              <div className="shrink-0 flex items-center gap-1">
+            {isDeleting ? (
+              <div className="shrink-0 flex items-center gap-0.5 animate-confirmSlideIn">
                 {/* Confirm Delete */}
                 <button
-                  onClick={async () => {
-                    await onDelete(item.id);
-                    setDeletingItemId(null);
-                  }}
+                  onClick={() => handleDeleteWithAnimation(item.id)}
                   disabled={disabled}
-                  className="w-9 h-9 flex items-center justify-center text-green-500 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded transition-colors disabled:opacity-50"
+                  className={`${confirmButtonSize} flex items-center justify-center text-green-500 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg transition-colors disabled:opacity-50`}
                   aria-label="Confirm delete"
                 >
-                  <CheckIcon />
+                  <CheckIcon size={isCompact ? 14 : 18} />
                 </button>
                 {/* Cancel Delete */}
                 <button
                   onClick={() => setDeletingItemId(null)}
                   disabled={disabled}
-                  className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors disabled:opacity-50"
+                  className={`${confirmButtonSize} flex items-center justify-center text-stone-400 dark:text-slate-500 hover:bg-stone-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50`}
                   aria-label="Cancel delete"
                 >
-                  <XIcon />
+                  <XIcon size={isCompact ? 14 : 18} />
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setDeletingItemId(item.id)}
                 disabled={disabled}
-                className="shrink-0 w-11 h-11 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors disabled:opacity-50"
+                className={`shrink-0 ${deleteButtonSize} flex items-center justify-center text-stone-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors disabled:opacity-50`}
                 aria-label="Delete"
               >
-                <TrashIcon />
+                <TrashIcon size={isCompact ? 16 : 18} />
               </button>
             )}
           </div>

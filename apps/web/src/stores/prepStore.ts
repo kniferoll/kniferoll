@@ -5,8 +5,11 @@ import type { DbPrepItem, Database, PrepStatus } from "@kniferoll/types";
 type PrepItemInsert = Database["public"]["Tables"]["prep_items"]["Insert"];
 type PrepItemUpdate = Database["public"]["Tables"]["prep_items"]["Update"];
 
-// Type for prep items with description field added from kitchen_items
-export type PrepItemWithDescription = DbPrepItem & { description: string };
+// Type for prep items with description and unit_name fields
+export type PrepItemWithDescription = DbPrepItem & {
+  description: string;
+  unit_name?: string | null;
+};
 
 // Helper function to cycle through status states
 function cycleStatus(current: PrepStatus | null): PrepStatus {
@@ -118,26 +121,32 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     const newStatus = cycleStatus(item.status as PrepStatus | null);
     const now = new Date().toISOString();
 
-    // Get the current user to check if they're authenticated
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const updates: PrepItemUpdate = {
+    // Optimistic update FIRST (before any async calls)
+    const optimisticUpdates = {
       status: newStatus,
       status_changed_at: now,
-      // Only set status_changed_by_user if user is authenticated (has a real user ID)
-      ...(user ? { status_changed_by_user: user.id } : {}),
     };
 
-    // Optimistic update
     set((state) => ({
       prepItems: state.prepItems.map((i) =>
-        i.id === itemId ? { ...i, ...updates } : i
+        i.id === itemId ? { ...i, ...optimisticUpdates } : i
       ),
     }));
 
+    // Now do the async work in the background
     try {
+      // Get the current user to check if they're authenticated
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const updates: PrepItemUpdate = {
+        status: newStatus,
+        status_changed_at: now,
+        // Only set status_changed_by_user if user is authenticated (has a real user ID)
+        ...(user ? { status_changed_by_user: user.id } : {}),
+      };
+
       const { error } = await supabase
         .from("prep_items")
         .update(updates)

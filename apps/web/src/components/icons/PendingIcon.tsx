@@ -12,7 +12,7 @@ export function PendingIcon({ size = 24, className = "" }: PendingIconProps) {
       fill="none"
       className={className}
     >
-      <circle cx="12" cy="12" r="10" stroke="#d1d5db" strokeWidth="2" />
+      <circle cx="12" cy="12" r="10" stroke="#a8a29e" strokeWidth="2" />
     </svg>
   );
 }

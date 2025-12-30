@@ -24,19 +24,10 @@ function StationCardInner({
   const { isDark } = useDarkModeContext();
 
   const total = completed + partial + pending;
-  const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+  const completedPercent = total === 0 ? 0 : (completed / total) * 100;
+  const partialPercent = total === 0 ? 0 : (partial / total) * 100;
+  const displayPercent = Math.round(completedPercent);
 
-  const getProgressColor = () => {
-    if (percent >= 80) return "from-emerald-500 to-emerald-600";
-    if (percent >= 50) return "from-amber-500 to-orange-500";
-    return "from-orange-500 to-orange-600";
-  };
-
-  const getPercentColor = () => {
-    if (percent >= 80) return isDark ? "text-emerald-400" : "text-emerald-600";
-    if (percent >= 50) return isDark ? "text-amber-400" : "text-amber-600";
-    return isDark ? "text-orange-400" : "text-orange-600";
-  };
 
   return (
     <Card
@@ -63,21 +54,41 @@ function StationCardInner({
             {total} items
           </p>
         </div>
-        <div className={`text-lg font-bold ${getPercentColor()}`}>
-          {percent}%
+        <div
+          className={`text-lg font-bold ${
+            isDark ? "text-emerald-400" : "text-emerald-600"
+          }`}
+        >
+          {displayPercent}%
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar - two gradient segments */}
       <div
-        className={`h-2 rounded-full overflow-hidden ${
+        className={`h-2 rounded-full overflow-hidden flex ${
           isDark ? "bg-slate-700" : "bg-stone-100"
         }`}
       >
-        <div
-          className={`h-full rounded-full bg-linear-to-r ${getProgressColor()} transition-all`}
-          style={{ width: `${percent}%` }}
-        />
+        {completed > 0 && (
+          <div
+            className={`h-full bg-linear-to-r transition-all ${
+              isDark
+                ? "from-emerald-600 to-emerald-500"
+                : "from-emerald-400 to-emerald-500"
+            }`}
+            style={{ width: `${completedPercent}%` }}
+          />
+        )}
+        {partial > 0 && (
+          <div
+            className={`h-full bg-linear-to-r transition-all ${
+              isDark
+                ? "from-amber-600 to-amber-500"
+                : "from-amber-400 to-amber-500"
+            }`}
+            style={{ width: `${partialPercent}%` }}
+          />
+        )}
       </div>
 
       {/* Item Counts */}

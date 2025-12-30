@@ -15,8 +15,8 @@ export function InProgressIcon({
       fill="none"
       className={className}
     >
-      <circle cx="12" cy="12" r="10" stroke="#eab308" strokeWidth="2" />
-      <circle cx="12" cy="12" r="3" fill="#eab308" />
+      <circle cx="12" cy="12" r="10" stroke="#f59e0b" strokeWidth="2" />
+      <circle cx="12" cy="12" r="3" fill="#f59e0b" />
     </svg>
   );
 }
