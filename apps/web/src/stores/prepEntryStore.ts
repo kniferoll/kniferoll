@@ -68,6 +68,7 @@ interface PrepEntryState {
   ) => Promise<{ error?: string }>;
   dismissSuggestion: (suggestionId: string) => void;
   clearDismissals: () => void;
+  addUnit: (unit: DbKitchenUnit) => void;
 }
 
 export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
@@ -184,9 +185,40 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         set({ unitsLoading: false, error: unitsResponse.error.message });
       } else {
         const units = unitsResponse.data || [];
+
+        // Smart quick units: prioritize recently used units from suggestions
+        const recentUnitIds = new Set<string>();
+        const recentUnits: DbKitchenUnit[] = [];
+
+        // Get units from recent suggestions (use stored masterSuggestions)
+        const storedSuggestions = get().masterSuggestions;
+        for (const suggestion of storedSuggestions) {
+          const unitId = (suggestion as any).last_unit_id;
+          if (unitId && !recentUnitIds.has(unitId)) {
+            const unit = units.find((u) => u.id === unitId);
+            if (unit) {
+              recentUnitIds.add(unitId);
+              recentUnits.push(unit);
+            }
+          }
+          if (recentUnits.length >= 3) break;
+        }
+
+        // Fill remaining slots with other units (prefer common categories)
+        const categoryOrder = ["pan", "container", "count", "volume", "weight", "prep", "other"];
+        const sortedRemaining = units
+          .filter((u) => !recentUnitIds.has(u.id))
+          .sort((a, b) => {
+            const aIdx = categoryOrder.indexOf(a.category || "other");
+            const bIdx = categoryOrder.indexOf(b.category || "other");
+            return aIdx - bIdx;
+          });
+
+        const quickUnits = [...recentUnits, ...sortedRemaining].slice(0, 3);
+
         set({
           allUnits: units,
-          quickUnits: units.slice(0, 5),
+          quickUnits,
           unitsLoading: false,
         });
       }
@@ -292,10 +324,12 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
               item.shift_id === shiftId
           );
         if (isCurrentView) {
-          // Add description from normalizedName to match PrepItemWithDescription type
+          // Add description and unit_name to match PrepItemWithDescription type
+          const unitName = unitId ? get().allUnits.find((u) => u.id === unitId)?.name : null;
           const newItemWithDescription = {
             ...newPrepItem,
             description: normalizedName,
+            unit_name: unitName || null,
           } as any;
           usePrepStore.setState({
             prepItems: [...currentItems, newItemWithDescription],
@@ -384,6 +418,12 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
 
   clearDismissals: () => {
     set({ dismissedSuggestionIds: new Set() });
+  },
+
+  addUnit: (unit: DbKitchenUnit) => {
+    set((state) => ({
+      allUnits: [...state.allUnits, unit],
+    }));
   },
 }));
 

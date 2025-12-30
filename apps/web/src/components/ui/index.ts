@@ -1,6 +1,7 @@
 export { Alert } from "./Alert";
 export { Button } from "./Button";
 export { Card } from "./Card";
+export { Pill } from "./Pill";
 export { ControlsToggle } from "./ControlsToggle";
 export { DangerZone } from "./DangerZone";
 export {

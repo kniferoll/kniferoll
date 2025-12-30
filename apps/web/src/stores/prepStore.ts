@@ -52,7 +52,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     try {
       const { data, error } = await supabase
         .from("prep_items")
-        .select("*, kitchen_items(name)")
+        .select("*, kitchen_items(name), kitchen_units(name)")
         .eq("station_id", stationId)
         .eq("shift_date", shiftDate)
         .eq("shift_id", shiftId)
@@ -63,10 +63,11 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         return;
       }
 
-      // Transform the data to include description from kitchen_items
+      // Transform the data to include description and unit_name from joined tables
       const transformedData = (data || []).map((item: any) => ({
         ...item,
         description: item.kitchen_items?.name || "Unknown item",
+        unit_name: item.kitchen_units?.name || null,
       }));
 
       set({ prepItems: transformedData, loading: false });
@@ -84,7 +85,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
       const { data, error } = await supabase
         .from("prep_items")
         .insert(item)
-        .select("*, kitchen_items(name)")
+        .select("*, kitchen_items(name), kitchen_units(name)")
         .single();
 
       if (error) {
@@ -95,6 +96,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
       const transformedItem = {
         ...data,
         description: (data as any).kitchen_items?.name || "Unknown item",
+        unit_name: (data as any).kitchen_units?.name || null,
       };
 
       set((state) => ({

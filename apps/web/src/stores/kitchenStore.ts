@@ -203,6 +203,89 @@ export const useKitchenStore = create<KitchenState>()(
             return { error: shiftDaysError.message };
           }
 
+          // Seed default kitchen units
+          const defaultUnits = [
+            // Pans (hotel/steam table sizes)
+            { name: "Full Hotel", display_name: "Full Hotel Pan", category: "pan" },
+            { name: "Half Hotel", display_name: "Half Hotel Pan", category: "pan" },
+            { name: "Third Pan", display_name: "Third Pan", category: "pan" },
+            { name: "Shallow Sixth", display_name: "Shallow Sixth Pan", category: "pan" },
+            { name: "Deep Sixth", display_name: "Deep Sixth Pan", category: "pan" },
+            { name: "Shallow Ninth", display_name: "Shallow Ninth Pan", category: "pan" },
+            { name: "Deep Ninth", display_name: "Deep Ninth Pan", category: "pan" },
+            { name: "Full Sheet", display_name: "Full Sheet Pan", category: "pan" },
+            { name: "Half Sheet", display_name: "Half Sheet Pan", category: "pan" },
+            { name: "Quarter Sheet", display_name: "Quarter Sheet Pan", category: "pan" },
+            { name: "Perforated", display_name: "Perforated Pan", category: "pan" },
+
+            // Cambros / Lexans (by size)
+            { name: "2 Qt Cambro", display_name: "2 Quart Cambro", category: "container" },
+            { name: "4 Qt Cambro", display_name: "4 Quart Cambro", category: "container" },
+            { name: "6 Qt Cambro", display_name: "6 Quart Cambro", category: "container" },
+            { name: "8 Qt Cambro", display_name: "8 Quart Cambro", category: "container" },
+            { name: "12 Qt Cambro", display_name: "12 Quart Cambro", category: "container" },
+            { name: "18 Qt Cambro", display_name: "18 Quart Cambro", category: "container" },
+            { name: "22 Qt Cambro", display_name: "22 Quart Cambro", category: "container" },
+
+            // Delis
+            { name: "8 oz Deli", display_name: "8 Ounce Deli", category: "container" },
+            { name: "Pint Deli", display_name: "Pint Deli Container", category: "container" },
+            { name: "Quart Deli", display_name: "Quart Deli Container", category: "container" },
+
+            // Inserts / specialty
+            { name: "Bain Marie", display_name: "Bain Marie", category: "container" },
+            { name: "Bus Tub", display_name: "Bus Tub", category: "container" },
+            { name: "Lexan", display_name: "Lexan Container", category: "container" },
+            { name: "Fish Tub", display_name: "Fish Tub", category: "container" },
+            { name: "Squeeze Bottle", display_name: "Squeeze Bottle", category: "container" },
+            { name: "2 oz Cup", display_name: "2 Ounce Portion Cup", category: "container" },
+            { name: "4 oz Cup", display_name: "4 Ounce Portion Cup", category: "container" },
+
+            // Volume
+            { name: "Cup", display_name: "Cup", category: "volume" },
+            { name: "Pint", display_name: "Pint", category: "volume" },
+            { name: "Quart", display_name: "Quart", category: "volume" },
+            { name: "Gallon", display_name: "Gallon", category: "volume" },
+            { name: "Liter", display_name: "Liter", category: "volume" },
+            { name: "Fl Oz", display_name: "Fluid Ounce", category: "volume" },
+
+            // Weight
+            { name: "Lb", display_name: "Pound", category: "weight" },
+            { name: "Oz", display_name: "Ounce", category: "weight" },
+            { name: "Kg", display_name: "Kilogram", category: "weight" },
+            { name: "g", display_name: "Gram", category: "weight" },
+
+            // Count
+            { name: "Each", display_name: "Each", category: "count" },
+            { name: "Dozen", display_name: "Dozen", category: "count" },
+            { name: "Bunch", display_name: "Bunch", category: "count" },
+            { name: "Head", display_name: "Head", category: "count" },
+            { name: "Case", display_name: "Case", category: "count" },
+            { name: "Flat", display_name: "Flat", category: "count" },
+            { name: "Portion", display_name: "Portion", category: "count" },
+            { name: "Bag", display_name: "Bag", category: "count" },
+            { name: "#10 Can", display_name: "Number 10 Can", category: "count" },
+
+            // Prep
+            { name: "Batch", display_name: "Batch", category: "prep" },
+            { name: "Recipe", display_name: "Recipe Yield", category: "prep" },
+            { name: "Par", display_name: "Par Level", category: "prep" },
+          ];
+
+          const unitsToInsert = defaultUnits.map((unit) => ({
+            kitchen_id: kitchen.id,
+            ...unit,
+          }));
+
+          const { error: unitsError } = await supabase
+            .from("kitchen_units")
+            .insert(unitsToInsert);
+
+          if (unitsError) {
+            // Log but don't fail kitchen creation for unit seeding errors
+            console.error("Failed to seed default units:", unitsError);
+          }
+
           set({
             currentKitchen: kitchen,
             stations: stations || [],

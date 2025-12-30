@@ -1,7 +1,9 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import type { KitchenUnit, RecencyScoredSuggestion } from "@kniferoll/types";
-import { UnitPickerModal } from "@/components/modals/UnitPickerModal";
+import { UnitsModal } from "@/components/modals/UnitsModal";
+import { Pill } from "@/components/ui";
+import { usePrepEntryStore } from "@/stores";
 
 interface PrepItemEntryFormProps {
   suggestions: RecencyScoredSuggestion[];
@@ -29,7 +31,7 @@ export function PrepItemEntryForm({
   const [description, setDescription] = useState("");
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState("");
-  const [showUnitPicker, setShowUnitPicker] = useState(false);
+  const [showUnitsModal, setShowUnitsModal] = useState(false);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [isFormFocused, setIsFormFocused] = useState(false);
   const [orderedUnits, setOrderedUnits] = useState<KitchenUnit[]>([]);
@@ -42,12 +44,46 @@ export function PrepItemEntryForm({
   const isSubmitting = useRef(false);
   const isProgrammaticChange = useRef(false);
 
+  // Get all units from store
+  const { allUnits } = usePrepEntryStore();
+
   // Initialize ordered units from quickUnits
   useEffect(() => {
     if (quickUnits.length > 0 && orderedUnits.length === 0) {
       setOrderedUnits(quickUnits);
     }
   }, [quickUnits, orderedUnits.length]);
+
+  // Smart unit ordering: prioritize unit matching current item being typed
+  const smartOrderedUnits = useMemo(() => {
+    if (!description.trim()) return orderedUnits;
+
+    // Find matching suggestion for what's being typed
+    const searchTerm = description.toLowerCase().trim();
+    const matchingSuggestion = allSuggestions.find(
+      (s) => (s.description || "").toLowerCase() === searchTerm
+    );
+
+    if (matchingSuggestion && (matchingSuggestion as any).last_unit_id) {
+      const lastUnitId = (matchingSuggestion as any).last_unit_id;
+      const lastUnit = allUnits.find((u) => u.id === lastUnitId);
+      if (lastUnit) {
+        // Move the last-used unit to the front
+        const filtered = orderedUnits.filter((u) => u.id !== lastUnitId);
+        const existsInOrdered = orderedUnits.some((u) => u.id === lastUnitId);
+        if (existsInOrdered) {
+          return [lastUnit, ...filtered];
+        } else {
+          return [lastUnit, ...orderedUnits.slice(0, 3)];
+        }
+      }
+    }
+
+    return orderedUnits;
+  }, [description, orderedUnits, allSuggestions, allUnits]);
+
+  // Visible units (max 3)
+  const visibleUnits = smartOrderedUnits.slice(0, 3);
 
   // Filter autocomplete suggestions based on input
   useEffect(() => {
@@ -114,7 +150,7 @@ export function PrepItemEntryForm({
     }, 0);
   };
 
-  // When a quick unit chip is tapped
+  // When a quick unit pill is tapped
   const handleQuickUnitTap = (unitId: string) => {
     if (selectedUnitId === unitId) {
       // Deselect if already selected
@@ -131,16 +167,10 @@ export function PrepItemEntryForm({
     }
   };
 
-  // When the "+ " chip is tapped to open unit picker
-  const handleOpenUnitPicker = () => {
-    setShowUnitPicker(true);
-    setIsFormFocused(true);
-  };
-
-  // When a unit is selected from the picker modal
+  // When a unit is selected from the modal
   const handleUnitSelected = (unit: KitchenUnit) => {
     setSelectedUnitId(unit.id);
-    setShowUnitPicker(false);
+    setShowUnitsModal(false);
     setIsFormFocused(true);
 
     // Add unit to front of ordered list if not already present
@@ -186,7 +216,7 @@ export function PrepItemEntryForm({
         setQuantity("");
         setIsFormFocused(false);
         setShowAutocomplete(false);
-        setShowUnitPicker(false);
+        setShowUnitsModal(false);
 
         // Focus back to description for next item
         setTimeout(() => {
@@ -214,27 +244,22 @@ export function PrepItemEntryForm({
       >
         {/* Suggestions Row */}
         {suggestions.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto px-4 py-3 border-b border-stone-200 dark:border-slate-700 scrollbar-hide">
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion.id}
-                type="button"
-                onClick={() => handleSuggestionTap(suggestion)}
-                onMouseDown={(e) => e.preventDefault()}
-                className="group flex items-center gap-1 shrink-0 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 text-sm font-medium rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 active:scale-[0.97] transition-all duration-200 whitespace-nowrap"
-              >
-                {suggestion.description || "Unknown item"}
-                <span
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDismissSuggestion(suggestion.id);
-                  }}
-                  className="flex items-center justify-center w-4 h-4 ml-0.5 -mr-1 text-blue-300 dark:text-blue-500 group-hover:text-blue-500 dark:group-hover:text-blue-300 group-hover:bg-blue-200/50 dark:group-hover:bg-blue-700/50 rounded-full transition-all text-xs"
+          <div className="relative border-b border-stone-200 dark:border-slate-700">
+            <div className="flex gap-2 overflow-x-auto pl-4 pr-12 py-3 scrollbar-hide">
+              {suggestions.map((suggestion) => (
+                <Pill
+                  key={suggestion.id}
+                  variant="suggestion"
+                  onClick={() => handleSuggestionTap(suggestion)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onDismiss={() => onDismissSuggestion(suggestion.id)}
                 >
-                  ×
-                </span>
-              </button>
-            ))}
+                  {suggestion.description || "Unknown item"}
+                </Pill>
+              ))}
+            </div>
+            {/* Fade hint on right edge */}
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-linear-to-l from-white dark:from-slate-900 from-50% pointer-events-none" />
           </div>
         )}
 
@@ -259,7 +284,7 @@ export function PrepItemEntryForm({
                   setIsFormFocused(false);
                 }}
                 disabled={disabled || isLoading}
-                className="w-full px-4 py-3 border-2 border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-slate-50 placeholder-stone-400 dark:placeholder-slate-400 rounded-xl text-[15px] outline-none transition-all duration-200 focus:border-indigo-500 dark:focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] disabled:bg-stone-50 dark:disabled:bg-slate-700"
+                className="w-full px-4 py-3 border-2 border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-slate-50 placeholder-stone-400 dark:placeholder-slate-400 rounded-xl text-[15px] outline-none transition-all duration-200 focus:border-stone-400 dark:focus:border-slate-400 focus:shadow-[0_0_0_3px_rgba(0,0,0,0.05)] dark:focus:shadow-[0_0_0_3px_rgba(255,255,255,0.05)] disabled:bg-stone-50 dark:disabled:bg-slate-700"
                 required
                 autoComplete="off"
               />
@@ -286,7 +311,7 @@ export function PrepItemEntryForm({
                           <div className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                             Last: {(suggestion as any).last_quantity}{" "}
                             {
-                              quickUnits.find(
+                              allUnits.find(
                                 (u) => u.id === (suggestion as any).last_unit_id
                               )?.name
                             }
@@ -309,13 +334,13 @@ export function PrepItemEntryForm({
               onFocus={() => setIsFormFocused(true)}
               onBlur={() => setIsFormFocused(false)}
               disabled={disabled || isLoading}
-              className="w-14 px-2 py-3 border-2 border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-slate-50 placeholder-stone-400 dark:placeholder-slate-400 rounded-xl text-[15px] text-center outline-none transition-all duration-200 focus:border-indigo-500 dark:focus:border-indigo-400 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] disabled:bg-stone-50 dark:disabled:bg-slate-700"
+              className="w-14 px-2 py-3 border-2 border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-slate-50 placeholder-stone-400 dark:placeholder-slate-400 rounded-xl text-[15px] text-center outline-none transition-all duration-200 focus:border-stone-400 dark:focus:border-slate-400 focus:shadow-[0_0_0_3px_rgba(0,0,0,0.05)] dark:focus:shadow-[0_0_0_3px_rgba(255,255,255,0.05)] disabled:bg-stone-50 dark:disabled:bg-slate-700"
             />
 
             <button
               type="submit"
               disabled={disabled || isLoading || !description.trim()}
-              className="px-5 py-3 bg-indigo-500 dark:bg-indigo-600 text-white rounded-xl text-[15px] font-semibold whitespace-nowrap transition-all duration-200 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:scale-100"
+              className="px-5 py-3 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl text-[15px] font-semibold whitespace-nowrap shadow-lg shadow-orange-500/30 transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:from-stone-300 disabled:to-stone-400 disabled:dark:from-slate-600 disabled:dark:to-slate-700 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:scale-100"
             >
               {isLoading ? "..." : "Add"}
             </button>
@@ -332,51 +357,47 @@ export function PrepItemEntryForm({
               duration: 0.3,
               ease: [0.4, 0, 0.2, 1],
             }}
-            className="overflow-hidden"
+            style={{ overflow: "hidden" }}
           >
-            <div className="flex gap-2 px-4 pb-3 pt-1 overflow-x-auto scrollbar-hide">
-              {orderedUnits.map((unit) => (
-                <button
-                  key={unit.id}
-                  type="button"
-                  onClick={() => handleQuickUnitTap(unit.id)}
+            <div className="relative flex items-center pb-3 pt-1">
+              {/* Scrollable pills container */}
+              <div className="flex gap-2 overflow-x-auto pl-4 pr-14 scrollbar-hide">
+                {visibleUnits.map((unit) => (
+                  <Pill
+                    key={unit.id}
+                    variant={selectedUnitId === unit.id ? "selected" : "default"}
+                    onClick={() => handleQuickUnitTap(unit.id)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    disabled={disabled || isLoading}
+                    title={unit.name}
+                  >
+                    {unit.name}
+                  </Pill>
+                ))}
+              </div>
+
+              {/* Fixed overflow button on right */}
+              <div className="absolute right-0 top-0 bottom-2 flex items-center pr-4 pl-3 bg-linear-to-l from-white dark:from-slate-900 from-80%">
+                <Pill
+                  variant="default"
+                  onClick={() => setShowUnitsModal(true)}
                   onMouseDown={(e) => e.preventDefault()}
                   disabled={disabled || isLoading}
-                  className={`
-                    px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap shrink-0
-                    transition-all duration-200
-                    ${
-                      selectedUnitId === unit.id
-                        ? "bg-indigo-500 dark:bg-indigo-600 text-white"
-                        : "bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-slate-300 hover:bg-stone-200 dark:hover:bg-slate-600"
-                    }
-                    disabled:opacity-50
-                  `}
                 >
-                  {unit.name}
-                </button>
-              ))}
-
-              {/* Add/Browse Units Button */}
-              <button
-                type="button"
-                onClick={handleOpenUnitPicker}
-                onMouseDown={(e) => e.preventDefault()}
-                disabled={disabled || isLoading}
-                className="px-3 py-1.5 rounded-full text-sm font-semibold bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-slate-300 hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors shrink-0 disabled:opacity-50"
-              >
-                +
-              </button>
+                  •••
+                </Pill>
+              </div>
             </div>
           </motion.div>
         </form>
       </div>
 
-      {/* Unit Picker Modal */}
-      {showUnitPicker && (
-        <UnitPickerModal
-          onClose={() => setShowUnitPicker(false)}
+      {/* Units Modal */}
+      {showUnitsModal && (
+        <UnitsModal
+          onClose={() => setShowUnitsModal(false)}
           onUnitSelected={handleUnitSelected}
+          selectedUnitId={selectedUnitId}
         />
       )}
     </>

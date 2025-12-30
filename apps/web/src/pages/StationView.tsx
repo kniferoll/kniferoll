@@ -446,20 +446,22 @@ export function StationView() {
                     </div>
 
                     {/* Row 2: Shift Toggle */}
-                    <ShiftToggle
-                      shifts={availableShifts.map((s) => s.name)}
-                      currentShift={
-                        availableShifts.find((s) => s.id === selectedShiftId)
-                          ?.name || ""
-                      }
-                      onShiftChange={(shiftName) => {
-                        const shift = availableShifts.find(
-                          (s) => s.name === shiftName
-                        );
-                        if (shift) setSelectedShiftId(shift.id);
-                      }}
-                      disabled={isClosed}
-                    />
+                    <div className="flex items-center justify-center">
+                      <ShiftToggle
+                        shifts={availableShifts.map((s) => s.name)}
+                        currentShift={
+                          availableShifts.find((s) => s.id === selectedShiftId)
+                            ?.name || ""
+                        }
+                        onShiftChange={(shiftName) => {
+                          const shift = availableShifts.find(
+                            (s) => s.name === shiftName
+                          );
+                          if (shift) setSelectedShiftId(shift.id);
+                        }}
+                        disabled={isClosed}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
