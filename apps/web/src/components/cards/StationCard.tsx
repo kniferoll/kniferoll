@@ -34,10 +34,10 @@ function StationCardInner({
       variant="interactive"
       padding="none"
       onClick={onClick}
-      className="group relative p-5 text-left"
+      className="group relative p-6 text-left"
     >
       {/* Station Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-6">
         <div>
           <h3
             className={`text-base font-semibold ${
@@ -47,7 +47,7 @@ function StationCardInner({
             {name}
           </h3>
           <p
-            className={`text-xs mt-0.5 ${
+            className={`text-xs mt-1 ${
               isDark ? "text-slate-500" : "text-stone-500"
             }`}
           >
@@ -92,7 +92,7 @@ function StationCardInner({
       </div>
 
       {/* Item Counts */}
-      <div className="flex items-center gap-4 mt-3">
+      <div className="flex items-center gap-4 mt-4">
         <span
           className={`text-xs ${
             isDark ? "text-emerald-400" : "text-emerald-600"

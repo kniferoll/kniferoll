@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib";
 import type { Station } from "@kniferoll/types";
 
@@ -13,6 +13,34 @@ export function useStations(kitchenId: string | undefined) {
   const [error, setError] = useState<Error | null>(null);
   const [currentKitchenId, setCurrentKitchenId] = useState<string | undefined>(undefined);
 
+  const fetchStations = useCallback(async (showLoading = false) => {
+    if (!kitchenId) {
+      setStations([]);
+      setIsInitialLoading(false);
+      return;
+    }
+
+    try {
+      if (showLoading) {
+        setIsInitialLoading(true);
+      }
+      setError(null);
+
+      const { data, error: err } = await supabase
+        .from("stations")
+        .select("*")
+        .eq("kitchen_id", kitchenId)
+        .order("display_order", { ascending: true });
+
+      if (err) throw err;
+      setStations(data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      setIsInitialLoading(false);
+    }
+  }, [kitchenId]);
+
   useEffect(() => {
     if (!kitchenId) {
       setStations([]);
@@ -21,36 +49,19 @@ export function useStations(kitchenId: string | undefined) {
     }
 
     const isKitchenChange = currentKitchenId !== kitchenId;
+    if (isKitchenChange) {
+      setCurrentKitchenId(kitchenId);
+    }
 
-    const fetchStations = async () => {
-      try {
-        // Only show loading on initial load or kitchen change
-        if (isKitchenChange || stations.length === 0) {
-          setIsInitialLoading(true);
-          setCurrentKitchenId(kitchenId);
-        }
-        setError(null);
-
-        const { data, error: err } = await supabase
-          .from("stations")
-          .select("*")
-          .eq("kitchen_id", kitchenId)
-          .order("display_order", { ascending: true });
-
-        if (err) throw err;
-        setStations(data || []);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
-
-    fetchStations();
+    // Show loading on initial load or kitchen change
+    const showLoading = isKitchenChange || stations.length === 0;
+    fetchStations(showLoading);
   }, [kitchenId]);
 
+  const refetch = useCallback(() => fetchStations(false), [fetchStations]);
+
   // For backwards compatibility, also expose `loading` as alias
-  return { stations, loading: isInitialLoading, isInitialLoading, error };
+  return { stations, loading: isInitialLoading, isInitialLoading, error, refetch };
 }
 
 /**

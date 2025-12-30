@@ -26,7 +26,7 @@ export function AddCard({
       padding="none"
       onClick={onClick}
       className={`
-        relative flex flex-col items-center justify-center min-h-60 w-full cursor-pointer
+        relative flex flex-col items-center justify-center p-6 w-full cursor-pointer
         ${
           !disabled
             ? isDark
@@ -41,13 +41,13 @@ export function AddCard({
       {/* Lock icon for disabled state */}
       {disabled && (
         <div
-          className={`absolute top-6 right-6 ${
+          className={`absolute top-4 right-4 ${
             isDark ? "text-gray-500" : "text-gray-400"
           }`}
         >
           <svg
-            width="20"
-            height="20"
+            width="18"
+            height="18"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -62,13 +62,13 @@ export function AddCard({
       )}
 
       <IconBox
-        size="xl"
+        size="lg"
         variant={disabled ? "muted" : "default"}
-        className="mb-6"
+        className="mb-3"
       >
         <svg
-          width="32"
-          height="32"
+          width="24"
+          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -82,7 +82,7 @@ export function AddCard({
       </IconBox>
 
       <span
-        className={`text-lg font-semibold mb-2 tracking-tight cursor-pointer ${
+        className={`text-base font-semibold tracking-tight cursor-pointer ${
           disabled
             ? isDark
               ? "text-gray-500"
@@ -96,7 +96,7 @@ export function AddCard({
       </span>
 
       {disabled && disabledLabel && (
-        <span className="text-sm font-semibold text-orange-500 cursor-pointer">
+        <span className="text-xs font-semibold text-orange-500 cursor-pointer mt-1">
           {disabledLabel}
         </span>
       )}

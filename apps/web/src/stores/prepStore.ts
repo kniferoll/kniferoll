@@ -52,7 +52,7 @@ interface PrepState {
 
 export const usePrepStore = create<PrepState>((set, get) => ({
   prepItems: [],
-  isInitialLoading: false,
+  isInitialLoading: true, // Start true to show skeleton until first load completes
   isRefetching: false,
   error: null,
   currentContext: null,

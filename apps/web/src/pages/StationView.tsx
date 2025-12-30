@@ -537,7 +537,7 @@ export function StationView() {
               title="Kitchen closed"
               description="No prep items on closed days. Select a different date above."
             />
-          ) : isInitialLoading ? (
+          ) : isInitialLoading || !selectedShiftId ? (
             <PrepItemSkeleton count={5} isCompact={isCompact} />
           ) : totalCount === 0 && !addingItem ? (
             <EmptyState

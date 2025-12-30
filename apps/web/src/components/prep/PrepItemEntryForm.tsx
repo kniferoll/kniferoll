@@ -340,7 +340,7 @@ export function PrepItemEntryForm({
             <button
               type="submit"
               disabled={disabled || isLoading || !description.trim()}
-              className="px-5 py-3 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl text-[15px] font-semibold whitespace-nowrap shadow-lg shadow-orange-500/30 transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:from-stone-300 disabled:to-stone-400 disabled:dark:from-slate-600 disabled:dark:to-slate-700 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:scale-100"
+              className="px-5 py-3 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl text-[15px] font-semibold whitespace-nowrap shadow-lg shadow-orange-500/30 transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:bg-none disabled:bg-stone-300 disabled:dark:bg-slate-600 disabled:text-stone-500 disabled:dark:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:scale-100"
             >
               {isLoading ? "..." : "Add"}
             </button>
@@ -365,7 +365,9 @@ export function PrepItemEntryForm({
                 {visibleUnits.map((unit) => (
                   <Pill
                     key={unit.id}
-                    variant={selectedUnitId === unit.id ? "selected" : "default"}
+                    variant={
+                      selectedUnitId === unit.id ? "selected" : "default"
+                    }
                     onClick={() => handleQuickUnitTap(unit.id)}
                     onMouseDown={(e) => e.preventDefault()}
                     disabled={disabled || isLoading}

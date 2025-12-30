@@ -1,11 +1,20 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore, useKitchenStore } from "@/stores";
-import { useStations, useRealtimeStations, useHeaderConfig } from "@/hooks";
+import {
+  useStations,
+  useCreateStation,
+  useRealtimeStations,
+  useHeaderConfig,
+  usePlanLimits,
+  useStripeCheckout,
+} from "@/hooks";
 import { useDarkModeContext } from "@/context";
 import { supabase } from "@/lib";
 import { jsDateToDatabaseDayOfWeek, toLocalDate, isClosedDay, findNextOpenDay } from "@/lib";
 import {
+  AddCard,
+  AddStationModal,
   BackButton,
   Button,
   DateCalendar,
@@ -19,6 +28,7 @@ import {
   StationCard,
   SummaryStats,
   TeamIcon,
+  UpgradeModal,
   UserAvatarMenu,
 } from "@/components";
 
@@ -45,12 +55,18 @@ export function KitchenDashboard() {
     selectedShift,
     setSelectedShift,
   } = useKitchenStore();
-  const { stations, isInitialLoading: stationsLoading } = useStations(kitchenId);
+  const { stations, isInitialLoading: stationsLoading, refetch: refetchStations } = useStations(kitchenId);
+  const { createStation, loading: createStationLoading } = useCreateStation();
+  const { canCreateStation } = usePlanLimits();
+  const { handleCheckout } = useStripeCheckout();
   const [progress, setProgress] = useState<StationProgress[]>([]);
   const [isProgressLoading, setIsProgressLoading] = useState(true);
   // Track if this is a date/shift change (vs initial load) - don't show loading for date changes
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showAddStationModal, setShowAddStationModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [canAddStation, setCanAddStation] = useState<boolean | null>(null);
   const [kitchenShifts, setKitchenShifts] = useState<
     Array<{ id: string; name: string }>
   >([]);
@@ -198,6 +214,21 @@ export function KitchenDashboard() {
   // Subscribe to real-time station updates
   useRealtimeStations(kitchenId);
 
+  // Check if user can create stations in this kitchen
+  useEffect(() => {
+    if (!kitchenId) {
+      setCanAddStation(null);
+      return;
+    }
+
+    const checkCanAdd = async () => {
+      const result = await canCreateStation(kitchenId);
+      setCanAddStation(result);
+    };
+
+    checkCanAdd();
+  }, [kitchenId, canCreateStation, stations.length]);
+
   // Fetch progress data for all stations
   useEffect(() => {
     if (!stations.length) {
@@ -308,6 +339,25 @@ export function KitchenDashboard() {
     navigate(`/station/${stationId}`);
   };
 
+  const handleAddStationClick = () => {
+    if (canAddStation) {
+      setShowAddStationModal(true);
+    } else {
+      setShowUpgradeModal(true);
+    }
+  };
+
+  const handleCreateStation = async (name: string) => {
+    if (!kitchenId) return;
+    const station = await createStation(kitchenId, name);
+    if (station) {
+      // Refresh stations list and canAddStation check after creating
+      refetchStations();
+      const result = await canCreateStation(kitchenId);
+      setCanAddStation(result);
+    }
+  };
+
   // Only show skeleton loading state on initial load, not on date/shift changes
   const isLoading = stationsLoading || (isProgressLoading && !hasLoadedOnce);
 
@@ -400,26 +450,34 @@ export function KitchenDashboard() {
               <SkeletonCard key={i} height="lg" />
             ))
           ) : progress.length > 0 ? (
-            // Station cards with progress
-            progress.map((station) => (
-              <StationCard
-                key={station.stationId}
-                name={station.stationName}
-                completed={station.completed}
-                partial={station.partial}
-                pending={station.pending}
-                onClick={() => handleStationClick(station.stationId)}
+            // Station cards with progress + add card
+            <>
+              {progress.map((station) => (
+                <StationCard
+                  key={station.stationId}
+                  name={station.stationName}
+                  completed={station.completed}
+                  partial={station.partial}
+                  pending={station.pending}
+                  onClick={() => handleStationClick(station.stationId)}
+                />
+              ))}
+              <AddCard
+                label={canAddStation ? "Add Station" : "Add More Stations"}
+                onClick={handleAddStationClick}
+                disabled={!canAddStation}
+                disabledLabel="Pro Feature"
               />
-            ))
+            </>
           ) : stations.length === 0 ? (
             // Empty state - no stations
             <div className="col-span-full">
               <EmptyState
                 title="No stations yet"
-                description="Add stations in kitchen settings to start tracking prep"
+                description="Add your first station to start tracking prep"
                 action={{
-                  label: "Go to Settings",
-                  onClick: () => navigate(`/kitchen/${kitchenId}/settings`),
+                  label: canAddStation ? "Add Station" : "Upgrade to Pro",
+                  onClick: handleAddStationClick,
                 }}
               />
             </div>
@@ -435,6 +493,29 @@ export function KitchenDashboard() {
           onClose={() => setShowInviteModal(false)}
         />
       )}
+
+      {/* Add Station Modal */}
+      <AddStationModal
+        isOpen={showAddStationModal}
+        onClose={() => setShowAddStationModal(false)}
+        onSubmit={handleCreateStation}
+        isLoading={createStationLoading}
+      />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        title="Add Unlimited Stations"
+        description="Free accounts are limited to one station. Upgrade to Pro to add unlimited stations and organize your kitchen prep across multiple areas."
+        onUpgrade={async () => {
+          try {
+            await handleCheckout();
+          } catch (error) {
+            console.error("Checkout failed:", error);
+          }
+        }}
+      />
     </>
   );
 }
