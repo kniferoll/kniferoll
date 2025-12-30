@@ -28,7 +28,21 @@ export function HeaderProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<HeaderConfig>(defaultConfig);
 
   const setHeader = useCallback((newConfig: HeaderConfig) => {
-    setConfig((prev) => ({ ...prev, ...newConfig }));
+    setConfig((prev) => {
+      // Compare relevant keys to avoid unnecessary updates
+      const merged = { ...prev, ...newConfig };
+      // Only update if something actually changed
+      if (
+        prev.startContent === merged.startContent &&
+        prev.centerContent === merged.centerContent &&
+        prev.endContent === merged.endContent &&
+        prev.visible === merged.visible &&
+        prev.variant === merged.variant
+      ) {
+        return prev;
+      }
+      return merged;
+    });
   }, []);
 
   const resetHeader = useCallback(() => {

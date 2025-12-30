@@ -1,26 +1,24 @@
 import { Outlet, Navigate, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { HeaderProvider } from "@/context";
-import { useHeaderConfig } from "@/hooks";
+import { useDefaultHeaderConfig } from "@/hooks";
 import { Logo, NavLinks, UserAvatarMenu } from "@/components";
 import { LayoutShell } from "./LayoutShell";
 
 /**
  * Inner component that sets the default app header.
- * This exists because useHeaderConfig must be called inside HeaderProvider.
+ * This exists because useDefaultHeaderConfig must be called inside HeaderProvider.
  */
 function AppLayoutInner() {
   const navigate = useNavigate();
 
-  // Set default header for app pages
-  // Individual pages (like StationView) can override this
-  useHeaderConfig(
-    {
-      startContent: <Logo onClick={() => navigate("/dashboard")} />,
-      endContent: <NavLinks end={<UserAvatarMenu />} />,
-    },
-    [navigate]
-  );
+  // Set default header for app pages (runs once on mount)
+  // Individual pages can override this using useHeaderConfig
+  useDefaultHeaderConfig({
+    startContent: <Logo onClick={() => navigate("/dashboard")} />,
+    centerContent: null,
+    endContent: <NavLinks end={<UserAvatarMenu />} />,
+  });
 
   return <Outlet />;
 }

@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
-import { useKitchens, usePlanLimits, useStripeCheckout } from "@/hooks";
+import {
+  useKitchens,
+  usePlanLimits,
+  useStripeCheckout,
+  useHeaderConfig,
+} from "@/hooks";
 import { useDarkModeContext } from "@/context";
 import {
   AddCard,
@@ -9,7 +14,10 @@ import {
   Card,
   KitchenCard,
   KitchenOnboardingModal,
+  Logo,
+  NavLinks,
   UpgradeModal,
+  UserAvatarMenu,
 } from "@/components";
 import type { Database } from "@kniferoll/types";
 import { preloadKitchenDashboard } from "@/lib/preload";
@@ -18,13 +26,25 @@ type Kitchen = Database["public"]["Tables"]["kitchens"]["Row"];
 /**
  * Dashboard page - list of user's kitchens
  *
- * Uses the default header from AppLayout (Logo + UserAvatarMenu).
+ * Explicitly sets the default header to ensure it's reset when navigating back.
  */
 export function Dashboard() {
+  const navigate = useNavigate();
+
+  // Reset to default header when Dashboard mounts
+  useHeaderConfig(
+    {
+      startContent: <Logo onClick={() => navigate("/dashboard")} />,
+      centerContent: null,
+      endContent: <NavLinks end={<UserAvatarMenu />} />,
+    },
+    []
+  );
+
   useEffect(() => {
     preloadKitchenDashboard();
   }, []);
-  const navigate = useNavigate();
+
   const { user } = useAuthStore();
   const { kitchens, loading } = useKitchens(user?.id);
   const { limits } = usePlanLimits();

@@ -1,19 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore, useKitchenStore } from "@/stores";
 import { useStations, useRealtimeStations, useHeaderConfig } from "@/hooks";
 import { useDarkModeContext } from "@/context";
 import { supabase } from "@/lib";
+import { jsDateToDatabaseDayOfWeek, toLocalDate } from "@/lib";
 import {
   BackButton,
   Button,
   DateCalendar,
+  EmptyState,
   InviteLinkModal,
+  Logo,
+  NavLinks,
   ShiftToggle,
+  SkeletonCard,
   StationCard,
+  SummaryStats,
+  TeamIcon,
+  UserAvatarMenu,
 } from "@/components";
-
-import { jsDateToDatabaseDayOfWeek, toLocalDate } from "@/lib";
 
 interface StationProgress {
   stationId: string;
@@ -26,6 +32,7 @@ interface StationProgress {
 
 export function KitchenDashboard() {
   const { kitchenId } = useParams<{ kitchenId: string }>();
+
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { isDark } = useDarkModeContext();
@@ -48,6 +55,18 @@ export function KitchenDashboard() {
     Map<number, { is_open: boolean; shift_ids: string[] }>
   >(new Map());
 
+  // Calculate summary stats
+  const summaryStats = useMemo(() => {
+    return progress.reduce(
+      (acc, station) => ({
+        completed: acc.completed + station.completed,
+        inProgress: acc.inProgress + station.partial,
+        pending: acc.pending + station.pending,
+      }),
+      { completed: 0, inProgress: 0, pending: 0 }
+    );
+  }, [progress]);
+
   // Get closed days for calendar
   const dayNamesForCalendar = [
     "sunday",
@@ -64,30 +83,36 @@ export function KitchenDashboard() {
     return dayConfig && !dayConfig.is_open;
   });
 
-  // Configure custom header
+  // Configure header: Back | Logo + Kitchen Name | Avatar Menu
   useHeaderConfig(
     {
       startContent: (
         <BackButton onClick={() => navigate("/dashboard")} label="Back" />
       ),
       centerContent: (
-        <span
-          className={`text-lg font-semibold ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
-        >
-          {currentKitchen?.name || "Kitchen"}
-        </span>
+        <div className="flex items-center gap-2">
+          <Logo size="sm" showText={false} />
+          <span
+            className={`text-lg font-semibold ${
+              isDark ? "text-white" : "text-stone-900"
+            }`}
+          >
+            {currentKitchen?.name || "Kitchen"}
+          </span>
+        </div>
       ),
       endContent: (
-        <DateCalendar
-          selectedDate={selectedDate}
-          onDateSelect={setSelectedDate}
-          closedDays={closedDaysArray}
+        <NavLinks
+          end={
+            <UserAvatarMenu
+              kitchenId={kitchenId}
+              onInvite={() => setShowInviteModal(true)}
+            />
+          }
         />
       ),
     },
-    [currentKitchen?.name, selectedDate, closedDaysArray, isDark, navigate]
+    [currentKitchen?.name, isDark, navigate, kitchenId]
   );
 
   // Load kitchen on mount or when kitchenId changes
@@ -238,7 +263,9 @@ export function KitchenDashboard() {
   if (!user || !kitchenId) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading...</p>
+        <p className={isDark ? "text-slate-400" : "text-stone-600"}>
+          Loading...
+        </p>
       </div>
     );
   }
@@ -246,7 +273,7 @@ export function KitchenDashboard() {
   if (!currentKitchen || currentKitchen.id !== kitchenId) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+        <p className={isDark ? "text-slate-400" : "text-stone-600"}>
           Loading kitchen...
         </p>
       </div>
@@ -257,35 +284,63 @@ export function KitchenDashboard() {
     navigate(`/station/${stationId}`);
   };
 
+  const isLoading = stationsLoading || loading;
+
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Shift Toggle and Send Invite Button */}
-        <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-8 w-full">
+        {/* Controls Row - Stack on mobile, horizontal on desktop */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          {/* Shift Toggle */}
           <ShiftToggle
             shifts={availableShifts}
             currentShift={selectedShift}
             onShiftChange={setSelectedShift}
           />
 
-          <Button variant="primary" onClick={() => setShowInviteModal(true)}>
-            Send Invite
-          </Button>
+          {/* Right side: Calendar + Invite (on same row on desktop) */}
+          <div className="flex items-center gap-2">
+            <DateCalendar
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
+              closedDays={closedDaysArray}
+            />
+            {/* Invite button - desktop only */}
+            <div className="hidden md:block">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setShowInviteModal(true)}
+              >
+                <span className="flex items-center gap-2">
+                  <TeamIcon className="w-4 h-4" />
+                  Invite Team
+                </span>
+              </Button>
+            </div>
+          </div>
         </div>
 
+        {/* Summary Stats - Desktop only */}
+        {!isLoading && progress.length > 0 && (
+          <div className="hidden md:block mb-8">
+            <SummaryStats
+              completed={summaryStats.completed}
+              inProgress={summaryStats.inProgress}
+              pending={summaryStats.pending}
+            />
+          </div>
+        )}
+
         {/* Station Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {stationsLoading || loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {isLoading ? (
+            // Skeleton loading state
             Array.from({ length: Math.max(3, stations.length) }).map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div
-                  className={`h-24 rounded-lg ${
-                    isDark ? "bg-slate-700" : "bg-gray-200"
-                  }`}
-                />
-              </div>
+              <SkeletonCard key={i} height="lg" />
             ))
           ) : progress.length > 0 ? (
+            // Station cards with progress
             progress.map((station) => (
               <StationCard
                 key={station.stationId}
@@ -297,10 +352,16 @@ export function KitchenDashboard() {
               />
             ))
           ) : stations.length === 0 ? (
-            <div className="col-span-full text-center py-12">
-              <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-                No stations yet
-              </p>
+            // Empty state - no stations
+            <div className="col-span-full">
+              <EmptyState
+                title="No stations yet"
+                description="Add stations in kitchen settings to start tracking prep"
+                action={{
+                  label: "Go to Settings",
+                  onClick: () => navigate(`/kitchen/${kitchenId}/settings`),
+                }}
+              />
             </div>
           ) : null}
         </div>

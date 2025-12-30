@@ -1,6 +1,11 @@
-export function TeamIcon() {
+interface TeamIconProps {
+  className?: string;
+}
+
+export function TeamIcon({ className }: TeamIconProps = {}) {
   return (
     <svg
+      className={className}
       width="22"
       height="22"
       viewBox="0 0 24 24"

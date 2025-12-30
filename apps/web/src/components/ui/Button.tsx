@@ -36,6 +36,7 @@ export function Button({
     "font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
 
   const sizeStyles = {
+    icon: "p-2 text-sm",
     sm: "py-2 px-4 text-sm",
     md: "py-2.5 px-5 text-sm",
     lg: "py-3.5 px-8 text-base",
