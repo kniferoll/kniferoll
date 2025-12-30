@@ -44,7 +44,8 @@ interface PrepState {
   deletePrepItem: (itemId: string) => Promise<{ error?: string }>;
   updatePrepItem: (
     itemId: string,
-    updates: PrepItemUpdate
+    updates: PrepItemUpdate,
+    optimisticData?: { unit_name?: string | null }
   ) => Promise<{ error?: string }>;
   // Clear items when switching context
   clearItems: () => void;
@@ -283,7 +284,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     }
   },
 
-  updatePrepItem: async (itemId, updates) => {
+  updatePrepItem: async (itemId, updates, optimisticData) => {
     const { prepItems } = get();
     const originalItem = prepItems.find((i) => i.id === itemId);
 
@@ -292,9 +293,10 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     }
 
     // Optimistic update FIRST - apply changes immediately
+    // Include optimisticData (like unit_name) for derived fields
     set((state) => ({
       prepItems: state.prepItems.map((i) =>
-        i.id === itemId ? { ...i, ...updates } : i
+        i.id === itemId ? { ...i, ...updates, ...optimisticData } : i
       ),
     }));
 

@@ -1,4 +1,5 @@
 export { AddStationModal } from "./AddStationModal";
+export { EditPrepItemModal } from "./EditPrepItemModal";
 export { InviteLinkModal } from "./InviteLinkModal";
 export { UpgradeModal } from "./UpgradeModal";
 export { UnitsModal } from "./UnitsModal";

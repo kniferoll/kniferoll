@@ -27,6 +27,7 @@ import {
   ControlsToggle,
   ToolsMenu,
   InviteLinkModal,
+  EditPrepItemModal,
 } from "@/components";
 import { useDarkModeContext } from "@/context";
 
@@ -41,12 +42,13 @@ export function StationView() {
   const navigate = useNavigate();
 
   // Stores
-  const { prepItems, isInitialLoading, loadPrepItems, cycleStatus, deletePrepItem } =
+  const { prepItems, isInitialLoading, loadPrepItems, cycleStatus, deletePrepItem, updatePrepItem } =
     usePrepStore();
   const {
     suggestions,
     masterSuggestions,
     quickUnits,
+    allUnits,
     addingItem,
     loadSuggestionsAndUnits,
     addItemWithUpdates,
@@ -85,6 +87,13 @@ export function StationView() {
   });
   const [sortTrigger, setSortTrigger] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<{
+    id: string;
+    description: string;
+    quantity: number | null;
+    unit_id: string | null;
+    unit_name: string | null;
+  } | null>(null);
 
   // Persist compact view preference
   const handleToggleCompact = useCallback(() => {
@@ -300,6 +309,32 @@ export function StationView() {
 
   const handleDelete = async (itemId: string) => {
     await deletePrepItem(itemId);
+  };
+
+  const handleEdit = (item: {
+    id: string;
+    description: string;
+    quantity: number | null;
+    unit_id?: string | null;
+    unit_name?: string | null;
+  }) => {
+    setEditingItem({
+      id: item.id,
+      description: item.description,
+      quantity: item.quantity,
+      unit_id: item.unit_id ?? null,
+      unit_name: item.unit_name ?? null,
+    });
+  };
+
+  const handleSaveEdit = async (quantity: number | null, unitId: string | null) => {
+    if (!editingItem) return;
+    // Look up unit name for optimistic update
+    const unitName = unitId ? allUnits.find((u) => u.id === unitId)?.name ?? null : null;
+    await updatePrepItem(editingItem.id, {
+      quantity,
+      unit_id: unitId,
+    }, { unit_name: unitName });
   };
 
   const handleDismissSuggestion = async (suggestionId: string) => {
@@ -549,6 +584,7 @@ export function StationView() {
               items={prepItems as any}
               onCycleStatus={handleCycleStatus}
               onDelete={handleDelete}
+              onEdit={handleEdit}
               shouldSort={sortTrigger}
               isCompact={isCompact}
             />
@@ -583,6 +619,17 @@ export function StationView() {
           onClose={() => setShowInviteModal(false)}
         />
       )}
+
+      {/* Edit Prep Item Modal */}
+      <EditPrepItemModal
+        isOpen={!!editingItem}
+        onClose={() => setEditingItem(null)}
+        onSave={handleSaveEdit}
+        itemDescription={editingItem?.description ?? ""}
+        initialQuantity={editingItem?.quantity ?? null}
+        initialUnitId={editingItem?.unit_id ?? null}
+        initialUnitName={editingItem?.unit_name ?? null}
+      />
     </div>
   );
 }

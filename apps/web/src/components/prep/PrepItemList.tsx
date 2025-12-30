@@ -6,6 +6,7 @@ interface PrepItem {
   id: string;
   description: string;
   quantity: number | null;
+  unit_id?: string | null;
   unit_name?: string | null;
   status: PrepStatus | null;
   status_changed_by?: string | null;
@@ -16,6 +17,7 @@ interface PrepItemListProps {
   items: PrepItem[];
   onCycleStatus: (itemId: string) => Promise<void>;
   onDelete: (itemId: string) => Promise<void>;
+  onEdit?: (item: PrepItem) => void;
   disabled?: boolean;
   shouldSort?: boolean;
   isCompact?: boolean;
@@ -27,6 +29,7 @@ function PrepItemListInner({
   items,
   onCycleStatus,
   onDelete,
+  onEdit,
   disabled = false,
   shouldSort = false,
   isCompact = false,
@@ -280,21 +283,41 @@ function PrepItemListInner({
                 >
                   {item.description}
                 </span>
-                {pillText && (
-                  <span
+                {pillText ? (
+                  <button
+                    type="button"
+                    onClick={() => onEdit?.(item)}
+                    disabled={disabled || !onEdit}
                     className={`
                       inline-block mt-1
                       ${pillSize} rounded-full font-medium
                       ${
                         item.status === "complete"
                           ? "bg-stone-200 dark:bg-slate-700 text-stone-400 dark:text-slate-500"
-                          : "bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400"
+                          : "bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400 hover:bg-stone-200 dark:hover:bg-slate-700"
                       }
+                      transition-colors disabled:cursor-default
                     `.trim()}
                   >
                     {pillText}
-                  </span>
-                )}
+                  </button>
+                ) : onEdit ? (
+                  <button
+                    type="button"
+                    onClick={() => onEdit?.(item)}
+                    disabled={disabled}
+                    className={`
+                      inline-block mt-1
+                      ${pillSize} rounded-full font-medium
+                      bg-stone-50 dark:bg-slate-800 text-stone-400 dark:text-slate-500
+                      hover:bg-stone-100 dark:hover:bg-slate-700
+                      border border-dashed border-stone-300 dark:border-slate-600
+                      transition-colors
+                    `.trim()}
+                  >
+                    + qty
+                  </button>
+                ) : null}
               </div>
               {/* Desktop: description only */}
               <span
@@ -309,21 +332,41 @@ function PrepItemListInner({
             </div>
 
             {/* Badge - Desktop only, right side */}
-            {pillText && (
-              <span
+            {pillText ? (
+              <button
+                type="button"
+                onClick={() => onEdit?.(item)}
+                disabled={disabled || !onEdit}
                 className={`
                   hidden sm:inline-flex
                   ${pillSize} rounded-full font-medium shrink-0
                   ${
                     item.status === "complete"
                       ? "bg-stone-200 dark:bg-slate-700 text-stone-400 dark:text-slate-500"
-                      : "bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400"
+                      : "bg-stone-100 dark:bg-slate-800 text-stone-600 dark:text-slate-400 hover:bg-stone-200 dark:hover:bg-slate-700"
                   }
+                  transition-colors disabled:cursor-default
                 `.trim()}
               >
                 {pillText}
-              </span>
-            )}
+              </button>
+            ) : onEdit ? (
+              <button
+                type="button"
+                onClick={() => onEdit?.(item)}
+                disabled={disabled}
+                className={`
+                  hidden sm:inline-flex
+                  ${pillSize} rounded-full font-medium shrink-0
+                  bg-stone-50 dark:bg-slate-800 text-stone-400 dark:text-slate-500
+                  hover:bg-stone-100 dark:hover:bg-slate-700
+                  border border-dashed border-stone-300 dark:border-slate-600
+                  transition-colors
+                `.trim()}
+              >
+                + qty
+              </button>
+            ) : null}
 
             {/* Delete/Confirm Button */}
             {isDeleting ? (
