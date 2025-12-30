@@ -1,13 +1,6 @@
 import { useState, useEffect, memo } from "react";
 import type { PrepStatus } from "@kniferoll/types";
-import {
-  CheckmarkIcon,
-  InProgressIcon,
-  PendingIcon,
-  CheckIcon,
-  TrashIcon,
-  XIcon,
-} from "@/components/icons";
+import { StatusIcon, CheckIcon, TrashIcon, XIcon } from "@/components/icons";
 
 interface PrepItem {
   id: string;
@@ -93,18 +86,6 @@ function PrepItemListInner({
     .map((id) => itemsMap.get(id))
     .filter((item): item is PrepItem => item !== undefined);
 
-  const getStatusIcon = (status: PrepStatus | null) => {
-    switch (status) {
-      case "complete":
-        return <CheckmarkIcon />;
-      case "in_progress":
-        return <InProgressIcon />;
-      case "pending":
-      default:
-        return <PendingIcon />;
-    }
-  };
-
   const formatQuantityPill = (
     quantity: number | null,
     unitName: string | null
@@ -150,7 +131,7 @@ function PrepItemListInner({
               className="shrink-0 w-12 h-12 flex items-center justify-center disabled:opacity-50"
               aria-label="Cycle status"
             >
-              {getStatusIcon(item.status)}
+              <StatusIcon status={item.status} size={24} />
             </button>
 
             {/* Description */}

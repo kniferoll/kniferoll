@@ -1,14 +1,17 @@
 interface TrashIconProps {
+  size?: number;
   className?: string;
 }
 
-export function TrashIcon({ className = "w-5 h-5" }: TrashIconProps) {
+export function TrashIcon({ size = 20, className = "" }: TrashIconProps) {
   return (
     <svg
-      className={className}
+      width={size}
+      height={size}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
+      className={className}
     >
       <path
         strokeLinecap="round"

@@ -1,10 +1,20 @@
 interface CheckmarkIconProps {
+  size?: number;
   className?: string;
 }
 
-export function CheckmarkIcon({ className = "w-6 h-6" }: CheckmarkIconProps) {
+export function CheckmarkIcon({
+  size = 24,
+  className = "",
+}: CheckmarkIconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none">
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+    >
       <circle cx="12" cy="12" r="10" fill="#3b82f6" />
       <path
         d="M8 12l3 3 5-5"
