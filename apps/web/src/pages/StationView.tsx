@@ -28,7 +28,9 @@ import {
   ToolsMenu,
   InviteLinkModal,
   EditPrepItemModal,
+  CopyRecentItemsModal,
 } from "@/components";
+import { getTodayLocalDate } from "@/lib";
 import { useDarkModeContext } from "@/context";
 
 /**
@@ -94,6 +96,7 @@ export function StationView() {
     unit_id: string | null;
     unit_name: string | null;
   } | null>(null);
+  const [copyModalMode, setCopyModalMode] = useState<"copy-to-today" | "add-to-next-day" | null>(null);
 
   // Persist compact view preference
   const handleToggleCompact = useCallback(() => {
@@ -369,6 +372,51 @@ export function StationView() {
     setTimeout(() => setSortTrigger(false), 100);
   }, []);
 
+  // Handle copy recent items modal
+  const handleCopyRecentToToday = useCallback(() => {
+    setCopyModalMode("copy-to-today");
+  }, []);
+
+  const handleAddToNextDay = useCallback(() => {
+    setCopyModalMode("add-to-next-day");
+  }, []);
+
+  // Calculate the target date and label for the copy modal
+  const getCopyModalTargetDate = useCallback(() => {
+    if (copyModalMode === "copy-to-today") {
+      // "Copy to today" = add to the currently selected date
+      return selectedDate;
+    } else if (copyModalMode === "add-to-next-day") {
+      // "Add to next day" = find the next open day after the selected date
+      return findNextOpenDay(selectedDate, shiftDays, false) || selectedDate;
+    }
+    return selectedDate;
+  }, [copyModalMode, shiftDays, selectedDate]);
+
+  const getCopyModalTargetLabel = useCallback(() => {
+    const targetDate = getCopyModalTargetDate();
+    const today = getTodayLocalDate();
+
+    // Calculate the next day from today for "tomorrow" check
+    const todayObj = new Date(today);
+    todayObj.setDate(todayObj.getDate() + 1);
+    const tomorrowStr = todayObj.toISOString().split("T")[0];
+
+    if (targetDate === today) {
+      return "Today";
+    } else if (targetDate === tomorrowStr) {
+      return "Tomorrow";
+    } else {
+      // Format as "Mon, Jan 5"
+      const dateObj = new Date(targetDate + "T12:00:00");
+      return dateObj.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+    }
+  }, [getCopyModalTargetDate]);
+
   // Determine if we're in initial loading state (kitchen data loading)
   const isPageLoading = kitchenLoading || (!station && stations.length === 0);
 
@@ -501,6 +549,8 @@ export function StationView() {
                     onSort={handleSort}
                     isCompact={isCompact}
                     onToggleCompact={handleToggleCompact}
+                    onCopyRecentToToday={handleCopyRecentToToday}
+                    onAddToNextDay={handleAddToNextDay}
                   />
                 </div>
               </div>
@@ -519,6 +569,8 @@ export function StationView() {
                       onSort={handleSort}
                       isCompact={isCompact}
                       onToggleCompact={handleToggleCompact}
+                      onCopyRecentToToday={handleCopyRecentToToday}
+                      onAddToNextDay={handleAddToNextDay}
                     />
                   </div>
 
@@ -630,6 +682,21 @@ export function StationView() {
         initialUnitId={editingItem?.unit_id ?? null}
         initialUnitName={editingItem?.unit_name ?? null}
       />
+
+      {/* Copy Recent Items Modal */}
+      {copyModalMode && stationId && selectedShiftId && currentKitchen && (
+        <CopyRecentItemsModal
+          isOpen={!!copyModalMode}
+          onClose={() => setCopyModalMode(null)}
+          mode={copyModalMode}
+          stationId={stationId}
+          shiftId={selectedShiftId}
+          targetDate={getCopyModalTargetDate()}
+          targetDateLabel={getCopyModalTargetLabel()}
+          kitchenId={currentKitchen.id}
+          shiftDays={shiftDays}
+        />
+      )}
     </div>
   );
 }

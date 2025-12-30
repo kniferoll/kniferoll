@@ -36,9 +36,7 @@ export function EditPrepItemModal({
   initialUnitName,
 }: EditPrepItemModalProps) {
   const { allUnits } = usePrepEntryStore();
-  const [quantity, setQuantity] = useState(
-    initialQuantity?.toString() ?? ""
-  );
+  const [quantity, setQuantity] = useState(initialQuantity?.toString() ?? "");
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(
     initialUnitId
   );
@@ -212,7 +210,9 @@ export function EditPrepItemModal({
                   {units.map((unit) => (
                     <Pill
                       key={unit.id}
-                      variant={selectedUnitId === unit.id ? "selected" : "default"}
+                      variant={
+                        selectedUnitId === unit.id ? "selected" : "default"
+                      }
                       size="md"
                       onClick={() => handleUnitClick(unit)}
                       title={unit.display_name || unit.name}
@@ -252,7 +252,7 @@ export function EditPrepItemModal({
               type="button"
               onClick={handleSave}
               disabled={isSaving || !hasChanges}
-              className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl text-sm font-semibold shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
+              className="px-5 py-2.5 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl text-sm font-semibold shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
             >
               {isSaving ? "Saving..." : "Save"}
             </button>

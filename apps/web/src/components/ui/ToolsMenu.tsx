@@ -4,12 +4,14 @@ import {
   DropdownDivider,
   DropdownTriggerButton,
 } from "./Dropdown";
-import { SlidersIcon, SortIcon, CompactIcon } from "@/components/icons";
+import { SlidersIcon, SortIcon, CompactIcon, CopyIcon, ForwardIcon } from "@/components/icons";
 
 interface ToolsMenuProps {
   onSort?: () => void;
   isCompact?: boolean;
   onToggleCompact?: () => void;
+  onCopyRecentToToday?: () => void;
+  onAddToNextDay?: () => void;
   label?: string;
 }
 
@@ -27,6 +29,8 @@ export function ToolsMenu({
   onSort,
   isCompact = false,
   onToggleCompact,
+  onCopyRecentToToday,
+  onAddToNextDay,
   label = "Tools",
 }: ToolsMenuProps) {
   return (
@@ -38,6 +42,17 @@ export function ToolsMenu({
       }
       align="right"
     >
+      {onCopyRecentToToday && (
+        <DropdownItem onClick={onCopyRecentToToday} icon={<CopyIcon size={16} />}>
+          Copy recent items
+        </DropdownItem>
+      )}
+      {onAddToNextDay && (
+        <DropdownItem onClick={onAddToNextDay} icon={<ForwardIcon size={16} />}>
+          Add to next day
+        </DropdownItem>
+      )}
+      {(onCopyRecentToToday || onAddToNextDay) && (onSort || onToggleCompact) && <DropdownDivider />}
       {onSort && (
         <DropdownItem onClick={onSort} icon={<SortIcon size={16} />}>
           Sort list
