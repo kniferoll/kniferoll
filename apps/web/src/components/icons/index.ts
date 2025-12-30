@@ -6,3 +6,8 @@ export { ShieldIcon } from "./ShieldIcon";
 export { CalendarIcon } from "./CalendarIcon";
 export { KniferollIcon } from "./KniferollIcon";
 export { XIcon } from "./XIcon";
+export { CheckmarkIcon } from "./CheckmarkIcon";
+export { InProgressIcon } from "./InProgressIcon";
+export { PendingIcon } from "./PendingIcon";
+export { CheckIcon } from "./CheckIcon";
+export { TrashIcon } from "./TrashIcon";

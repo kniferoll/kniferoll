@@ -1,5 +1,13 @@
 import { useState, useEffect, memo } from "react";
 import type { PrepStatus } from "@kniferoll/types";
+import {
+  CheckmarkIcon,
+  InProgressIcon,
+  PendingIcon,
+  CheckIcon,
+  TrashIcon,
+  XIcon,
+} from "@/components/icons";
 
 interface PrepItem {
   id: string;
@@ -88,33 +96,12 @@ function PrepItemListInner({
   const getStatusIcon = (status: PrepStatus | null) => {
     switch (status) {
       case "complete":
-        return (
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" fill="#3b82f6" />
-            <path
-              d="M8 12l3 3 5-5"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
-        );
+        return <CheckmarkIcon />;
       case "in_progress":
-        return (
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="#eab308" strokeWidth="2" />
-            <circle cx="12" cy="12" r="3" fill="#eab308" />
-          </svg>
-        );
+        return <InProgressIcon />;
       case "pending":
       default:
-        return (
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="#d1d5db" strokeWidth="2" />
-          </svg>
-        );
+        return <PendingIcon />;
     }
   };
 
@@ -142,13 +129,14 @@ function PrepItemListInner({
             key={item.id}
             className={`
               flex items-center gap-3 px-4 py-3 rounded-lg
+              border border-gray-200 dark:border-slate-700
+              shadow-sm
               ${
                 item.status === "in_progress"
                   ? "bg-yellow-50 dark:bg-yellow-950/20"
                   : "bg-white dark:bg-slate-900"
               }
               ${item.status === "complete" ? "opacity-70" : ""}
-              dark:border dark:border-slate-800
             `.trim()}
           >
             {/* Status Icon - 48x48px tap target */}
@@ -236,13 +224,7 @@ function PrepItemListInner({
                   className="w-9 h-9 flex items-center justify-center text-green-500 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded transition-colors disabled:opacity-50"
                   aria-label="Confirm delete"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                  </svg>
+                  <CheckIcon />
                 </button>
                 {/* Cancel Delete */}
                 <button
@@ -251,13 +233,7 @@ function PrepItemListInner({
                   className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors disabled:opacity-50"
                   aria-label="Cancel delete"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
-                  </svg>
+                  <XIcon />
                 </button>
               </div>
             ) : (
@@ -267,19 +243,7 @@ function PrepItemListInner({
                 className="shrink-0 w-11 h-11 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors disabled:opacity-50"
                 aria-label="Delete"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
+                <TrashIcon />
               </button>
             )}
           </div>

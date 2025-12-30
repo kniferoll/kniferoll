@@ -16,25 +16,25 @@ import {
   PrepItemEntryForm,
   PrepItemList,
   ProgressBar,
-  CookInviteButton,
   BackButton,
+  EmptyState,
+  UserAvatarMenu,
+  Logo,
+  NavLinks,
 } from "@/components";
+import { useDarkModeContext } from "@/context";
 
 /**
  * StationView - the main prep list interface for a station
  *
- * This page customizes the header to show:
- * - Back button (left)
- * - Date calendar (center)
- * - Shift toggle + overflow menu (right)
- *
- * Uses useHeaderConfig to inject content into the shared header.
+ * Customizes the header to show date/shift controls.
+ * Single-purpose: focused on prep list management for kitchen crews.
  */
 export function StationView() {
   const { stationId } = useParams<{ stationId: string }>();
   const navigate = useNavigate();
-  const [shouldSort, setShouldSort] = useState(true);
-  const [showOverflowMenu, setShowOverflowMenu] = useState(false);
+
+  // Stores
   const { prepItems, loading, loadPrepItems, cycleStatus, deletePrepItem } =
     usePrepStore();
   const {
@@ -55,7 +55,9 @@ export function StationView() {
     loadKitchen,
   } = useKitchenStore();
   const { user } = useAuthStore();
+  const { isDark } = useDarkModeContext();
 
+  // Local state
   const station = stations.find((s) => s.id === stationId);
   const [kitchenShifts, setKitchenShifts] = useState<
     Array<{ id: string; name: string }>
@@ -104,42 +106,24 @@ export function StationView() {
                 : "/dashboard"
             )
           }
+          label="Back"
         />
       ),
       centerContent: (
-        <DateCalendar
-          selectedDate={selectedDate}
-          onDateSelect={setSelectedDate}
-          closedDays={closedDaysArray}
-        />
-      ),
-      endContent: (
-        <div className="flex items-center gap-3">
-          <ShiftToggle
-            shifts={availableShifts.map((s) => s.name)}
-            currentShift={
-              availableShifts.find((s) => s.id === selectedShiftId)?.name || ""
-            }
-            onShiftChange={(shiftName) => {
-              const shift = availableShifts.find((s) => s.name === shiftName);
-              if (shift) setSelectedShiftId(shift.id);
-            }}
-            disabled={isClosed}
-          />
-          {sessionUser && currentKitchen && <CookInviteButton />}
+        <div className="flex items-center gap-2">
+          <Logo size="sm" showText={false} />
+          <span
+            className={`text-lg font-semibold ${
+              isDark ? "text-white" : "text-stone-900"
+            }`}
+          >
+            {station?.name || "Station"}
+          </span>
         </div>
       ),
+      endContent: <NavLinks end={<UserAvatarMenu />} />,
     },
-    [
-      selectedDate,
-      selectedShiftId,
-      availableShifts,
-      isClosed,
-      currentKitchen,
-      sessionUser,
-      closedDaysArray,
-      navigate,
-    ]
+    [station?.name, isDark, navigate]
   );
 
   // Load kitchen data on refresh if we have kitchen but no stations
@@ -250,7 +234,6 @@ export function StationView() {
   useEffect(() => {
     if (!stationId || !selectedShiftId) return;
     loadPrepItems(stationId, selectedDate, selectedShiftId);
-    setShouldSort(true);
   }, [stationId, selectedDate, selectedShiftId, loadPrepItems]);
 
   // Auto-select first available shift
@@ -296,7 +279,6 @@ export function StationView() {
 
   const handleCycleStatus = async (itemId: string) => {
     await cycleStatus(itemId);
-    setShouldSort(false);
   };
 
   const handleDelete = async (itemId: string) => {
@@ -317,18 +299,15 @@ export function StationView() {
 
   if (!station) {
     return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-slate-400 mb-4">
-            Station not found
-          </p>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            Back to dashboard
-          </button>
-        </div>
+      <div className="flex items-center justify-center h-[50vh] px-4">
+        <EmptyState
+          title="Station not found"
+          description="This station is no longer available"
+          action={{
+            label: "Back to Dashboard",
+            onClick: () => navigate("/dashboard"),
+          }}
+        />
       </div>
     );
   }
@@ -346,92 +325,88 @@ export function StationView() {
   const totalCount = prepItems.length;
 
   return (
-    <>
-      {/* Progress Bar - below header */}
-      {totalCount > 0 && (
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-800">
-          <div className="max-w-3xl mx-auto flex items-center gap-3">
-            <div className="flex-1">
-              <ProgressBar
-                completed={completedCount}
-                partial={inProgressCount}
-                pending={pendingCount}
+    <div className="flex flex-col h-full">
+      {/* Controls Row - Shift Toggle, Calendar, Progress Bar */}
+      {!isClosed && (
+        <div className="px-4 py-4 bg-transparent">
+          <div className="max-w-5xl mx-auto">
+            {/* Mobile: Stacked */}
+            <div className="md:hidden flex flex-col gap-4">
+              <ShiftToggle
+                shifts={availableShifts.map((s) => s.name)}
+                currentShift={
+                  availableShifts.find((s) => s.id === selectedShiftId)?.name ||
+                  ""
+                }
+                onShiftChange={(shiftName) => {
+                  const shift = availableShifts.find(
+                    (s) => s.name === shiftName
+                  );
+                  if (shift) setSelectedShiftId(shift.id);
+                }}
+                disabled={isClosed}
+              />
+              <DateCalendar
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+                closedDays={closedDaysArray}
               />
             </div>
-            <div className="relative">
-              <button
-                onClick={() => setShowOverflowMenu(!showOverflowMenu)}
-                className="shrink-0 w-9 h-9 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center"
-                aria-label="More options"
-              >
-                <svg
-                  className="w-5 h-5"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <circle cx="12" cy="5" r="2" />
-                  <circle cx="12" cy="12" r="2" />
-                  <circle cx="12" cy="19" r="2" />
-                </svg>
-              </button>
-              {showOverflowMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowOverflowMenu(false)}
-                  />
-                  <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 py-1 z-20">
-                    <button
-                      onClick={() => {
-                        setShouldSort(true);
-                        setShowOverflowMenu(false);
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center gap-2"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path
-                          d="M7 15l5 5 5-5M7 9l5-5 5 5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      Sort Items
-                    </button>
-                  </div>
-                </>
-              )}
+
+            {/* Desktop: Horizontal with Progress Bar */}
+            <div className="hidden md:flex md:items-center md:gap-4">
+              <ShiftToggle
+                shifts={availableShifts.map((s) => s.name)}
+                currentShift={
+                  availableShifts.find((s) => s.id === selectedShiftId)?.name ||
+                  ""
+                }
+                onShiftChange={(shiftName) => {
+                  const shift = availableShifts.find(
+                    (s) => s.name === shiftName
+                  );
+                  if (shift) setSelectedShiftId(shift.id);
+                }}
+                disabled={isClosed}
+              />
+              <div className="flex-1 min-w-0">
+                <ProgressBar
+                  completed={completedCount}
+                  partial={inProgressCount}
+                  pending={pendingCount}
+                />
+              </div>
+              <DateCalendar
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+                closedDays={closedDaysArray}
+              />
             </div>
           </div>
         </div>
       )}
 
-      {/* Prep Items List */}
+      {/* Prep Items List - Main content area */}
       <div className="flex-1 overflow-y-auto px-4 py-6 pb-48">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {isClosed ? (
-            <div className="text-center py-12 text-gray-500 dark:text-slate-400">
-              <p className="text-lg mb-2">Kitchen is closed on this day</p>
-              <p className="text-sm">
-                Select a different date to add prep items
-              </p>
-            </div>
+            <EmptyState
+              title="Kitchen closed"
+              description="This kitchen is closed on the selected day. Choose a different date."
+            />
           ) : loading ? (
-            // <SkeletonList count={5} />
-            <div className="text-center py-12 text-gray-500 dark:text-slate-400">
-              <p>Loading prep items...</p>
-            </div>
+            <EmptyState title="Loading prep items..." />
+          ) : totalCount === 0 && !addingItem ? (
+            <EmptyState
+              title="No prep items yet"
+              description="Add your first prep item below to get started"
+            />
           ) : (
             <PrepItemList
               items={prepItems as any}
               onCycleStatus={handleCycleStatus}
               onDelete={handleDelete}
-              shouldSort={shouldSort}
+              shouldSort={true}
             />
           )}
         </div>
@@ -439,20 +414,22 @@ export function StationView() {
 
       {/* Add Item Form - Floating Bottom */}
       {!isClosed && (
-        <div className="fixed bottom-0 left-0 right-0 pointer-events-none">
-          <div className="max-w-3xl mx-auto px-4 pb-4 pointer-events-auto">
-            <PrepItemEntryForm
-              allSuggestions={masterSuggestions}
-              suggestions={suggestions}
-              quickUnits={quickUnits}
-              onAddItem={handleAddItem}
-              onDismissSuggestion={handleDismissSuggestion}
-              disabled={!selectedShiftId}
-              isLoading={addingItem}
-            />
+        <div className="fixed bottom-0 left-0 right-0 bg-transparent pointer-events-none">
+          <div className="px-4 py-4 pointer-events-auto flex justify-center">
+            <div className="w-full max-w-2xl">
+              <PrepItemEntryForm
+                allSuggestions={masterSuggestions}
+                suggestions={suggestions}
+                quickUnits={quickUnits}
+                onAddItem={handleAddItem}
+                onDismissSuggestion={handleDismissSuggestion}
+                disabled={!selectedShiftId}
+                isLoading={addingItem}
+              />
+            </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
