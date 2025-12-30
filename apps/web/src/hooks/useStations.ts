@@ -4,22 +4,31 @@ import type { Station } from "@kniferoll/types";
 
 /**
  * Hook to fetch all stations for a kitchen
+ * Uses isInitialLoading to distinguish between first load (show skeleton)
+ * and refetches (keep showing data)
  */
 export function useStations(kitchenId: string | undefined) {
   const [stations, setStations] = useState<Station[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [currentKitchenId, setCurrentKitchenId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!kitchenId) {
       setStations([]);
-      setLoading(false);
+      setIsInitialLoading(false);
       return;
     }
 
+    const isKitchenChange = currentKitchenId !== kitchenId;
+
     const fetchStations = async () => {
       try {
-        setLoading(true);
+        // Only show loading on initial load or kitchen change
+        if (isKitchenChange || stations.length === 0) {
+          setIsInitialLoading(true);
+          setCurrentKitchenId(kitchenId);
+        }
         setError(null);
 
         const { data, error: err } = await supabase
@@ -33,14 +42,15 @@ export function useStations(kitchenId: string | undefined) {
       } catch (err) {
         setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
-        setLoading(false);
+        setIsInitialLoading(false);
       }
     };
 
     fetchStations();
   }, [kitchenId]);
 
-  return { stations, loading, error };
+  // For backwards compatibility, also expose `loading` as alias
+  return { stations, loading: isInitialLoading, isInitialLoading, error };
 }
 
 /**

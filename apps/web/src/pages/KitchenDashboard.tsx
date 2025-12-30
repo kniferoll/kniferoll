@@ -4,11 +4,12 @@ import { useAuthStore, useKitchenStore } from "@/stores";
 import { useStations, useRealtimeStations, useHeaderConfig } from "@/hooks";
 import { useDarkModeContext } from "@/context";
 import { supabase } from "@/lib";
-import { jsDateToDatabaseDayOfWeek, toLocalDate } from "@/lib";
+import { jsDateToDatabaseDayOfWeek, toLocalDate, isClosedDay, findNextOpenDay } from "@/lib";
 import {
   BackButton,
   Button,
   DateCalendar,
+  DismissibleAlert,
   EmptyState,
   InviteLinkModal,
   Logo,
@@ -44,9 +45,11 @@ export function KitchenDashboard() {
     selectedShift,
     setSelectedShift,
   } = useKitchenStore();
-  const { stations, loading: stationsLoading } = useStations(kitchenId);
+  const { stations, isInitialLoading: stationsLoading } = useStations(kitchenId);
   const [progress, setProgress] = useState<StationProgress[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isProgressLoading, setIsProgressLoading] = useState(true);
+  // Track if this is a date/shift change (vs initial load) - don't show loading for date changes
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [kitchenShifts, setKitchenShifts] = useState<
     Array<{ id: string; name: string }>
@@ -54,6 +57,7 @@ export function KitchenDashboard() {
   const [shiftDays, setShiftDays] = useState<
     Map<number, { is_open: boolean; shift_ids: string[] }>
   >(new Map());
+  const [closedAlertDismissed, setClosedAlertDismissed] = useState(false);
 
   // Calculate summary stats
   const summaryStats = useMemo(() => {
@@ -182,6 +186,15 @@ export function KitchenDashboard() {
     }
   }, [selectedShift, setSelectedShift, availableShifts]);
 
+  // Check if selected date is closed
+  const isSelectedDayClosed = shiftDays.size > 0 && isClosedDay(selectedDate, shiftDays);
+  const nextOpenDay = isSelectedDayClosed ? findNextOpenDay(selectedDate, shiftDays) : null;
+
+  // Reset closed alert dismissed state when date changes
+  useEffect(() => {
+    setClosedAlertDismissed(false);
+  }, [selectedDate]);
+
   // Subscribe to real-time station updates
   useRealtimeStations(kitchenId);
 
@@ -189,51 +202,62 @@ export function KitchenDashboard() {
   useEffect(() => {
     if (!stations.length) {
       setProgress([]);
-      setLoading(false);
+      setIsProgressLoading(false);
       return;
     }
 
     const fetchProgress = async () => {
       try {
-        setLoading(true);
-        const progressData: StationProgress[] = [];
+        // Only show loading on initial load, not on date/shift changes
+        if (!hasLoadedOnce) {
+          setIsProgressLoading(true);
+        }
 
-        for (const station of stations) {
-          const { data: items, error } = await supabase
-            .from("prep_items")
-            .select("id, status")
-            .eq("station_id", station.id)
-            .eq("shift_date", selectedDate);
+        // Fetch all prep items for all stations in parallel for speed
+        const stationIds = stations.map((s) => s.id);
+        const { data: items, error } = await supabase
+          .from("prep_items")
+          .select("id, status, station_id")
+          .in("station_id", stationIds)
+          .eq("shift_date", selectedDate);
 
-          if (error) {
-            console.error("Error fetching items:", error);
-            continue;
-          }
+        if (error) {
+          console.error("Error fetching items:", error);
+          return;
+        }
 
-          const total = items?.length || 0;
-          const completed =
-            items?.filter((i) => i.status === "complete").length || 0;
-          const partial =
-            items?.filter((i) => i.status === "in_progress").length || 0;
-          const pending =
-            items?.filter((i) => i.status === "pending" || !i.status).length ||
-            0;
+        // Group items by station and compute progress
+        const progressData: StationProgress[] = stations.map((station) => {
+          const stationItems = (items || []).filter(
+            (item) => item.station_id === station.id
+          );
+          const total = stationItems.length;
+          const completed = stationItems.filter(
+            (i) => i.status === "complete"
+          ).length;
+          const partial = stationItems.filter(
+            (i) => i.status === "in_progress"
+          ).length;
+          const pending = stationItems.filter(
+            (i) => i.status === "pending" || !i.status
+          ).length;
 
-          progressData.push({
+          return {
             stationId: station.id,
             stationName: station.name,
             total,
             completed,
             partial,
             pending,
-          });
-        }
+          };
+        });
 
         setProgress(progressData);
+        setHasLoadedOnce(true);
       } catch (err) {
         console.error("Failed to fetch progress:", err);
       } finally {
-        setLoading(false);
+        setIsProgressLoading(false);
       }
     };
 
@@ -257,7 +281,7 @@ export function KitchenDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [stations, selectedDate, kitchenId]);
+  }, [stations, selectedDate, kitchenId, hasLoadedOnce]);
 
   // Loading states
   if (!user || !kitchenId) {
@@ -284,42 +308,78 @@ export function KitchenDashboard() {
     navigate(`/station/${stationId}`);
   };
 
-  const isLoading = stationsLoading || loading;
+  // Only show skeleton loading state on initial load, not on date/shift changes
+  const isLoading = stationsLoading || (isProgressLoading && !hasLoadedOnce);
 
   return (
     <>
       <div className="max-w-7xl mx-auto px-4 py-8 w-full">
-        {/* Controls Row - Stack on mobile, horizontal on desktop */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          {/* Shift Toggle */}
+        {/* Controls - Desktop Layout */}
+        <div className="hidden md:flex md:items-center md:justify-between gap-4 mb-8">
           <ShiftToggle
             shifts={availableShifts}
             currentShift={selectedShift}
             onShiftChange={setSelectedShift}
           />
-
-          {/* Right side: Calendar + Invite (on same row on desktop) */}
           <div className="flex items-center gap-2">
             <DateCalendar
               selectedDate={selectedDate}
               onDateSelect={setSelectedDate}
               closedDays={closedDaysArray}
             />
-            {/* Invite button - desktop only */}
-            <div className="hidden md:block">
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => setShowInviteModal(true)}
-              >
-                <span className="flex items-center gap-2">
-                  <TeamIcon className="w-4 h-4" />
-                  Invite Team
-                </span>
-              </Button>
-            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowInviteModal(true)}
+            >
+              <span className="flex items-center gap-2">
+                <TeamIcon className="w-4 h-4" />
+                Invite Team
+              </span>
+            </Button>
           </div>
         </div>
+
+        {/* Controls - Mobile Layout */}
+        <div className="md:hidden flex flex-col gap-3 mb-6">
+          {/* Row 1: Calendar (left aligned) */}
+          <div className="flex items-center">
+            <DateCalendar
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
+              closedDays={closedDaysArray}
+            />
+          </div>
+          {/* Row 2: Shift Toggle (centered) */}
+          <div className="flex items-center justify-center">
+            <ShiftToggle
+              shifts={availableShifts}
+              currentShift={selectedShift}
+              onShiftChange={setSelectedShift}
+            />
+          </div>
+        </div>
+
+        {/* Closed Day Alert */}
+        {isSelectedDayClosed && !closedAlertDismissed && (
+          <div className="mb-6">
+            <DismissibleAlert
+              variant="warning"
+              onDismiss={() => setClosedAlertDismissed(true)}
+              action={
+                nextOpenDay
+                  ? {
+                      label: "Go to next open day",
+                      onClick: () => setSelectedDate(nextOpenDay),
+                    }
+                  : undefined
+              }
+            >
+              <span className="font-medium">{currentKitchen?.name}</span> is
+              closed on this day.
+            </DismissibleAlert>
+          </div>
+        )}
 
         {/* Summary Stats - Desktop only */}
         {!isLoading && progress.length > 0 && (

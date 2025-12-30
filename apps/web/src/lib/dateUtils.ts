@@ -47,3 +47,56 @@ export function databaseDayOfWeekToJsDate(dbDay: number): number {
   // Reverse of above: (dbDay + 1) % 7
   return (dbDay + 1) % 7;
 }
+
+/**
+ * Find the next open day starting from a given date.
+ * Returns the date string of the next open day, or null if no open days found within 7 days.
+ *
+ * @param fromDate - Starting date string (YYYY-MM-DD)
+ * @param shiftDays - Map of database day-of-week to { is_open, shift_ids }
+ * @param includeToday - Whether to include the starting day if it's open (default: false)
+ */
+export function findNextOpenDay(
+  fromDate: string,
+  shiftDays: Map<number, { is_open: boolean; shift_ids: string[] }>,
+  includeToday = false
+): string | null {
+  const startDate = toLocalDate(fromDate);
+
+  // Check up to 7 days (a full week)
+  for (let i = includeToday ? 0 : 1; i <= 7; i++) {
+    const checkDate = new Date(startDate);
+    checkDate.setDate(startDate.getDate() + i);
+
+    const jsDay = checkDate.getDay();
+    const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
+    const dayConfig = shiftDays.get(dbDay);
+
+    if (dayConfig?.is_open) {
+      return formatToDateString(checkDate);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Check if a given date is a closed day based on shift configuration.
+ *
+ * @param dateString - Date to check (YYYY-MM-DD)
+ * @param shiftDays - Map of database day-of-week to { is_open, shift_ids }
+ */
+export function isClosedDay(
+  dateString: string,
+  shiftDays: Map<number, { is_open: boolean; shift_ids: string[] }>
+): boolean {
+  const date = toLocalDate(dateString);
+  const jsDay = date.getDay();
+  const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
+  const dayConfig = shiftDays.get(dbDay);
+
+  // If no config found, treat as open (shouldn't happen normally)
+  if (!dayConfig) return false;
+
+  return !dayConfig.is_open;
+}

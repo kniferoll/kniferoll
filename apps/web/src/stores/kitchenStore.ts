@@ -530,7 +530,8 @@ export const useKitchenStore = create<KitchenState>()(
       partialize: (state) => ({
         currentKitchen: state.currentKitchen,
         currentUser: state.currentUser,
-        selectedDate: state.selectedDate,
+        // Note: selectedDate is NOT persisted - resets to today on fresh session
+        // selectedShift persists so user doesn't have to re-select their shift
         selectedShift: state.selectedShift,
       }),
     }

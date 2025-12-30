@@ -227,7 +227,7 @@ function PrepItemListInner({
   };
 
   return (
-    <div className={isCompact ? "space-y-1.5" : "space-y-2"}>
+    <div className={`${isCompact ? "space-y-1.5" : "space-y-2"} overflow-x-hidden`}>
       {displayItems.map((item) => {
         const pillText = formatQuantityPill(
           item.quantity,

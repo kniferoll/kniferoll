@@ -23,8 +23,12 @@ function cycleStatus(current: PrepStatus | null): PrepStatus {
 
 interface PrepState {
   prepItems: PrepItemWithDescription[];
-  loading: boolean;
+  // Distinguish between initial load (show skeleton) and background refetch (keep showing data)
+  isInitialLoading: boolean;
+  isRefetching: boolean;
   error: string | null;
+  // Track current context to avoid redundant fetches
+  currentContext: { stationId: string; shiftDate: string; shiftId: string } | null;
 
   // Actions
   loadPrepItems: (
@@ -32,22 +36,55 @@ interface PrepState {
     shiftDate: string,
     shiftId: string
   ) => Promise<void>;
-  addPrepItem: (item: PrepItemInsert) => Promise<{ error?: string }>;
+  addPrepItem: (
+    item: PrepItemInsert,
+    optimisticData?: { description: string; unit_name?: string | null }
+  ) => Promise<{ error?: string; id?: string }>;
   cycleStatus: (itemId: string) => Promise<{ error?: string }>;
   deletePrepItem: (itemId: string) => Promise<{ error?: string }>;
   updatePrepItem: (
     itemId: string,
     updates: PrepItemUpdate
   ) => Promise<{ error?: string }>;
+  // Clear items when switching context
+  clearItems: () => void;
 }
 
 export const usePrepStore = create<PrepState>((set, get) => ({
   prepItems: [],
-  loading: false,
+  isInitialLoading: false,
+  isRefetching: false,
   error: null,
+  currentContext: null,
+
+  clearItems: () => {
+    set({ prepItems: [], currentContext: null, isInitialLoading: false, isRefetching: false });
+  },
 
   loadPrepItems: async (stationId, shiftDate, shiftId) => {
-    set({ loading: true, error: null });
+    const { currentContext } = get();
+    const newContext = { stationId, shiftDate, shiftId };
+
+    // Check if context changed - if so, this is a fresh load
+    const isContextChange = !currentContext ||
+      currentContext.stationId !== stationId ||
+      currentContext.shiftDate !== shiftDate ||
+      currentContext.shiftId !== shiftId;
+
+    // If context changed, clear old items and show initial loading
+    // If same context, this is a refetch - keep showing current items
+    if (isContextChange) {
+      set({
+        isInitialLoading: true,
+        isRefetching: false,
+        error: null,
+        currentContext: newContext,
+        prepItems: [] // Clear old items immediately for context change
+      });
+    } else {
+      // Same context - background refetch, don't show loading
+      set({ isRefetching: true, error: null });
+    }
 
     try {
       const { data, error } = await supabase
@@ -59,7 +96,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         .order("created_at", { ascending: true });
 
       if (error) {
-        set({ loading: false, error: error.message });
+        set({ isInitialLoading: false, isRefetching: false, error: error.message });
         return;
       }
 
@@ -70,18 +107,42 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         unit_name: item.kitchen_units?.name || null,
       }));
 
-      set({ prepItems: transformedData, loading: false });
+      set({ prepItems: transformedData, isInitialLoading: false, isRefetching: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      set({ loading: false, error: message });
+      set({ isInitialLoading: false, isRefetching: false, error: message });
     }
   },
 
-  addPrepItem: async (item) => {
-    set({ loading: true, error: null });
+  addPrepItem: async (item, optimisticData) => {
+    // Generate a temporary ID for optimistic update
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Optimistic update FIRST - add item immediately with temp ID
+    const optimisticItem: PrepItemWithDescription = {
+      id: tempId,
+      station_id: item.station_id!,
+      shift_id: item.shift_id!,
+      shift_date: item.shift_date ?? new Date().toISOString().split("T")[0],
+      kitchen_item_id: item.kitchen_item_id!,
+      unit_id: item.unit_id || null,
+      quantity: item.quantity || null,
+      quantity_raw: item.quantity_raw || null,
+      status: "pending",
+      status_changed_at: null,
+      status_changed_by_user: null,
+      created_by_user: item.created_by_user || null,
+      created_at: new Date().toISOString(),
+      updated_at: null,
+      description: optimisticData?.description || "Adding...",
+      unit_name: optimisticData?.unit_name || null,
+    };
+
+    set((state) => ({
+      prepItems: [...state.prepItems, optimisticItem],
+    }));
 
     try {
-      // Ensure created_by_user and created_by_anon are properly set
       const { data, error } = await supabase
         .from("prep_items")
         .insert(item)
@@ -89,28 +150,35 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         .single();
 
       if (error) {
-        set({ loading: false, error: error.message });
+        // Revert optimistic update on error
+        set((state) => ({
+          prepItems: state.prepItems.filter((i) => i.id !== tempId),
+          error: error.message,
+        }));
         return { error: error.message };
       }
 
       const transformedItem = {
         ...data,
-        description: (data as any).kitchen_items?.name || "Unknown item",
-        unit_name: (data as any).kitchen_units?.name || null,
+        description: (data as any).kitchen_items?.name || optimisticData?.description || "Unknown item",
+        unit_name: (data as any).kitchen_units?.name || optimisticData?.unit_name || null,
       };
 
+      // Replace temp item with real item
       set((state) => ({
-        prepItems: [
-          ...state.prepItems,
-          transformedItem as PrepItemWithDescription,
-        ],
-        loading: false,
+        prepItems: state.prepItems.map((i) =>
+          i.id === tempId ? (transformedItem as PrepItemWithDescription) : i
+        ),
       }));
 
-      return {};
+      return { id: data.id };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      set({ loading: false, error: message });
+      // Revert optimistic update on error
+      set((state) => ({
+        prepItems: state.prepItems.filter((i) => i.id !== tempId),
+        error: message,
+      }));
       return { error: message };
     }
   },
@@ -176,7 +244,17 @@ export const usePrepStore = create<PrepState>((set, get) => ({
   },
 
   deletePrepItem: async (itemId) => {
-    set({ loading: true, error: null });
+    const { prepItems } = get();
+    const itemToDelete = prepItems.find((i) => i.id === itemId);
+
+    if (!itemToDelete) {
+      return { error: "Item not found" };
+    }
+
+    // Optimistic delete FIRST - remove item immediately
+    set((state) => ({
+      prepItems: state.prepItems.filter((i) => i.id !== itemId),
+    }));
 
     try {
       const { error } = await supabase
@@ -185,25 +263,40 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         .eq("id", itemId);
 
       if (error) {
-        set({ loading: false, error: error.message });
+        // Revert optimistic delete on error - restore the item
+        set((state) => ({
+          prepItems: [...state.prepItems, itemToDelete],
+          error: error.message,
+        }));
         return { error: error.message };
       }
-
-      set((state) => ({
-        prepItems: state.prepItems.filter((i) => i.id !== itemId),
-        loading: false,
-      }));
 
       return {};
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      set({ loading: false, error: message });
+      // Revert optimistic delete on error
+      set((state) => ({
+        prepItems: [...state.prepItems, itemToDelete],
+        error: message,
+      }));
       return { error: message };
     }
   },
 
   updatePrepItem: async (itemId, updates) => {
-    set({ loading: true, error: null });
+    const { prepItems } = get();
+    const originalItem = prepItems.find((i) => i.id === itemId);
+
+    if (!originalItem) {
+      return { error: "Item not found" };
+    }
+
+    // Optimistic update FIRST - apply changes immediately
+    set((state) => ({
+      prepItems: state.prepItems.map((i) =>
+        i.id === itemId ? { ...i, ...updates } : i
+      ),
+    }));
 
     try {
       const { error } = await supabase
@@ -212,21 +305,26 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         .eq("id", itemId);
 
       if (error) {
-        set({ loading: false, error: error.message });
+        // Revert optimistic update on error
+        set((state) => ({
+          prepItems: state.prepItems.map((i) =>
+            i.id === itemId ? originalItem : i
+          ),
+          error: error.message,
+        }));
         return { error: error.message };
       }
-
-      set((state) => ({
-        prepItems: state.prepItems.map((i) =>
-          i.id === itemId ? { ...i, ...updates } : i
-        ),
-        loading: false,
-      }));
 
       return {};
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      set({ loading: false, error: message });
+      // Revert optimistic update on error
+      set((state) => ({
+        prepItems: state.prepItems.map((i) =>
+          i.id === itemId ? originalItem : i
+        ),
+        error: message,
+      }));
       return { error: message };
     }
   },

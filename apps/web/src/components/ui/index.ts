@@ -1,5 +1,6 @@
 export { Alert } from "./Alert";
 export { Button } from "./Button";
+export { DismissibleAlert } from "./DismissibleAlert";
 export { Card } from "./Card";
 export { Pill } from "./Pill";
 export { ControlsToggle } from "./ControlsToggle";

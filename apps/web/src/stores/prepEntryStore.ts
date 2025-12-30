@@ -311,7 +311,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         return { error: prepError.message };
       }
 
-      // Add the new item to prepStore immediately
+      // Add the new item to prepStore immediately via optimistic update
       if (newPrepItem) {
         const { usePrepStore } = await import("./prepStore");
         const currentItems = usePrepStore.getState().prepItems;
@@ -337,46 +337,51 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         }
       }
 
-      // Step 3: Upsert prep_item_suggestion (increment count, update last_used)
-      const { data: existingSuggestion } = await supabase
-        .from("prep_item_suggestions")
-        .select("id, use_count")
-        .eq("kitchen_item_id", kitchenItemId)
-        .eq("station_id", stationId)
-        .eq("shift_id", shiftId)
-        .maybeSingle();
-
-      if (existingSuggestion) {
-        await supabase
-          .from("prep_item_suggestions")
-          .update({
-            use_count: (existingSuggestion.use_count || 1) + 1,
-            last_used: new Date().toISOString(),
-            last_quantity: quantity || null,
-            last_unit_id: unitId || null,
-          })
-          .eq("id", existingSuggestion.id);
-      } else {
-        await supabase.from("prep_item_suggestions").insert({
-          kitchen_item_id: kitchenItemId,
-          station_id: stationId,
-          shift_id: shiftId,
-          use_count: 1,
-          last_used: new Date().toISOString(),
-          last_quantity: quantity || null,
-          last_unit_id: unitId || null,
-        });
-      }
-
-      // Refresh suggestions and units from database
-      await get().loadSuggestionsAndUnits(
-        kitchenId,
-        stationId,
-        shiftDate,
-        shiftId
-      );
-
+      // Mark adding as complete IMMEDIATELY - user sees instant feedback
       set({ addingItem: false });
+
+      // Step 3: Upsert prep_item_suggestion in background (don't block UI)
+      // Use Promise.resolve().then() to defer to next microtask
+      Promise.resolve().then(async () => {
+        try {
+          const { data: existingSuggestion } = await supabase
+            .from("prep_item_suggestions")
+            .select("id, use_count")
+            .eq("kitchen_item_id", kitchenItemId)
+            .eq("station_id", stationId)
+            .eq("shift_id", shiftId)
+            .maybeSingle();
+
+          if (existingSuggestion) {
+            await supabase
+              .from("prep_item_suggestions")
+              .update({
+                use_count: (existingSuggestion.use_count || 1) + 1,
+                last_used: new Date().toISOString(),
+                last_quantity: quantity || null,
+                last_unit_id: unitId || null,
+              })
+              .eq("id", existingSuggestion.id);
+          } else {
+            await supabase.from("prep_item_suggestions").insert({
+              kitchen_item_id: kitchenItemId,
+              station_id: stationId,
+              shift_id: shiftId,
+              use_count: 1,
+              last_used: new Date().toISOString(),
+              last_quantity: quantity || null,
+              last_unit_id: unitId || null,
+            });
+          }
+
+          // Refresh suggestions in background - user doesn't wait for this
+          get().loadSuggestionsAndUnits(kitchenId, stationId, shiftDate, shiftId);
+        } catch (err) {
+          // Silent fail for background suggestion update - not critical
+          console.warn("Failed to update suggestions:", err);
+        }
+      });
+
       return {};
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
