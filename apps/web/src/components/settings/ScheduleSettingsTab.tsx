@@ -55,9 +55,17 @@ export function ScheduleSettingsTab({
   };
 
   return (
-    <div className="space-y-8">
-      {error && <Alert variant="error">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+    <>
+      {error && (
+        <div className="pt-6">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
+      {success && (
+        <div className="pt-6">
+          <Alert variant="success">{success}</Alert>
+        </div>
+      )}
 
       {/* Shifts */}
       <SettingsSection
@@ -175,6 +183,6 @@ export function ScheduleSettingsTab({
           })}
         </div>
       </SettingsSection>
-    </div>
+    </>
   );
 }

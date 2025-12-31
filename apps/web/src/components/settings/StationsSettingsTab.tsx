@@ -114,9 +114,17 @@ export function StationsSettingsTab({
   };
 
   return (
-    <div className="space-y-6">
-      {error && <Alert variant="error">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+    <>
+      {error && (
+        <div className="pt-6">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
+      {success && (
+        <div className="pt-6">
+          <Alert variant="success">{success}</Alert>
+        </div>
+      )}
 
       <SettingsSection
         title={`Current Stations (${stations.length}/${maxStations})`}
@@ -191,6 +199,6 @@ export function StationsSettingsTab({
           </div>
         </SettingsSection>
       )}
-    </div>
+    </>
   );
 }

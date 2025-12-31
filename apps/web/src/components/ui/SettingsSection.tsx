@@ -17,9 +17,9 @@ export function SettingsSection({
   const { isDark } = useDarkModeContext();
 
   return (
-    <div className={className}>
+    <div className={`py-8 ${className}`}>
       <h3
-        className={`text-lg font-semibold mb-2 ${
+        className={`text-base font-semibold mb-1 ${
           isDark ? "text-white" : "text-gray-900"
         }`}
       >
@@ -27,8 +27,8 @@ export function SettingsSection({
       </h3>
       {description && (
         <p
-          className={`text-sm mb-4 ${
-            isDark ? "text-gray-400" : "text-gray-600"
+          className={`text-sm mb-6 ${
+            isDark ? "text-slate-400" : "text-gray-600"
           }`}
         >
           {description}

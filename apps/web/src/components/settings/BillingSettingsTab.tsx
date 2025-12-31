@@ -43,8 +43,12 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {error && <Alert variant="error">{error}</Alert>}
+    <>
+      {error && (
+        <div className="pt-6">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
 
       <SettingsSection title="Current Plan">
         <div
@@ -131,6 +135,6 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
           </Button>
         </SettingsSection>
       )}
-    </div>
+    </>
   );
 }

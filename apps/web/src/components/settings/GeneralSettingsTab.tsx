@@ -87,9 +87,17 @@ export function GeneralSettingsTab({
   };
 
   return (
-    <div className="space-y-6">
-      {error && <Alert variant="error">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+    <>
+      {error && (
+        <div className="pt-6">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
+      {success && (
+        <div className="pt-6">
+          <Alert variant="success">{success}</Alert>
+        </div>
+      )}
 
       <SettingsSection title="Kitchen Name">
         <div className="flex gap-4">
@@ -114,25 +122,27 @@ export function GeneralSettingsTab({
       </SettingsSection>
 
       {isOwner && (
-        <DangerZone>
-          <p
-            className={`text-sm mb-4 ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
-            Permanently delete this kitchen and all its data. This cannot be
-            undone.
-          </p>
-          <Button
-            variant="secondary"
-            onClick={handleDelete}
-            disabled={saving}
-            className="border-red-500 text-red-500 hover:bg-red-500/10"
-          >
-            Delete Kitchen
-          </Button>
-        </DangerZone>
+        <SettingsSection title="Danger Zone">
+          <DangerZone>
+            <p
+              className={`text-sm mb-4 ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              Permanently delete this kitchen and all its data. This cannot be
+              undone.
+            </p>
+            <Button
+              variant="secondary"
+              onClick={handleDelete}
+              disabled={saving}
+              className="border-red-500 text-red-500 hover:bg-red-500/10"
+            >
+              Delete Kitchen
+            </Button>
+          </DangerZone>
+        </SettingsSection>
       )}
-    </div>
+    </>
   );
 }

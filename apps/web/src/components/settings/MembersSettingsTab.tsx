@@ -86,9 +86,17 @@ export function MembersSettingsTab({
   };
 
   return (
-    <div className="space-y-6">
-      {error && <Alert variant="error">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+    <>
+      {error && (
+        <div className="pt-6">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
+      {success && (
+        <div className="pt-6">
+          <Alert variant="success">{success}</Alert>
+        </div>
+      )}
 
       <SettingsSection
         title={`Kitchen Members (${members.length})`}
@@ -194,6 +202,6 @@ export function MembersSettingsTab({
           </Button>
         </SettingsSection>
       )}
-    </div>
+    </>
   );
 }

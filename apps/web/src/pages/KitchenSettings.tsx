@@ -1,18 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
-import { useKitchen, useStripeCheckout } from "@/hooks";
-import { useHeaderConfig } from "@/hooks";
+import { useKitchens, useStripeCheckout } from "@/hooks";
 import { useDarkModeContext } from "@/context";
+import { SettingsSidebar, SettingsLayout } from "@/components/layout";
+import { UserIcon, CreditCardIcon, KniferollIcon } from "@/components/icons";
 import {
-  BackButton,
-  Button,
-  Card,
   InviteLinkModal,
-  Tabs,
-  TabList,
-  Tab,
-  TabPanel,
   UpgradeModal,
   GeneralSettingsTab,
   ScheduleSettingsTab,
@@ -20,50 +14,101 @@ import {
   MembersSettingsTab,
   BillingSettingsTab,
 } from "@/components";
+import { SettingsFormSection } from "@/components/ui/SettingsFormSection";
 
+function classNames(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
+}
+
+/**
+ * Kitchen Settings Page with Sidebar Layout
+ * Tabs: Account Settings, Billing, Kitchen Settings (General, Schedule, Stations, Members)
+ */
 export function KitchenSettings() {
-  const { kitchenId } = useParams<{ kitchenId: string }>();
+  const { kitchenId } = useParams<{ kitchenId?: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { isDark } = useDarkModeContext();
-  const { kitchen, loading } = useKitchen(kitchenId);
+  const { kitchens, loading } = useKitchens(user?.id);
   const { handleCheckout } = useStripeCheckout();
 
-  const [activeTab, setActiveTab] = useState("general");
+  // Main sidebar navigation (Account, Billing, Kitchens)
+  const [activeSection, setActiveSection] = useState(
+    kitchenId ? "kitchens" : "account"
+  );
+
+  // Kitchen sub-tabs
+  const [activeKitchenTab, setActiveKitchenTab] = useState("general");
+
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  const isOwner = kitchen && user && kitchen.owner_id === user.id;
+  // Find the selected kitchen
+  const selectedKitchen = kitchens.find((k) => k.id === kitchenId);
+  const isOwner =
+    selectedKitchen && user && selectedKitchen.owner_id === user.id;
 
-  // Configure header
-  useHeaderConfig(
+  // Update active section when kitchenId changes
+  useEffect(() => {
+    if (kitchenId) {
+      setActiveSection("kitchens");
+    }
+  }, [kitchenId]);
+
+  const navigation = [
     {
-      startContent: <BackButton onClick={() => navigate(-1)} label="Back" />,
-      centerContent: (
-        <span
-          className={`text-lg font-semibold ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
-        >
-          {kitchen?.name || "Kitchen"} Settings
-        </span>
-      ),
+      name: "Account Settings",
+      value: "account",
+      icon: UserIcon,
+      current: activeSection === "account",
     },
-    [kitchen?.name, isDark, navigate]
-  );
+    {
+      name: "Billing",
+      value: "billing",
+      icon: CreditCardIcon,
+      current: activeSection === "billing",
+    },
+  ];
+
+  // Secondary navigation for Kitchen Settings (only show if kitchen selected)
+  const kitchenSecondaryNav = selectedKitchen
+    ? [
+        {
+          name: "General",
+          value: "general",
+          current: activeKitchenTab === "general",
+        },
+        {
+          name: "Schedule",
+          value: "schedule",
+          current: activeKitchenTab === "schedule",
+        },
+        {
+          name: "Stations",
+          value: "stations",
+          current: activeKitchenTab === "stations",
+        },
+        {
+          name: "Members",
+          value: "members",
+          current: activeKitchenTab === "members",
+        },
+      ]
+    : undefined;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[50vh]">
+      <div className="flex items-center justify-center h-screen">
         <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading...</p>
       </div>
     );
   }
 
-  if (!kitchen || !kitchenId) {
+  // If kitchenId provided but kitchen not found
+  if (kitchenId && !selectedKitchen) {
     return (
-      <div className="max-w-md mx-auto px-4 py-16">
-        <Card padding="lg">
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
           <h2
             className={`text-xl font-semibold mb-2 ${
               isDark ? "text-white" : "text-gray-900"
@@ -71,74 +116,157 @@ export function KitchenSettings() {
           >
             Kitchen Not Found
           </h2>
-          <p className={`mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            Could not load kitchen settings
-          </p>
-          <Button variant="primary" onClick={() => navigate("/dashboard")}>
-            Back to Dashboard
-          </Button>
-        </Card>
+          <button
+            onClick={() => navigate("/settings")}
+            className="text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            Back to Settings
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Card padding="none">
-          <Tabs value={activeTab} onChange={setActiveTab}>
-            <TabList>
-              <Tab value="general">General</Tab>
-              <Tab value="schedule">Schedule</Tab>
-              <Tab value="stations">Stations</Tab>
-              <Tab value="members">Members</Tab>
-              {isOwner && <Tab value="billing">Billing</Tab>}
-            </TabList>
+      <SettingsSidebar
+        navigation={navigation}
+        onNavigate={(value) => {
+          setActiveSection(value);
+          if (value !== "kitchens") {
+            navigate("/settings");
+          }
+        }}
+        title="Settings"
+        kitchens={kitchens}
+        selectedKitchenId={kitchenId}
+        onKitchenSelect={(id) => navigate(`/settings/kitchen/${id}`)}
+        userSection={
+          <button
+            onClick={() => navigate("/dashboard")}
+            className={classNames(
+              "flex items-center gap-x-3 px-3 py-2.5 text-sm font-medium w-full rounded-lg transition-colors",
+              isDark
+                ? "text-slate-300 hover:bg-slate-800 hover:text-white"
+                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            )}
+          >
+            <KniferollIcon
+              size={20}
+              className={isDark ? "text-slate-400" : "text-gray-500"}
+            />
+            <span>Back to Dashboard</span>
+          </button>
+        }
+      />
 
-            <TabPanel value="general">
+      <SettingsLayout
+        secondaryNav={
+          activeSection === "kitchens" && selectedKitchen
+            ? kitchenSecondaryNav
+            : undefined
+        }
+        onSecondaryNavClick={setActiveKitchenTab}
+      >
+        {/* Account Settings Section */}
+        {activeSection === "account" && (
+          <div
+            className={`divide-y ${
+              isDark ? "divide-white/10" : "divide-gray-200"
+            }`}
+          >
+            <SettingsFormSection
+              title="Account Information"
+              description="Manage your personal account details and preferences."
+            >
+              <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+                Account settings coming soon. This will include profile
+                management, email preferences, and notification settings.
+              </p>
+            </SettingsFormSection>
+          </div>
+        )}
+
+        {/* Billing Section */}
+        {activeSection === "billing" && isOwner && (
+          <div
+            className={`divide-y ${
+              isDark ? "divide-white/10" : "divide-gray-200"
+            }`}
+          >
+            <BillingSettingsTab userId={user!.id} />
+          </div>
+        )}
+
+        {/* Kitchen Settings Section */}
+        {activeSection === "kitchens" && selectedKitchen && (
+          <div
+            className={`divide-y ${
+              isDark ? "divide-white/10" : "divide-gray-200"
+            }`}
+          >
+            {activeKitchenTab === "general" && (
               <GeneralSettingsTab
-                kitchen={kitchen}
+                kitchen={selectedKitchen}
                 isOwner={!!isOwner}
-                onDeleted={() => navigate("/dashboard")}
+                onDeleted={() => navigate("/settings")}
               />
-            </TabPanel>
+            )}
 
-            <TabPanel value="schedule">
-              <ScheduleSettingsTab kitchenId={kitchenId} isOwner={!!isOwner} />
-            </TabPanel>
+            {activeKitchenTab === "schedule" && (
+              <ScheduleSettingsTab
+                kitchenId={selectedKitchen.id}
+                isOwner={!!isOwner}
+              />
+            )}
 
-            <TabPanel value="stations">
+            {activeKitchenTab === "stations" && (
               <StationsSettingsTab
-                kitchenId={kitchenId}
+                kitchenId={selectedKitchen.id}
                 isOwner={!!isOwner}
                 onUpgradeClick={() => setShowUpgradeModal(true)}
               />
-            </TabPanel>
+            )}
 
-            <TabPanel value="members">
+            {activeKitchenTab === "members" && (
               <MembersSettingsTab
-                kitchenId={kitchenId}
+                kitchenId={selectedKitchen.id}
                 userId={user?.id}
                 isOwner={!!isOwner}
                 onInviteClick={() => setShowInviteModal(true)}
               />
-            </TabPanel>
-
-            {isOwner && (
-              <TabPanel value="billing">
-                <BillingSettingsTab userId={user!.id} />
-              </TabPanel>
             )}
-          </Tabs>
-        </Card>
-      </div>
+          </div>
+        )}
 
-      <InviteLinkModal
-        isOpen={showInviteModal && !!kitchen}
-        kitchenId={kitchen?.id || ""}
-        kitchenName={kitchen?.name || ""}
-        onClose={() => setShowInviteModal(false)}
-      />
+        {/* Kitchen selection prompt */}
+        {activeSection === "kitchens" && !selectedKitchen && (
+          <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+            <div className="text-center">
+              <h2
+                className={classNames(
+                  "text-xl font-semibold mb-2",
+                  isDark ? "text-white" : "text-gray-900"
+                )}
+              >
+                Select a Kitchen
+              </h2>
+              <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+                Choose a kitchen from the sidebar to manage its settings
+              </p>
+            </div>
+          </div>
+        )}
+      </SettingsLayout>
+
+      {showInviteModal && selectedKitchen && (
+        <InviteLinkModal
+          isOpen={showInviteModal}
+          kitchenId={selectedKitchen.id}
+          kitchenName={selectedKitchen.name}
+          onClose={() => setShowInviteModal(false)}
+        />
+      )}
 
       <UpgradeModal
         isOpen={showUpgradeModal}

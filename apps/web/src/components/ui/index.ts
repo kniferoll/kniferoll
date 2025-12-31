@@ -4,7 +4,6 @@ export { DismissibleAlert } from "./DismissibleAlert";
 export { Card } from "./Card";
 export { Pill } from "./Pill";
 export { ControlsToggle } from "./ControlsToggle";
-export { DangerZone } from "./DangerZone";
 export {
   Dropdown,
   DropdownItem,
@@ -19,3 +18,5 @@ export { SettingsSection } from "./SettingsSection";
 export { SkeletonCard } from "./SkeletonCard";
 export { Tabs, TabList, Tab, TabPanel } from "./Tabs";
 export { ToolsMenu } from "./ToolsMenu";
+export { SettingsFormSection } from "./SettingsFormSection";
+export { DangerZone } from "./DangerZone";

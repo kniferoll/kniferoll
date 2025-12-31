@@ -107,8 +107,9 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/kitchen/:kitchenId" element={<KitchenDashboard />} />
             <Route path="/station/:stationId" element={<StationView />} />
+            <Route path="/settings" element={<KitchenSettings />} />
             <Route
-              path="/kitchen/:kitchenId/settings"
+              path="/settings/kitchen/:kitchenId"
               element={<KitchenSettings />}
             />
           </Route>

@@ -19,3 +19,7 @@ export { TeamIcon } from "./TeamIcon";
 export { TrashIcon } from "./TrashIcon";
 export { UnitsIcon } from "./UnitsIcon";
 export { XIcon } from "./XIcon";
+export { MenuIcon } from "./MenuIcon";
+export { SettingsIcon } from "./SettingsIcon";
+export { UserIcon } from "./UserIcon";
+export { CreditCardIcon } from "./CreditCardIcon";
