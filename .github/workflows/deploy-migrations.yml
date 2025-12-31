@@ -9,7 +9,21 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Only run if CI succeeded and it was a push (not PR)
+    # This workflow auto-deploys Supabase migrations to production.
+    #
+    # When it runs:
+    # - Triggers after the CI workflow completes on the main branch
+    # - Only proceeds if CI passed (workflow_run.conclusion == 'success')
+    # - Only proceeds if it was a 'push' event (not a PR)
+    #
+    # Why check for 'push'?
+    # - PRs to main trigger CI but shouldn't deploy migrations
+    # - When a PR is merged, GitHub fires a 'push' event to main
+    # - Since main is protected, direct pushes aren't allowed anyway
+    # - So 'push' effectively means "a PR was just merged"
+    #
+    # The workflow also checks if any migration files changed before
+    # running supabase db push, to avoid unnecessary deployments.
     if: >
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push'
