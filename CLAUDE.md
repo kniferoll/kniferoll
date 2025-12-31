@@ -205,3 +205,19 @@ Before completing frontend work:
 ## Mockups
 
 When prototyping UI changes, create isolated HTML/CSS/JS mockups in `mockups/` directory. These can be opened directly in a browser for review before integration.
+
+## Creating Pull Requests
+
+Use `gh pr create` to create PRs. The repo has a PR template at `.github/pull_request_template.md` that will be used automatically.
+
+```bash
+gh pr create --title "Brief description of changes"
+```
+
+The PR body should follow the template structure:
+- **What does this PR do?** - Brief description
+- **Type of change** - Check the appropriate box (Bug fix, New feature, Refactor, Documentation, Other)
+- **Checklist** - Verify all items pass before creating PR
+- **Screenshots** - Include if UI changes were made
+
+GitHub will auto-populate the template. Fill in the sections and check the boxes that apply.
