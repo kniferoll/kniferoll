@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { supabase } from "@/lib";
+import { supabase, setSentryUser } from "@/lib";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthState {
@@ -38,9 +38,11 @@ export const useAuthStore = create<AuthState>()(
           loading: false,
           initialized: true,
         });
+        setSentryUser(session?.user?.id ?? null);
 
         supabase.auth.onAuthStateChange((_event, session) => {
           set({ session, user: session?.user ?? null });
+          setSentryUser(session?.user?.id ?? null);
         });
       },
 

@@ -102,8 +102,61 @@ Realtime subscriptions: `useRealtimePrepItems`, `useRealtimeStations`, `useRealt
 
 ### Key Files
 - `lib/supabase.ts` - Supabase client
+- `lib/sentry.ts` - Sentry error tracking and performance monitoring
 - `lib/entitlements.ts` - Plan-based feature checks
 - `types/database.ts` - Generated Supabase types (never edit manually)
+
+## Sentry Error Tracking
+
+The app uses Sentry for error tracking and performance monitoring. Key patterns:
+
+### Capturing Errors
+Use `Sentry.captureException(error)` in try-catch blocks:
+```typescript
+import { captureError } from "@/lib";
+
+try {
+  await riskyOperation();
+} catch (error) {
+  captureError(error as Error, { context: "additional info" });
+}
+```
+
+### Performance Spans
+Create spans for meaningful actions (button clicks, API calls, function calls):
+```typescript
+import * as Sentry from "@sentry/react";
+
+// For async operations like Supabase queries
+async function fetchPrepItems(stationId: string) {
+  return Sentry.startSpan(
+    { name: "fetchPrepItems", op: "db.query" },
+    async () => {
+      const { data } = await supabase
+        .from("prep_items")
+        .select("*")
+        .eq("station_id", stationId);
+      return data;
+    }
+  );
+}
+
+// For UI interactions
+function handleClick() {
+  Sentry.startSpan(
+    { op: "ui.click", name: "Save Button Click" },
+    (span) => {
+      span.setAttribute("itemCount", items.length);
+      doSomething();
+    }
+  );
+}
+```
+
+### Environment Variables
+- `VITE_SENTRY_DSN` - Sentry DSN (set in Vercel, not committed)
+- `VITE_SENTRY_ENV` - Environment name (production/staging)
+- `SENTRY_AUTH_TOKEN` - For source map uploads (Vercel env only)
 
 ## Data Model
 
@@ -152,3 +205,19 @@ Before completing frontend work:
 ## Mockups
 
 When prototyping UI changes, create isolated HTML/CSS/JS mockups in `mockups/` directory. These can be opened directly in a browser for review before integration.
+
+## Creating Pull Requests
+
+Use `gh pr create` to create PRs. The repo has a PR template at `.github/pull_request_template.md` that will be used automatically.
+
+```bash
+gh pr create --title "Brief description of changes"
+```
+
+The PR body should follow the template structure:
+- **What does this PR do?** - Brief description
+- **Type of change** - Check the appropriate box (Bug fix, New feature, Refactor, Documentation, Other)
+- **Checklist** - Verify all items pass before creating PR
+- **Screenshots** - Include if UI changes were made
+
+GitHub will auto-populate the template. Fill in the sections and check the boxes that apply.

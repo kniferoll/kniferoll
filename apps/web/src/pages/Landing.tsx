@@ -172,6 +172,7 @@ export function Landing() {
               </Button>
             </Link>
           </div>
+
         </div>
       </section>
     </div>
