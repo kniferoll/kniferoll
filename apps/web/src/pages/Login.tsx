@@ -48,30 +48,32 @@ export function Login() {
   };
 
   return (
-    <AuthForm
-      title="Login"
-      subtitle="Sign in to manage your kitchen"
-      onSubmit={handleSubmit}
-      submitButtonText="Sign In"
-      loading={loading}
-      error={error}
-      footerText="Don't have an account?"
-      footerLink={{ text: "Sign up", to: "/signup" }}
-    >
-      <FormInput
-        id="email"
-        label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <FormInput
-        id="password"
-        label="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-    </AuthForm>
+    <div data-testid="page-login">
+      <AuthForm
+        title="Login"
+        subtitle="Sign in to manage your kitchen"
+        onSubmit={handleSubmit}
+        submitButtonText="Sign In"
+        loading={loading}
+        error={error}
+        footerText="Don't have an account?"
+        footerLink={{ text: "Sign up", to: "/signup" }}
+      >
+        <FormInput
+          id="email"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <FormInput
+          id="password"
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </AuthForm>
+    </div>
   );
 }

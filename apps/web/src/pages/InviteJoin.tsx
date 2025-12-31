@@ -238,7 +238,7 @@ export function InviteJoin() {
 
   // Join form (anonymous user)
   return (
-    <div className="w-full max-w-md mx-auto px-4 py-16">
+    <div data-testid="page-invite-join" className="w-full max-w-md mx-auto px-4 py-16">
       <div className="text-center mb-8">
         <h1
           className={`text-3xl font-bold mb-2 ${

@@ -377,7 +377,7 @@ export function KitchenDashboard() {
   const isLoading = stationsLoading || (isProgressLoading && !hasLoadedOnce);
 
   return (
-    <>
+    <div data-testid="page-kitchen-dashboard">
       <div className="max-w-7xl mx-auto px-4 py-8 w-full">
         {/* Controls - Desktop Layout */}
         <div className="hidden md:flex md:items-center md:justify-between gap-4 mb-8">
@@ -557,6 +557,6 @@ export function KitchenDashboard() {
           }
         }}
       />
-    </>
+    </div>
   );
 }
