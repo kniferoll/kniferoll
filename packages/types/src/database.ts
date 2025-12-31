@@ -169,6 +169,7 @@ export type Database = {
           created_at: string | null
           day_of_week: number
           id: string
+          is_hidden: boolean
           is_open: boolean
           kitchen_id: string
           shift_ids: string[] | null
@@ -178,6 +179,7 @@ export type Database = {
           created_at?: string | null
           day_of_week: number
           id?: string
+          is_hidden?: boolean
           is_open?: boolean
           kitchen_id: string
           shift_ids?: string[] | null
@@ -187,6 +189,7 @@ export type Database = {
           created_at?: string | null
           day_of_week?: number
           id?: string
+          is_hidden?: boolean
           is_open?: boolean
           kitchen_id?: string
           shift_ids?: string[] | null
@@ -207,6 +210,7 @@ export type Database = {
           created_at: string | null
           display_order: number | null
           id: string
+          is_hidden: boolean
           kitchen_id: string
           name: string
           updated_at: string | null
@@ -215,6 +219,7 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           id?: string
+          is_hidden?: boolean
           kitchen_id: string
           name: string
           updated_at?: string | null
@@ -223,6 +228,7 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           id?: string
+          is_hidden?: boolean
           kitchen_id?: string
           name?: string
           updated_at?: string | null
