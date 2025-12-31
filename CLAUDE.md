@@ -178,9 +178,12 @@ function handleClick() {
 
 - All schema changes MUST go in `supabase/migrations/` as timestamped SQL files
 - NEVER modify schema directly in Supabase dashboard
+- Create new migrations with: `supabase migration new <name>` (generates timestamped file)
 - After schema changes: run `supabase db reset`, then regenerate types
+- Regenerate types: `supabase gen types typescript --local > packages/types/src/database.ts`
 - RLS is mandatory - policies derive from `kitchen_members` membership
 - Use `getUserLimits()` from entitlements.ts, never hardcode plan limits
+- Migrations auto-deploy to prod when merged to main (via GitHub Actions)
 
 ## Code Patterns
 
