@@ -33,6 +33,25 @@ Implement feature using test-driven development: $ARGUMENTS
 
 5. **Write failing tests**
 
+   ### Test file location rules
+
+   **Component tests are colocated** with source files:
+   ```
+   src/components/ui/Button.tsx
+   src/components/ui/Button.test.tsx    ← next to source
+   ```
+
+   **Non-component tests** go in `src/test/` with structure mirroring source:
+   ```
+   src/test/unit/lib/           ← tests for src/lib/*.ts
+   src/test/unit/stores/        ← tests for src/stores/*.ts
+   src/test/integration/        ← cross-component, page-level tests
+   ```
+
+   Never put loose test files directly in `test/unit/` - always use subdirectories.
+
+   ### Writing the tests
+
    - Start with the happy path
    - Add edge cases: empty state, loading, errors
    - Add boundary conditions

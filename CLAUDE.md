@@ -38,6 +38,41 @@ supabase gen types typescript --local > apps/web/src/types/database.ts  # Regene
 
 ## Testing
 
+Uses **Vitest + React Testing Library**. RTL is framework-agnostic and works with Vitest.
+
+### Test File Location Rules
+
+**Component tests are colocated** with source files:
+```
+src/components/ui/Button.tsx
+src/components/ui/Button.test.tsx    ← colocated
+src/hooks/useKitchens.ts
+src/hooks/useKitchens.test.ts        ← colocated
+```
+
+**Non-component tests** go in `src/test/` with structure mirroring source:
+```
+src/test/
+├── utils/                    # Shared test utilities (setup, providers, helpers)
+├── integration/              # Cross-component, page-level, and performance tests
+└── unit/                     # Unit tests for lib/, stores/, and other non-component code
+    ├── lib/                  # Tests for src/lib/*.ts
+    │   ├── auth.test.ts
+    │   ├── dateUtils.test.ts
+    │   └── entitlements.test.ts
+    ├── stores/               # Tests for src/stores/*.ts
+    │   ├── authStore.test.ts
+    │   └── kitchenStore.test.ts
+    └── hooks/                # Tests for hooks that are hard to colocate
+```
+
+**Rules:**
+- Component/hook tests: colocate as `ComponentName.test.tsx` next to source
+- Pure utility functions (`lib/`): place in `test/unit/lib/`
+- Zustand stores: place in `test/unit/stores/`
+- Integration/performance tests: place in `test/integration/`
+- Never put loose test files directly in `test/unit/` - always use subdirectories
+
 ### Performance Budget Tests
 
 The project enforces render budgets to prevent performance regressions. Tests are in `apps/web/src/test/integration/`.
@@ -49,20 +84,6 @@ The project enforces render budgets to prevent performance regressions. Tests ar
 3. If a budget test fails, use React DevTools Profiler to identify unnecessary re-renders
 
 **Budget coverage is enforced** - all pages in `src/pages/` must have a corresponding budget entry (except static pages like PrivacyPolicy/TermsOfService which are excluded).
-
-### Test Structure
-
-```
-src/test/
-├── utils/
-│   ├── perf.tsx          # Render tracking utilities
-│   ├── providers.tsx     # Test wrapper with all providers
-│   └── setup.ts          # Vitest setup
-└── integration/
-    ├── budgets.ts        # Centralized performance budgets
-    ├── mount.perf.test.tsx       # Page mount tests
-    └── interactions.perf.test.tsx # User interaction tests
-```
 
 ## React App Architecture (apps/web/src/)
 
