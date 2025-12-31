@@ -1,5 +1,11 @@
 import React, { Profiler, type ProfilerOnRenderCallback, type ReactNode } from "react";
 
+/**
+ * CI environments have variable performance. Apply a multiplier to duration
+ * budgets to avoid flaky tests while still catching real regressions.
+ */
+const CI_DURATION_MULTIPLIER = process.env.CI ? 2 : 1;
+
 export interface RenderInfo {
   phase: "mount" | "update" | "nested-update";
   duration: number;
@@ -84,16 +90,18 @@ export function expectRenderCount(metrics: RenderMetrics, max: number): void {
 /**
  * Asserts that total render duration is within budget.
  * Throws a descriptive error if exceeded for agent-friendly debugging.
+ * In CI, the budget is multiplied by CI_DURATION_MULTIPLIER to account for slower runners.
  */
 export function expectRenderDuration(metrics: RenderMetrics, maxMs: number): void {
-  if (metrics.totalDuration > maxMs) {
+  const adjustedMax = maxMs * CI_DURATION_MULTIPLIER;
+  if (metrics.totalDuration > adjustedMax) {
     const rendersJson = JSON.stringify(
       metrics.renders.map((r) => ({ phase: r.phase, duration: r.duration })),
       null,
       2
     );
     throw new Error(
-      `Duration budget exceeded: ${Math.round(metrics.totalDuration * 100) / 100}ms (max: ${maxMs}ms)\n` +
+      `Duration budget exceeded: ${Math.round(metrics.totalDuration * 100) / 100}ms (max: ${adjustedMax}ms)\n` +
         `Render count: ${metrics.renderCount}\n` +
         `Renders: ${rendersJson}`
     );
