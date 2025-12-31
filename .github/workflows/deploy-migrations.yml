@@ -1,22 +1,37 @@
 name: Deploy Migrations
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
-    paths:
-      - "supabase/migrations/**"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only run if CI succeeded and it was a push (not PR)
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for migration changes
+        id: changes
+        run: |
+          # Get the commits from the triggering workflow
+          git fetch origin main --depth=2
+          if git diff --name-only HEAD~1 HEAD | grep -q '^supabase/migrations/'; then
+            echo "has_migrations=true" >> $GITHUB_OUTPUT
+          fi
+
       - uses: supabase/setup-cli@v1
+        if: steps.changes.outputs.has_migrations == 'true'
         with:
           version: latest
 
       - name: Link and push migrations
+        if: steps.changes.outputs.has_migrations == 'true'
         run: |
           supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
           supabase db push
