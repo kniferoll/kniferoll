@@ -1,5 +1,6 @@
 import { useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import * as Sentry from "@sentry/react";
 import { Analytics } from "@vercel/analytics/react";
 import { useAuthStore } from "./stores/authStore";
 import { PublicLayout, AppLayout } from "./layouts";
@@ -59,6 +60,30 @@ function LoadingFallback() {
   );
 }
 
+function ErrorFallback({ resetError }: { resetError: () => void }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center min-h-screen p-4 bg-linear-to-br from-amber-50 via-amber-50/80 to-orange-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
+      style={{
+        fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
+    >
+      <h1 className="text-xl font-semibold mb-2 text-slate-900 dark:text-white">
+        Something went wrong
+      </h1>
+      <p className="text-slate-600 dark:text-slate-400 mb-4">
+        We've been notified and are looking into it.
+      </p>
+      <button
+        onClick={resetError}
+        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
+
 function App() {
   const { initialize, user, loading } = useAuthStore();
 
@@ -80,48 +105,50 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          {/* 
-            Public routes - accessible to everyone
-            Uses PublicLayout with marketing header/footer
-          */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/join" element={<JoinWithCode />} />
-            <Route path="/join/:token" element={<InviteJoin />} />
-            <Route path="/terms" element={<TermsOfService />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-          </Route>
+    <Sentry.ErrorBoundary fallback={ErrorFallback}>
+      <BrowserRouter>
+        <ScrollToTop />
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            {/*
+              Public routes - accessible to everyone
+              Uses PublicLayout with marketing header/footer
+            */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/join" element={<JoinWithCode />} />
+              <Route path="/join/:token" element={<InviteJoin />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+            </Route>
 
-          {/* 
-            App routes - require authentication
-            Uses AppLayout which redirects to /login if not authenticated
-            Each page can customize the header via useHeaderConfig
-          */}
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/kitchen/:kitchenId" element={<KitchenDashboard />} />
-            <Route path="/station/:stationId" element={<StationView />} />
+            {/*
+              App routes - require authentication
+              Uses AppLayout which redirects to /login if not authenticated
+              Each page can customize the header via useHeaderConfig
+            */}
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/kitchen/:kitchenId" element={<KitchenDashboard />} />
+              <Route path="/station/:stationId" element={<StationView />} />
+              <Route
+                path="/kitchen/:kitchenId/settings"
+                element={<KitchenSettings />}
+              />
+            </Route>
+
+            {/* Catch all - redirect to landing or dashboard */}
             <Route
-              path="/kitchen/:kitchenId/settings"
-              element={<KitchenSettings />}
+              path="*"
+              element={<Navigate to={user ? "/dashboard" : "/"} replace />}
             />
-          </Route>
-
-          {/* Catch all - redirect to landing or dashboard */}
-          <Route
-            path="*"
-            element={<Navigate to={user ? "/dashboard" : "/"} replace />}
-          />
-        </Routes>
-      </Suspense>
-      <Analytics />
-    </BrowserRouter>
+          </Routes>
+        </Suspense>
+        <Analytics />
+      </BrowserRouter>
+    </Sentry.ErrorBoundary>
   );
 }
 

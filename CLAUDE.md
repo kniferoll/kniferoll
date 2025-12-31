@@ -102,8 +102,61 @@ Realtime subscriptions: `useRealtimePrepItems`, `useRealtimeStations`, `useRealt
 
 ### Key Files
 - `lib/supabase.ts` - Supabase client
+- `lib/sentry.ts` - Sentry error tracking and performance monitoring
 - `lib/entitlements.ts` - Plan-based feature checks
 - `types/database.ts` - Generated Supabase types (never edit manually)
+
+## Sentry Error Tracking
+
+The app uses Sentry for error tracking and performance monitoring. Key patterns:
+
+### Capturing Errors
+Use `Sentry.captureException(error)` in try-catch blocks:
+```typescript
+import { captureError } from "@/lib";
+
+try {
+  await riskyOperation();
+} catch (error) {
+  captureError(error as Error, { context: "additional info" });
+}
+```
+
+### Performance Spans
+Create spans for meaningful actions (button clicks, API calls, function calls):
+```typescript
+import * as Sentry from "@sentry/react";
+
+// For async operations like Supabase queries
+async function fetchPrepItems(stationId: string) {
+  return Sentry.startSpan(
+    { name: "fetchPrepItems", op: "db.query" },
+    async () => {
+      const { data } = await supabase
+        .from("prep_items")
+        .select("*")
+        .eq("station_id", stationId);
+      return data;
+    }
+  );
+}
+
+// For UI interactions
+function handleClick() {
+  Sentry.startSpan(
+    { op: "ui.click", name: "Save Button Click" },
+    (span) => {
+      span.setAttribute("itemCount", items.length);
+      doSomething();
+    }
+  );
+}
+```
+
+### Environment Variables
+- `VITE_SENTRY_DSN` - Sentry DSN (set in Vercel, not committed)
+- `VITE_SENTRY_ENV` - Environment name (production/staging)
+- `SENTRY_AUTH_TOKEN` - For source map uploads (Vercel env only)
 
 ## Data Model
 
