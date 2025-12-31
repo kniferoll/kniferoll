@@ -33,9 +33,29 @@ Increase test coverage by 10% toward our goal of 90%.
 
 4. **Write tests**
 
-   Test files go in `src/test/`:
-   - `src/test/unit/` - Unit tests for pure functions, stores, hooks
-   - `src/test/integration/` - Performance budget tests (existing)
+   ### Test file location rules
+
+   **Component tests are colocated** with source files:
+   ```
+   src/components/ui/Button.tsx
+   src/components/ui/Button.test.tsx    ← next to source
+   src/hooks/useKitchens.ts
+   src/hooks/useKitchens.test.ts        ← next to source
+   ```
+
+   **Non-component tests** go in `src/test/` with structure mirroring source:
+   ```
+   src/test/unit/lib/           ← tests for src/lib/*.ts
+   src/test/unit/stores/        ← tests for src/stores/*.ts
+   src/test/unit/hooks/         ← tests for hooks that are hard to colocate
+   src/test/integration/        ← cross-component, page-level, perf tests
+   ```
+
+   **Rules:**
+   - Component/hook tests: colocate as `Name.test.tsx` next to source
+   - Pure utility functions (`lib/`): place in `test/unit/lib/`
+   - Zustand stores: place in `test/unit/stores/`
+   - Never put loose test files directly in `test/unit/` - always use subdirectories
 
    ### Mocking Supabase in stores/hooks
 
