@@ -5,6 +5,12 @@ import type { DbPrepItem, Database, PrepStatus } from "@kniferoll/types";
 type PrepItemInsert = Database["public"]["Tables"]["prep_items"]["Insert"];
 type PrepItemUpdate = Database["public"]["Tables"]["prep_items"]["Update"];
 
+// Type for prep items with joined kitchen_items and kitchen_units
+interface PrepItemWithJoins extends DbPrepItem {
+  kitchen_items: { name: string } | null;
+  kitchen_units: { name: string } | null;
+}
+
 // Type for prep items with description and unit_name fields
 export type PrepItemWithDescription = DbPrepItem & {
   description: string;
@@ -102,7 +108,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
       }
 
       // Transform the data to include description and unit_name from joined tables
-      const transformedData = (data || []).map((item: any) => ({
+      const transformedData = ((data || []) as PrepItemWithJoins[]).map((item) => ({
         ...item,
         description: item.kitchen_items?.name || "Unknown item",
         unit_name: item.kitchen_units?.name || null,
@@ -159,10 +165,11 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         return { error: error.message };
       }
 
+      const dataWithJoins = data as unknown as PrepItemWithJoins;
       const transformedItem = {
         ...data,
-        description: (data as any).kitchen_items?.name || optimisticData?.description || "Unknown item",
-        unit_name: (data as any).kitchen_units?.name || optimisticData?.unit_name || null,
+        description: dataWithJoins.kitchen_items?.name || optimisticData?.description || "Unknown item",
+        unit_name: dataWithJoins.kitchen_units?.name || optimisticData?.unit_name || null,
       };
 
       // Replace temp item with real item

@@ -7,7 +7,7 @@ import {
   usePrepEntryStore,
   usePrepStore,
 } from "@/stores";
-import { useRealtimePrepItems, useHeaderConfig } from "@/hooks";
+import { useRealtimePrepItems, useHeaderConfig, usePlanLimits, useStripeCheckout } from "@/hooks";
 import { supabase, getDeviceToken } from "@/lib";
 import { jsDateToDatabaseDayOfWeek, toLocalDate, isClosedDay, findNextOpenDay } from "@/lib";
 
@@ -29,6 +29,7 @@ import {
   InviteLinkModal,
   EditPrepItemModal,
   CopyRecentItemsModal,
+  UpgradeModal,
 } from "@/components";
 import { getTodayLocalDate } from "@/lib";
 import { useDarkModeContext } from "@/context";
@@ -69,6 +70,8 @@ export function StationView() {
   } = useKitchenStore();
   const { user } = useAuthStore();
   const { isDark } = useDarkModeContext();
+  const { limits } = usePlanLimits();
+  const { handleCheckout } = useStripeCheckout();
 
   // Local state
   const station = stations.find((s) => s.id === stationId);
@@ -93,6 +96,7 @@ export function StationView() {
   });
   const [sortTrigger, setSortTrigger] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showInviteUpgradeModal, setShowInviteUpgradeModal] = useState(false);
   const [editingItem, setEditingItem] = useState<{
     id: string;
     description: string;
@@ -146,6 +150,14 @@ export function StationView() {
     availableShiftIds.includes(s.id)
   );
 
+  const handleInviteClick = () => {
+    if (limits?.canInviteAsOwner) {
+      setShowInviteModal(true);
+    } else {
+      setShowInviteUpgradeModal(true);
+    }
+  };
+
   // Configure custom header for this page
   useHeaderConfig(
     {
@@ -178,7 +190,7 @@ export function StationView() {
           end={
             <UserAvatarMenu
               kitchenId={currentKitchen?.id}
-              onInvite={() => setShowInviteModal(true)}
+              onInvite={handleInviteClick}
             />
           }
         />
@@ -244,6 +256,7 @@ export function StationView() {
 
   // Reset closed alert dismissed state when date changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setClosedAlertDismissed(false);
   }, [selectedDate]);
 
@@ -282,11 +295,13 @@ export function StationView() {
       );
       if (!isCurrentShiftAvailable) {
         const fallbackShift = availableShifts[0];
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedShiftId(fallbackShift.id);
         setStoredShiftName(fallbackShift.name); // Sync to store
       }
     } else if (availableShifts.length > 0 && !selectedShiftId) {
       const fallbackShift = availableShifts[0];
+       
       setSelectedShiftId(fallbackShift.id);
       setStoredShiftName(fallbackShift.name); // Sync to store
     }
@@ -650,7 +665,7 @@ export function StationView() {
             />
           ) : (
             <PrepItemList
-              items={prepItems as any}
+              items={prepItems}
               onCycleStatus={handleCycleStatus}
               onDelete={handleDelete}
               onEdit={handleEdit}
@@ -739,6 +754,27 @@ export function StationView() {
           shiftDays={shiftDays}
         />
       )}
+
+      {/* Upgrade Modal - Invites */}
+      <UpgradeModal
+        isOpen={showInviteUpgradeModal}
+        onClose={() => setShowInviteUpgradeModal(false)}
+        title="Invite Your Team"
+        description="Collaboration is a Pro feature. Upgrade to share prep lists with your team and work together in real-time."
+        features={[
+          "Invite your team with shareable links",
+          "Real-time collaboration on prep lists",
+          "Unlimited stations per kitchen",
+          "Manage up to 5 kitchens",
+        ]}
+        onUpgrade={async () => {
+          try {
+            await handleCheckout();
+          } catch (error) {
+            console.error("Checkout failed:", error);
+          }
+        }}
+      />
     </div>
   );
 }

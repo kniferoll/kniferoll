@@ -82,6 +82,7 @@ function PrepItemListInner({
 
         return a.description.localeCompare(b.description);
       });
+       
       setDisplayOrder(sorted.map((item) => item.id));
       // Animate all items with sorting animation
       sorted.forEach((item, index) => {
@@ -91,11 +92,13 @@ function PrepItemListInner({
         }, index * 50);
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldSort]);
 
   // Handle new items being added or removed
   useEffect(() => {
     if (items.length === 0) {
+       
       setDisplayOrder([]);
       setInitialLoadDone(false);
       prevStatusRef.current = new Map();

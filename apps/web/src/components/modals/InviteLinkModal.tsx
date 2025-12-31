@@ -24,6 +24,7 @@ export function InviteLinkModal({
   // Load existing invite links
   useEffect(() => {
     loadInviteLinks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kitchenId]);
 
   const loadInviteLinks = async () => {
@@ -93,7 +94,7 @@ export function InviteLinkModal({
       await navigator.clipboard.writeText(url);
       setCopiedLinkId(link.id);
       setTimeout(() => setCopiedLinkId(null), 2000);
-    } catch (err) {
+    } catch {
       setError("Failed to copy to clipboard");
     }
   };

@@ -23,7 +23,7 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
     setError("");
     try {
       await handleCheckout();
-    } catch (err) {
+    } catch {
       setError("Failed to start checkout. Please try again.");
     }
   };
@@ -36,7 +36,7 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
         userId,
         returnUrl: window.location.href,
       });
-    } catch (err) {
+    } catch {
       setError("Failed to open customer portal. Please try again.");
       setPortalLoading(false);
     }

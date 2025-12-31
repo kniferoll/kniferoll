@@ -402,7 +402,7 @@ export const useKitchenStore = create<KitchenState>()(
             return { error: "Invite link has reached max uses" };
           }
 
-          const kitchen = (inviteLink as any).kitchens;
+          const kitchen = (inviteLink as unknown as { kitchens: DbKitchen }).kitchens;
           if (!kitchen) {
             set({ loading: false, error: "Kitchen not found" });
             return { error: "Kitchen not found" };

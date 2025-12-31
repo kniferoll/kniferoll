@@ -34,6 +34,7 @@ export function StationsSettingsTab({
 
   useEffect(() => {
     loadStations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kitchenId]);
 
   const loadStations = async () => {

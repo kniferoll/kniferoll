@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "@/lib";
-import { usePrepStore } from "@/stores";
+import { usePrepStore, type PrepItemWithDescription } from "@/stores";
 import type { DbPrepItem } from "@kniferoll/types";
 
 export function useRealtimePrepItems(
@@ -64,7 +64,7 @@ export function useRealtimePrepItems(
           if (!alreadyExists) {
             const itemWithDetails = await fetchWithDescription(newItem);
             usePrepStore.setState({
-              prepItems: [...currentItems, itemWithDetails as any],
+              prepItems: [...currentItems, itemWithDetails as PrepItemWithDescription],
             });
           }
         }
@@ -102,7 +102,7 @@ export function useRealtimePrepItems(
 
           usePrepStore.setState({
             prepItems: currentItems.map((item) =>
-              item.id === updatedItem.id ? (itemWithDetails as any) : item
+              item.id === updatedItem.id ? (itemWithDetails as PrepItemWithDescription) : item
             ),
           });
         }

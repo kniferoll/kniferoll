@@ -14,6 +14,7 @@ export function useRealtimeMembers(kitchenId: string | undefined) {
   useEffect(() => {
     if (!kitchenId) return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     // Initial load
     supabase

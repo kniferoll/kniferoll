@@ -3,9 +3,20 @@ import { supabase } from "@/lib";
 import type {
   DbKitchenUnit,
   DbPrepItem,
+  DbPrepItemSuggestion,
   RecencyScoredSuggestion,
 } from "@kniferoll/types";
 import { rankSuggestions } from "@/lib";
+
+// Type for suggestion rows with joined kitchen_items
+interface SuggestionWithKitchenItem extends DbPrepItemSuggestion {
+  kitchen_items: { name: string } | null;
+}
+
+// Type for prep item rows with joined kitchen_items
+interface PrepItemWithKitchenItem extends DbPrepItem {
+  kitchen_items: { name: string } | null;
+}
 
 /**
  * Compute which suggestions should be displayed (top N that aren't dismissed or duplicates)
@@ -135,15 +146,15 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         });
       } else {
         // Transform suggestions to include description field from kitchen_items
-        const allSuggestions = (suggestionsResponse.data || []).map(
-          (s: any) => ({
+        const allSuggestions = ((suggestionsResponse.data || []) as SuggestionWithKitchenItem[]).map(
+          (s) => ({
             ...s,
             description: s.kitchen_items?.name || "Unknown item",
           })
         );
         // Transform current items to include description field from kitchen_items
-        const currentItems = (currentItemsResponse?.data || []).map(
-          (item: any) => ({
+        const currentItems = ((currentItemsResponse?.data || []) as PrepItemWithKitchenItem[]).map(
+          (item) => ({
             ...item,
             description: item.kitchen_items?.name || "Unknown item",
           })
@@ -193,7 +204,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         // Get units from recent suggestions (use stored masterSuggestions)
         const storedSuggestions = get().masterSuggestions;
         for (const suggestion of storedSuggestions) {
-          const unitId = (suggestion as any).last_unit_id;
+          const unitId = suggestion.last_unit_id;
           if (unitId && !recentUnitIds.has(unitId)) {
             const unit = units.find((u) => u.id === unitId);
             if (unit) {
@@ -301,7 +312,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
             unitId ? get().allUnits.find((u) => u.id === unitId)?.name : null
           ),
           status: "pending",
-          created_by_user: userId as any,
+          created_by_user: userId,
         })
         .select()
         .single();
@@ -326,11 +337,12 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         if (isCurrentView) {
           // Add description and unit_name to match PrepItemWithDescription type
           const unitName = unitId ? get().allUnits.find((u) => u.id === unitId)?.name : null;
-          const newItemWithDescription = {
+          type PrepItemWithDescription = (typeof currentItems)[number];
+          const newItemWithDescription: PrepItemWithDescription = {
             ...newPrepItem,
             description: normalizedName,
             unit_name: unitName || null,
-          } as any;
+          };
           usePrepStore.setState({
             prepItems: [...currentItems, newItemWithDescription],
           });
@@ -409,13 +421,9 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
     });
   },
 
-  dismissSuggestionPersistent: async (
-    suggestionId,
-    _stationId,
-    _shiftDate,
-    _shiftId,
-    _userId
-  ) => {
+  // Parameters kept for interface compatibility (may be needed for future DB persistence)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  dismissSuggestionPersistent: async (suggestionId, _stationId, _shiftDate, _shiftId, _userId) => {
     // Update local state immediately for responsive UI
     // Note: In the new schema, dismissals are session-based (not persisted to DB)
     get().dismissSuggestion(suggestionId);

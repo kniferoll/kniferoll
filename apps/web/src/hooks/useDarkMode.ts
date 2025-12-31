@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
 
+// Helper function to apply dark mode class to document
+const applyDarkMode = (dark: boolean) => {
+  const html = document.documentElement;
+  if (dark) {
+    html.classList.add("dark");
+  } else {
+    html.classList.remove("dark");
+  }
+};
+
 export function useDarkMode() {
   const [isDark, setIsDark] = useState<boolean | null>(null);
 
@@ -8,6 +18,7 @@ export function useDarkMode() {
     const saved = localStorage.getItem("dark-mode");
     if (saved !== null) {
       const isDarkMode = saved === "true";
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsDark(isDarkMode);
       applyDarkMode(isDarkMode);
     } else {
@@ -15,6 +26,7 @@ export function useDarkMode() {
       const prefersDark = window.matchMedia(
         "(prefers-color-scheme: dark)"
       ).matches;
+       
       setIsDark(prefersDark);
       applyDarkMode(prefersDark);
     }
@@ -41,15 +53,6 @@ export function useDarkMode() {
       applyDarkMode(newValue);
       return newValue;
     });
-  };
-
-  const applyDarkMode = (dark: boolean) => {
-    const html = document.documentElement;
-    if (dark) {
-      html.classList.add("dark");
-    } else {
-      html.classList.remove("dark");
-    }
   };
 
   return { isDark, toggle };

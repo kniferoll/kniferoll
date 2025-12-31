@@ -14,7 +14,7 @@ interface PrepItemEntryFormProps {
     description: string,
     unitId: string | null,
     quantity: number | null
-  ) => Promise<{ error?: any } | void>;
+  ) => Promise<{ error?: string } | void>;
   onDismissSuggestion: (suggestionId: string) => void;
   disabled?: boolean;
   isLoading?: boolean;
@@ -70,8 +70,8 @@ export function PrepItemEntryForm({
       (s) => (s.description || "").toLowerCase() === searchTerm
     );
 
-    if (matchingSuggestion && (matchingSuggestion as any).last_unit_id) {
-      const lastUnitId = (matchingSuggestion as any).last_unit_id;
+    if (matchingSuggestion && matchingSuggestion.last_unit_id) {
+      const lastUnitId = matchingSuggestion.last_unit_id;
       const lastUnit = allUnits.find((u) => u.id === lastUnitId);
       if (lastUnit) {
         // Move the last-used unit to the front
@@ -158,14 +158,14 @@ export function PrepItemEntryForm({
     isProgrammaticChange.current = true;
     setDescription(suggestion.description || "");
     // Use last_unit_id from prep_item_suggestions
-    if ((suggestion as any).last_unit_id) {
-      setSelectedUnitId((suggestion as any).last_unit_id);
+    if (suggestion.last_unit_id) {
+      setSelectedUnitId(suggestion.last_unit_id);
     } else {
       setSelectedUnitId(null);
     }
     // Pre-fill quantity if last_quantity is available
-    if ((suggestion as any).last_quantity) {
-      setQuantity((suggestion as any).last_quantity.toString());
+    if (suggestion.last_quantity) {
+      setQuantity(suggestion.last_quantity.toString());
     } else {
       setQuantity("");
     }
@@ -345,15 +345,15 @@ export function PrepItemEntryForm({
                       className="w-full px-4 py-3 text-left hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-900 dark:text-slate-100 border-b border-stone-100 dark:border-slate-700 last:border-b-0 transition-colors"
                     >
                       <div className="font-medium">
-                        {(suggestion as any).description || "Unknown item"}
+                        {suggestion.description || "Unknown item"}
                       </div>
-                      {(suggestion as any).last_quantity &&
-                        (suggestion as any).last_unit_id && (
+                      {suggestion.last_quantity &&
+                        suggestion.last_unit_id && (
                           <div className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
-                            Last: {(suggestion as any).last_quantity}{" "}
+                            Last: {suggestion.last_quantity}{" "}
                             {
                               allUnits.find(
-                                (u) => u.id === (suggestion as any).last_unit_id
+                                (u) => u.id === suggestion.last_unit_id
                               )?.name
                             }
                           </div>

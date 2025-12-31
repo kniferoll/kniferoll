@@ -211,7 +211,13 @@ export function Dashboard() {
         isOpen={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
         title="Manage Multiple Kitchens"
-        description="Running prep at more than one spot? Pro lets you manage unlimited kitchens from one account—switch between venues without logging out."
+        description="Running prep at more than one spot? Pro lets you manage up to 5 kitchens from one account—switch between venues without logging out."
+        features={[
+          "Manage up to 5 kitchens",
+          "Unlimited stations per kitchen",
+          "Invite your team with shareable links",
+          "Real-time collaboration on prep lists",
+        ]}
         onUpgrade={async () => {
           try {
             await handleCheckout();

@@ -56,6 +56,7 @@ export function useStations(kitchenId: string | undefined) {
     // Show loading on initial load or kitchen change
     const showLoading = isKitchenChange || stations.length === 0;
     fetchStations(showLoading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kitchenId]);
 
   const refetch = useCallback(() => fetchStations(false), [fetchStations]);

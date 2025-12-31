@@ -57,7 +57,7 @@ export function KitchenDashboard() {
   } = useKitchenStore();
   const { stations, isInitialLoading: stationsLoading, refetch: refetchStations } = useStations(kitchenId);
   const { createStation, loading: createStationLoading } = useCreateStation();
-  const { canCreateStation } = usePlanLimits();
+  const { limits, canCreateStation } = usePlanLimits();
   const { handleCheckout } = useStripeCheckout();
   const [progress, setProgress] = useState<StationProgress[]>([]);
   const [isProgressLoading, setIsProgressLoading] = useState(true);
@@ -66,6 +66,7 @@ export function KitchenDashboard() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showAddStationModal, setShowAddStationModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showInviteUpgradeModal, setShowInviteUpgradeModal] = useState(false);
   const [canAddStation, setCanAddStation] = useState<boolean | null>(null);
   const [kitchenShifts, setKitchenShifts] = useState<
     Array<{ id: string; name: string }>
@@ -103,6 +104,14 @@ export function KitchenDashboard() {
     return dayConfig && !dayConfig.is_open;
   });
 
+  const handleInviteClick = () => {
+    if (limits?.canInviteAsOwner) {
+      setShowInviteModal(true);
+    } else {
+      setShowInviteUpgradeModal(true);
+    }
+  };
+
   // Configure header: Back | Logo + Kitchen Name | Avatar Menu
   useHeaderConfig(
     {
@@ -126,7 +135,7 @@ export function KitchenDashboard() {
           end={
             <UserAvatarMenu
               kitchenId={kitchenId}
-              onInvite={() => setShowInviteModal(true)}
+              onInvite={handleInviteClick}
             />
           }
         />
@@ -197,6 +206,7 @@ export function KitchenDashboard() {
     if (availableShifts.length > 0) {
       const isCurrentShiftAvailable = availableShifts.includes(selectedShift);
       if (!isCurrentShiftAvailable) {
+         
         setSelectedShift(availableShifts[0]);
       }
     }
@@ -208,6 +218,7 @@ export function KitchenDashboard() {
 
   // Reset closed alert dismissed state when date changes
   useEffect(() => {
+     
     setClosedAlertDismissed(false);
   }, [selectedDate]);
 
@@ -217,12 +228,14 @@ export function KitchenDashboard() {
   // Check if user can create stations in this kitchen
   useEffect(() => {
     if (!kitchenId) {
+       
       setCanAddStation(null);
       return;
     }
 
     const checkCanAdd = async () => {
       const result = await canCreateStation(kitchenId);
+       
       setCanAddStation(result);
     };
 
@@ -232,7 +245,9 @@ export function KitchenDashboard() {
   // Fetch progress data for all stations
   useEffect(() => {
     if (!stations.length) {
+       
       setProgress([]);
+       
       setIsProgressLoading(false);
       return;
     }
@@ -380,7 +395,7 @@ export function KitchenDashboard() {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => setShowInviteModal(true)}
+              onClick={handleInviteClick}
             >
               <span className="flex items-center gap-2">
                 <TeamIcon className="w-4 h-4" />
@@ -502,12 +517,39 @@ export function KitchenDashboard() {
         isLoading={createStationLoading}
       />
 
-      {/* Upgrade Modal */}
+      {/* Upgrade Modal - Stations */}
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         title="Add Unlimited Stations"
         description="Free accounts are limited to one station. Upgrade to Pro to add unlimited stations and organize your kitchen prep across multiple areas."
+        features={[
+          "Unlimited stations per kitchen",
+          "Invite your team with shareable links",
+          "Manage up to 5 kitchens",
+          "Priority support",
+        ]}
+        onUpgrade={async () => {
+          try {
+            await handleCheckout();
+          } catch (error) {
+            console.error("Checkout failed:", error);
+          }
+        }}
+      />
+
+      {/* Upgrade Modal - Invites */}
+      <UpgradeModal
+        isOpen={showInviteUpgradeModal}
+        onClose={() => setShowInviteUpgradeModal(false)}
+        title="Invite Your Team"
+        description="Collaboration is a Pro feature. Upgrade to share prep lists with your team and work together in real-time."
+        features={[
+          "Invite your team with shareable links",
+          "Real-time collaboration on prep lists",
+          "Unlimited stations per kitchen",
+          "Manage up to 5 kitchens",
+        ]}
         onUpgrade={async () => {
           try {
             await handleCheckout();

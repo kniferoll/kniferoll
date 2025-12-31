@@ -65,9 +65,11 @@ export function AddStationModal({
           value={stationName}
           onChange={(e) => setStationName(e.target.value)}
           placeholder="e.g., Garde Manger, Grill, Prep..."
-          error={error || undefined}
           autoFocus
         />
+        {error && (
+          <p className="text-sm text-red-500 mt-2">{error}</p>
+        )}
 
         <div className="flex gap-3 mt-6">
           <Button

@@ -4,6 +4,11 @@ import type { DbPrepItemSuggestion } from "@kniferoll/types";
 
 type KitchenItemSuggestion = DbPrepItemSuggestion & { description?: string };
 
+// Type for suggestion with joined kitchen_items
+interface SuggestionWithJoin extends DbPrepItemSuggestion {
+  kitchen_items: { name: string } | null;
+}
+
 interface RankedSuggestion extends KitchenItemSuggestion {
   score: number;
 }
@@ -58,7 +63,7 @@ export function useItemSuggestions(
         }
 
         // Transform to include description from kitchen_items
-        const transformed = allSuggestions.map((s: any) => ({
+        const transformed = (allSuggestions as SuggestionWithJoin[]).map((s) => ({
           ...s,
           description: s.kitchen_items?.name || "Unknown item",
         }));
@@ -122,5 +127,5 @@ export function useItemSuggestions(
 export function getLastQuantity(
   suggestion: KitchenItemSuggestion
 ): number | null {
-  return (suggestion as any).last_quantity || null;
+  return suggestion.last_quantity || null;
 }

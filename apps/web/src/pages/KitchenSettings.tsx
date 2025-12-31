@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
-import { useKitchen } from "@/hooks";
+import { useKitchen, useStripeCheckout } from "@/hooks";
 import { useHeaderConfig } from "@/hooks";
 import { useDarkModeContext } from "@/context";
 import {
@@ -27,6 +27,7 @@ export function KitchenSettings() {
   const { user } = useAuthStore();
   const { isDark } = useDarkModeContext();
   const { kitchen, loading } = useKitchen(kitchenId);
+  const { handleCheckout } = useStripeCheckout();
 
   const [activeTab, setActiveTab] = useState("general");
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -145,7 +146,19 @@ export function KitchenSettings() {
         onClose={() => setShowUpgradeModal(false)}
         title="Unlock Unlimited Stations"
         description="Your free plan includes 1 station per kitchen. Upgrade to Pro to add as many stations as your kitchen needs."
-        onUpgrade={() => setShowUpgradeModal(false)}
+        features={[
+          "Unlimited stations per kitchen",
+          "Invite your team with shareable links",
+          "Manage up to 5 kitchens",
+          "Real-time collaboration on prep lists",
+        ]}
+        onUpgrade={async () => {
+          try {
+            await handleCheckout();
+          } catch (error) {
+            console.error("Checkout failed:", error);
+          }
+        }}
       />
     </>
   );

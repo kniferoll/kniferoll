@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 interface PendingAction {
   id: string;
   type: "toggle_complete" | "add_item" | "delete_item" | "update_item";
-  payload: any;
+  payload: Record<string, unknown>;
   timestamp: number;
 }
 

@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import type { UserProfile } from "@kniferoll/types";
+import type { User } from "@supabase/supabase-js";
 
 /**
  * Get current authenticated user session
@@ -178,7 +179,7 @@ export async function updateUserDisplayName(displayName: string) {
 /**
  * Subscribe to auth state changes
  */
-export function onAuthStateChange(callback: (user: any | null) => void) {
+export function onAuthStateChange(callback: (user: User | null) => void) {
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {

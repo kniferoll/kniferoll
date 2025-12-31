@@ -32,6 +32,15 @@ interface CopyRecentItemsModalProps {
   shiftDays: Map<number, { is_open: boolean; shift_ids: string[] }>;
 }
 
+interface PrepItemRow {
+  kitchen_item_id: string;
+  quantity: number | null;
+  unit_id: string | null;
+  created_at: string;
+  kitchen_items: { name: string } | null;
+  kitchen_units: { name: string } | null;
+}
+
 const UNIT_CATEGORIES = [
   { key: "pan", label: "Pans" },
   { key: "container", label: "Containers" },
@@ -45,13 +54,10 @@ const UNIT_CATEGORIES = [
 export function CopyRecentItemsModal({
   isOpen,
   onClose,
-  mode: _mode,
   stationId,
   shiftId,
   targetDate,
   targetDateLabel,
-  kitchenId: _kitchenId,
-  shiftDays: _shiftDays,
 }: CopyRecentItemsModalProps) {
   const { allUnits } = usePrepEntryStore();
 
@@ -119,15 +125,15 @@ export function CopyRecentItemsModal({
         const seen = new Set<string>();
         const dedupedItems: RecentItem[] = [];
 
-        for (const item of recentResponse.data || []) {
+        for (const item of (recentResponse.data || []) as PrepItemRow[]) {
           if (!seen.has(item.kitchen_item_id)) {
             seen.add(item.kitchen_item_id);
             dedupedItems.push({
               kitchen_item_id: item.kitchen_item_id,
-              description: (item.kitchen_items as any)?.name || "Unknown item",
+              description: item.kitchen_items?.name || "Unknown item",
               last_quantity: item.quantity,
               last_unit_id: item.unit_id,
-              last_unit_name: (item.kitchen_units as any)?.name || null,
+              last_unit_name: item.kitchen_units?.name || null,
               last_used: item.created_at,
             });
 

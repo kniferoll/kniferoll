@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useKitchenStore } from "@/stores";
 import { usePlanLimits, useStripeCheckout } from "@/hooks";
 import { WizardModal } from "./WizardModal";
@@ -68,38 +68,32 @@ export function KitchenOnboardingModal({
   const [stations, setStations] = useState<string[]>(["Garde Manger"]);
   const [error, setError] = useState("");
 
-  // Reset form when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      setStep("name");
-      setKitchenName("");
-      setClosedDays([]);
-      setSelectedShifts(["Lunch", "Dinner"]);
-      setScheduleMode("same");
-      setPerDaySchedule({
-        monday: ["Lunch", "Dinner"],
-        tuesday: ["Lunch", "Dinner"],
-        wednesday: ["Lunch", "Dinner"],
-        thursday: ["Lunch", "Dinner"],
-        friday: ["Lunch", "Dinner"],
-        saturday: ["Lunch", "Dinner"],
-        sunday: ["Lunch", "Dinner"],
-      });
-      setStations(["Garde Manger"]);
-      setError("");
-    }
-  }, [isOpen]);
+  // Reset form when modal closes - using event handler instead of effect
+  const handleClose = () => {
+    setStep("name");
+    setKitchenName("");
+    setClosedDays([]);
+    setSelectedShifts(["Lunch", "Dinner"]);
+    setScheduleMode("same");
+    setPerDaySchedule({
+      monday: ["Lunch", "Dinner"],
+      tuesday: ["Lunch", "Dinner"],
+      wednesday: ["Lunch", "Dinner"],
+      thursday: ["Lunch", "Dinner"],
+      friday: ["Lunch", "Dinner"],
+      saturday: ["Lunch", "Dinner"],
+      sunday: ["Lunch", "Dinner"],
+    });
+    setStations(["Garde Manger"]);
+    setError("");
+    onClose();
+  };
 
-  // Enforce station limit
-  useEffect(() => {
-    if (limits && limits.maxStationsPerKitchen < Infinity) {
-      setStations((prev) =>
-        prev.length > limits.maxStationsPerKitchen
-          ? prev.slice(0, limits.maxStationsPerKitchen)
-          : prev
-      );
-    }
-  }, [limits?.maxStationsPerKitchen]);
+  // Enforce station limit - using useMemo pattern to avoid setState in effect
+  const maxStations = limits?.maxStationsPerKitchen;
+  const stationsToDisplay = maxStations !== undefined && maxStations < Infinity && stations.length > maxStations
+    ? stations.slice(0, maxStations)
+    : stations;
 
   const toggleDay = (day: DayOfWeek) => {
     setClosedDays((prev) =>
@@ -265,7 +259,7 @@ export function KitchenOnboardingModal({
       case "stations":
         return (
           <StepStations
-            stations={stations}
+            stations={stationsToDisplay}
             onAddStation={addStation}
             onRemoveStation={removeStation}
             maxStations={
@@ -291,7 +285,7 @@ export function KitchenOnboardingModal({
   return (
     <WizardModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       steps={WIZARD_STEPS}
       currentStepId={step === "upgrade" ? "stations" : step}
       onBack={handleBack}
