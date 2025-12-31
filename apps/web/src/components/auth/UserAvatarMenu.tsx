@@ -9,7 +9,6 @@ interface UserAvatarMenuProps {
 }
 
 export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
-  console.log("UserAvatarMenu received kitchenId:", kitchenId);
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { isDark } = useDarkModeContext();
@@ -35,12 +34,23 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
     navigate("/login");
   };
 
-  // Get user initials from email or display_name (for anonymous users)
-  const getUserInitials = () => {
-    // Try display_name first (set by anonymous users when joining)
+  // Get user's display name from metadata
+  // - Registered users: user_metadata.name (from signup)
+  // - Anonymous users: user_metadata.display_name (from join flow)
+  const getUserDisplayName = (): string | null => {
+    const name = user?.user_metadata?.name;
+    if (name && typeof name === "string") return name;
     const displayName = user?.user_metadata?.display_name;
-    if (displayName && typeof displayName === "string") {
-      return displayName
+    if (displayName && typeof displayName === "string") return displayName;
+    return null;
+  };
+
+  const userDisplayName = getUserDisplayName();
+
+  // Get user initials from name or email
+  const getUserInitials = () => {
+    if (userDisplayName) {
+      return userDisplayName
         .split(" ")
         .map((part) => part[0]?.toUpperCase() || "")
         .join("")
@@ -55,7 +65,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
         .join("")
         .slice(0, 2) || "U";
     }
-    // Default for anonymous users without display_name
+    // Default for users without name or email
     return "U";
   };
 
@@ -107,9 +117,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
                 isDark ? "text-white" : "text-gray-900"
               }`}
             >
-              {user?.user_metadata?.display_name ||
-                user?.email?.split("@")[0] ||
-                "Guest"}
+              {userDisplayName || user?.email?.split("@")[0] || "Guest"}
             </div>
             <div
               className={`text-xs mt-1 ${
