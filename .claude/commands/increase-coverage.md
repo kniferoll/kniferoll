@@ -2,12 +2,18 @@
 
 Increase test coverage by 10% toward our goal of 90%.
 
+## Current Status
+
+- **Threshold enforcement**: Enabled in `apps/web/vitest.config.ts`
+- CI will **fail** if coverage drops below the configured thresholds
+- To raise the bar after increasing coverage, update the `thresholds` in vitest.config.ts
+
 ## Steps
 
 1. **Check current coverage**
 
    ```bash
-   pnpm test --coverage
+   pnpm --filter web test:coverage
    ```
 
    Note the current coverage percentage and identify files/branches with lowest coverage.
@@ -21,18 +27,72 @@ Increase test coverage by 10% toward our goal of 90%.
 3. **Identify targets**
 
    - Focus on files with <50% coverage first
-   - Prioritize: stores > hooks > components > utils
+   - Prioritize: lib (pure functions) > stores > hooks > components
    - Skip generated files (types/database.ts) and config files
+   - Pure utility functions in `lib/` are easiest to test (no mocking needed)
 
 4. **Write tests**
 
-   - Use existing test patterns from `src/test/`
-   - Mock Supabase client, not the entire module
-   - Mock Stripe
-   - Use `TestProviders` wrapper for components
-   - Follow DRY: extract common setup into fixtures
-   - Test behavior, not implementation details
-   - Include edge cases: loading states, errors, empty data
+   Test files go in `src/test/`:
+   - `src/test/unit/` - Unit tests for pure functions, stores, hooks
+   - `src/test/integration/` - Performance budget tests (existing)
+
+   ### Mocking Supabase in stores/hooks
+
+   Use `vi.hoisted()` to create mocks that are available when `vi.mock` runs:
+
+   ```typescript
+   import { describe, it, expect, vi, beforeEach } from "vitest";
+
+   // Create mocks using vi.hoisted so they're available when vi.mock runs
+   const { mockSupabase } = vi.hoisted(() => ({
+     mockSupabase: {
+       from: vi.fn(),
+       auth: {
+         getUser: vi.fn(),
+         getSession: vi.fn(),
+       },
+     },
+   }));
+
+   vi.mock("@/lib/supabase", () => ({
+     supabase: mockSupabase,
+   }));
+
+   vi.mock("@/lib", () => ({
+     supabase: mockSupabase,
+   }));
+
+   // Import AFTER mocking
+   import { useYourStore } from "@/stores/yourStore";
+   ```
+
+   ### Mocking Supabase query chains
+
+   ```typescript
+   // For .from().select().eq().single() chains:
+   const chain = {
+     eq: vi.fn().mockReturnThis(),
+     single: vi.fn().mockResolvedValue({ data: mockData, error: null }),
+   };
+   mockSupabase.from.mockReturnValue({
+     select: vi.fn(() => chain),
+   });
+
+   // For insert/update/delete:
+   mockSupabase.from.mockReturnValue({
+     insert: vi.fn(() => ({
+       select: vi.fn(() => ({
+         single: vi.fn().mockResolvedValue({ data: mockData, error: null }),
+       })),
+     })),
+   });
+   ```
+
+   ### Testing components
+
+   - Use `TestProviders` wrapper from `src/test/utils/providers.tsx`
+   - Set auth state with `setTestAuthState(true/false)` before rendering
 
 5. **Test patterns to follow**
 
@@ -47,12 +107,25 @@ Increase test coverage by 10% toward our goal of 90%.
 6. **Verify coverage increase**
 
    ```bash
-   pnpm test --coverage
+   pnpm --filter web test:coverage
    ```
 
    Confirm coverage increased by ~10%. If not, continue writing tests.
 
-7. **Ensure all tests pass**
+7. **Update coverage thresholds**
+
+   After increasing coverage, update `apps/web/vitest.config.ts`:
+
+   ```typescript
+   thresholds: {
+     statements: NEW_VALUE,
+     branches: NEW_VALUE,
+     functions: NEW_VALUE,
+     lines: NEW_VALUE,
+   },
+   ```
+
+8. **Ensure all tests pass**
 
    ```bash
    pnpm test
@@ -60,7 +133,7 @@ Increase test coverage by 10% toward our goal of 90%.
    pnpm build
    ```
 
-8. **Commit and create PR**
+9. **Commit and create PR**
 
    ```bash
    git add -A
@@ -81,3 +154,28 @@ Increase test coverage by 10% toward our goal of 90%.
 - Don't sacrifice test quality for coverage numbers
 - Each test file should be <300 lines; split if larger
 - Run the full test suite before creating PR
+
+## Future: Database/RLS Testing with Supabase
+
+For testing RLS policies and database logic, Supabase supports:
+
+### pgTAP (Database unit testing)
+
+```bash
+# Create a test file
+supabase test new my_rls.test
+
+# Run database tests
+supabase test db
+```
+
+Tests use transactions for isolation (`begin`/`rollback`).
+
+### Application-level Supabase testing
+
+For integration tests that hit the real database:
+- Use unique IDs per test to avoid conflicts
+- Create test users with `adminSupabase.auth.admin.createUser()`
+- Don't rely on clean database state - make tests independent
+
+See Supabase docs: https://supabase.com/docs/guides/testing

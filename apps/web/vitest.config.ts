@@ -25,13 +25,14 @@ export default defineConfig({
         "src/main.tsx",
         "src/vite-env.d.ts",
       ],
-      // Thresholds can be enabled once coverage improves
-      // thresholds: {
-      //   statements: 50,
-      //   branches: 40,
-      //   functions: 40,
-      //   lines: 50,
-      // },
+      // Coverage thresholds - CI will fail if coverage drops below these
+      // Baseline set 2024-12-31: ~28% overall
+      thresholds: {
+        statements: 25,
+        branches: 23,
+        functions: 24,
+        lines: 25,
+      },
     },
   },
 });
