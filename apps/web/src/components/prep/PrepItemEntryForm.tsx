@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import type { KitchenUnit, RecencyScoredSuggestion } from "@kniferoll/types";
 import { UnitsModal } from "@/components/modals/UnitsModal";
@@ -39,11 +38,6 @@ export function PrepItemEntryForm({
   const [filteredAutocomplete, setFilteredAutocomplete] = useState<
     RecencyScoredSuggestion[]
   >([]);
-  const [autocompletePosition, setAutocompletePosition] = useState<{
-    top: number;
-    left: number;
-    width: number;
-  } | null>(null);
   const descriptionInputRef = useRef<HTMLInputElement>(null);
   const quantityInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
@@ -128,29 +122,6 @@ export function PrepItemEntryForm({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // Update autocomplete position when showing or when form focus changes
-  useEffect(() => {
-    if (showAutocomplete && descriptionInputRef.current) {
-      // Use requestAnimationFrame to ensure DOM has updated after focus change
-      const updatePosition = () => {
-        if (descriptionInputRef.current) {
-          const rect = descriptionInputRef.current.getBoundingClientRect();
-          setAutocompletePosition({
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-          });
-        }
-      };
-
-      // Update immediately and after a short delay to catch layout changes
-      updatePosition();
-      const timeoutId = setTimeout(updatePosition, 350); // After animation completes
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [showAutocomplete, description, isFormFocused]);
 
   // When a suggestion is tapped (from quick suggestions or autocomplete)
   const handleSuggestionTap = (suggestion: RecencyScoredSuggestion) => {
@@ -261,6 +232,33 @@ export function PrepItemEntryForm({
 
   return (
     <>
+      {/* Autocomplete Dropdown - rendered above the form */}
+      {showAutocomplete && filteredAutocomplete.length > 0 && (
+        <div
+          ref={autocompleteRef}
+          className="mb-2 bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-600 rounded-xl shadow-lg dark:shadow-xl max-h-48 overflow-y-auto"
+        >
+          {filteredAutocomplete.map((suggestion) => (
+            <button
+              key={suggestion.id}
+              type="button"
+              onClick={() => handleSuggestionTap(suggestion)}
+              onMouseDown={(e) => e.preventDefault()}
+              className="w-full px-4 py-3 text-left hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-900 dark:text-slate-100 border-b border-stone-100 dark:border-slate-700 last:border-b-0 transition-colors"
+            >
+              <div className="font-medium">
+                {suggestion.description || "Unknown item"}
+              </div>
+              {suggestion.last_quantity && suggestion.last_unit_id && (
+                <div className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
+                  Last: {suggestion.last_quantity}{" "}
+                  {allUnits.find((u) => u.id === suggestion.last_unit_id)?.name}
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
       <div
         className={`
           bg-white dark:bg-slate-900
@@ -319,50 +317,6 @@ export function PrepItemEntryForm({
               />
 
             </div>
-
-            {/* Autocomplete Dropdown - rendered in portal to escape overflow:hidden */}
-            {showAutocomplete &&
-              filteredAutocomplete.length > 0 &&
-              autocompletePosition &&
-              createPortal(
-                <div
-                  ref={autocompleteRef}
-                  style={{
-                    position: "fixed",
-                    bottom: `calc(100vh - ${autocompletePosition.top}px + 8px)`,
-                    left: autocompletePosition.left,
-                    width: autocompletePosition.width,
-                    transition: "bottom 0.3s ease-out",
-                  }}
-                  className="bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-600 rounded-xl shadow-lg dark:shadow-xl max-h-48 overflow-y-auto z-50"
-                >
-                  {filteredAutocomplete.map((suggestion) => (
-                    <button
-                      key={suggestion.id}
-                      type="button"
-                      onClick={() => handleSuggestionTap(suggestion)}
-                      onMouseDown={(e) => e.preventDefault()}
-                      className="w-full px-4 py-3 text-left hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-900 dark:text-slate-100 border-b border-stone-100 dark:border-slate-700 last:border-b-0 transition-colors"
-                    >
-                      <div className="font-medium">
-                        {suggestion.description || "Unknown item"}
-                      </div>
-                      {suggestion.last_quantity &&
-                        suggestion.last_unit_id && (
-                          <div className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
-                            Last: {suggestion.last_quantity}{" "}
-                            {
-                              allUnits.find(
-                                (u) => u.id === suggestion.last_unit_id
-                              )?.name
-                            }
-                          </div>
-                        )}
-                    </button>
-                  ))}
-                </div>,
-                document.body
-              )}
 
             {/* Inline Quantity Input */}
             <input

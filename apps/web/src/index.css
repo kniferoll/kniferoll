@@ -99,6 +99,23 @@ html {
   --complete-flash-color: #dcfce7; /* green-100 for light mode */
 }
 
+html,
+body {
+  /* Prevent iOS Safari scroll bounce/rubber-banding */
+  overscroll-behavior: none;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior-y: contain;
+}
+
+body {
+  /* iOS safe area insets for notch/home indicator */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  /* Ensure body fills viewport */
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
+}
+
 html.dark {
   --complete-flash-color: #064e3b; /* emerald-900 for dark mode - muted green */
 }

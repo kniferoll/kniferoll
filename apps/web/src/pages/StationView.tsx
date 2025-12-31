@@ -7,7 +7,7 @@ import {
   usePrepEntryStore,
   usePrepStore,
 } from "@/stores";
-import { useRealtimePrepItems, useHeaderConfig, usePlanLimits, useStripeCheckout } from "@/hooks";
+import { useRealtimePrepItems, useHeaderConfig, usePlanLimits, useStripeCheckout, useVisualViewport } from "@/hooks";
 import { supabase, getDeviceToken } from "@/lib";
 import { jsDateToDatabaseDayOfWeek, toLocalDate, isClosedDay, findNextOpenDay } from "@/lib";
 
@@ -72,6 +72,7 @@ export function StationView() {
   const { isDark } = useDarkModeContext();
   const { limits } = usePlanLimits();
   const { handleCheckout } = useStripeCheckout();
+  const { keyboardOffset } = useVisualViewport();
 
   // Local state
   const station = stations.find((s) => s.id === stationId);
@@ -483,7 +484,10 @@ export function StationView() {
         </div>
 
         {/* Skeleton Entry Form */}
-        <div className="fixed bottom-0 left-0 right-0 bg-transparent pointer-events-none">
+        <div
+          className="fixed bottom-0 left-0 right-0 bg-transparent pointer-events-none"
+          style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+        >
           <div className="px-4 py-4 pointer-events-auto flex justify-center">
             <div className="w-full max-w-2xl">
               <div className={`h-16 rounded-2xl animate-pulse ${isDark ? "bg-slate-800" : "bg-stone-100"}`} />
@@ -678,7 +682,13 @@ export function StationView() {
 
       {/* Add Item Form - Floating Bottom */}
       {!isSelectedDayClosed && (
-        <div className="fixed bottom-0 left-0 right-0 bg-transparent pointer-events-none">
+        <div
+          className="fixed left-0 right-0 bg-transparent pointer-events-none transition-[bottom] duration-200"
+          style={{
+            bottom: keyboardOffset > 0 ? keyboardOffset : 0,
+            paddingBottom: keyboardOffset > 0 ? "0.5rem" : "calc(1rem + env(safe-area-inset-bottom, 0px))"
+          }}
+        >
           <div className="px-4 py-4 pointer-events-auto flex justify-center">
             <div className="w-full max-w-2xl">
               <motion.div

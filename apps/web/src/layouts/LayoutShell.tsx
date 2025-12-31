@@ -22,13 +22,14 @@ export function LayoutShell({ children }: LayoutShellProps) {
 
   return (
     <div
-      className={`min-h-screen flex flex-col ${
+      className={`flex flex-col overflow-x-hidden ${
         isDark
           ? "bg-linear-to-b from-slate-900 via-slate-800 to-slate-900"
           : "bg-linear-to-br from-amber-50 via-amber-50/80 to-orange-100"
       }`}
       style={{
         fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+        minHeight: "100dvh", // Dynamic viewport height for mobile browsers
       }}
     >
       {/* Gradient overlay */}
