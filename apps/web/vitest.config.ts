@@ -15,7 +15,23 @@ export default defineConfig({
     setupFiles: ["./src/test/utils/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     coverage: {
-      reporter: ["text", "json", "html"],
+      provider: "v8",
+      reporter: ["text", "json-summary", "html"],
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: [
+        "src/test/**",
+        "src/types/**",
+        "src/**/*.d.ts",
+        "src/main.tsx",
+        "src/vite-env.d.ts",
+      ],
+      // Thresholds can be enabled once coverage improves
+      // thresholds: {
+      //   statements: 50,
+      //   branches: 40,
+      //   functions: 40,
+      //   lines: 50,
+      // },
     },
   },
 });
