@@ -14,18 +14,54 @@ Kniferoll is a kitchen prep management PWA for professional chefs. It allows kit
 - **State:** Zustand stores + React Query for server state
 - **Routing:** React Router DOM (SPA)
 - **Monorepo:** pnpm + Turborepo
+- **Testing:** Vitest + React Testing Library
 
 ## Commands
 
 ```bash
+# Development
 pnpm dev          # Start development server
 pnpm build        # Build all packages
 pnpm lint         # Run ESLint across workspace
+
+# Testing
+pnpm test         # Run all tests
+pnpm test:watch   # Run tests in watch mode
+pnpm test:perf    # Run performance budget tests only
+pnpm test:ci      # Run tests with verbose output (CI)
 
 # Supabase
 supabase start                                              # Start local Supabase
 supabase db reset                                           # Reset database with migrations
 supabase gen types typescript --local > apps/web/src/types/database.ts  # Regenerate types
+```
+
+## Testing
+
+### Performance Budget Tests
+
+The project enforces render budgets to prevent performance regressions. Tests are in `apps/web/src/test/integration/`.
+
+**Before submitting frontend changes:**
+
+1. Run `pnpm test:perf` to verify render budgets pass
+2. If adding a new page, add an entry to `src/test/integration/budgets.ts`
+3. If a budget test fails, use React DevTools Profiler to identify unnecessary re-renders
+
+**Budget coverage is enforced** - all pages in `src/pages/` must have a corresponding budget entry (except static pages like PrivacyPolicy/TermsOfService which are excluded).
+
+### Test Structure
+
+```
+src/test/
+├── utils/
+│   ├── perf.tsx          # Render tracking utilities
+│   ├── providers.tsx     # Test wrapper with all providers
+│   └── setup.ts          # Vitest setup
+└── integration/
+    ├── budgets.ts        # Centralized performance budgets
+    ├── mount.perf.test.tsx       # Page mount tests
+    └── interactions.perf.test.tsx # User interaction tests
 ```
 
 ## React App Architecture (apps/web/src/)
@@ -58,7 +94,7 @@ Components are organized by domain in `components/`:
 All components are barrel-exported from `components/index.ts` for clean imports.
 
 ### State Management
-- `stores/` - Zustand stores for client state (authStore, kitchenStore, prepStore, offlineStore)
+- `stores/` - Zustand stores for client state (authStore, kitchenStore, prepStore, prepEntryStore, offlineStore)
 - `hooks/` - Data-fetching hooks (useKitchens, useStations, usePrepItems, etc.)
 - `context/` - React context for UI state (HeaderContext, DarkModeContext)
 
@@ -99,10 +135,20 @@ Realtime subscriptions: `useRealtimePrepItems`, `useRealtimeStations`, `useRealt
 - Prefer `async/await` over `.then()` chains
 - Import components from barrel exports (`@/components`, `@/hooks`, `@/stores`)
 - New UI primitives go in `components/ui/`, domain components in their subdirectory
+- Memoize derived state with `useMemo` and callbacks with `useCallback` to prevent render cascades
+- Batch related state updates to minimize re-renders
 - Do not reference deprecated tables: `session_users`, `user_kitchens`
 - Do not use `join_code` on kitchens - use invite links only
 
+## Verification Checklist
+
+Before completing frontend work:
+
+1. **Lint:** `pnpm lint` passes
+2. **Build:** `pnpm build` succeeds
+3. **Tests:** `pnpm test` passes (includes perf budgets)
+4. **Manual:** Test the affected user flows in browser
+
 ## Mockups
 
-- When asked, create html/css/js mockups in isolation to validate UI/UX changes before integration.
-- Insert them into the mockups/ directory so they can be opened in a browser directly and reviewed
+When prototyping UI changes, create isolated HTML/CSS/JS mockups in `mockups/` directory. These can be opened directly in a browser for review before integration.

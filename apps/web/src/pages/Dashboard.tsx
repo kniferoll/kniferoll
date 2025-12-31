@@ -103,7 +103,7 @@ export function Dashboard() {
   }
 
   return (
-    <>
+    <div data-testid="page-dashboard">
       <div className="max-w-4xl w-full mx-auto px-8 py-10 pb-20">
         <h1
           className={`text-3xl font-semibold tracking-tight mb-2 cursor-default ${
@@ -233,6 +233,6 @@ export function Dashboard() {
         onClose={() => setOnboardingModalOpen(false)}
         onSuccess={handleKitchenCreated}
       />
-    </>
+    </div>
   );
 }

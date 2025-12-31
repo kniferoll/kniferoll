@@ -83,7 +83,7 @@ export function KitchenSettings() {
   }
 
   return (
-    <>
+    <div data-testid="page-kitchen-settings">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <Card padding="none">
           <Tabs value={activeTab} onChange={setActiveTab}>
@@ -159,6 +159,6 @@ export function KitchenSettings() {
           }
         }}
       />
-    </>
+    </div>
   );
 }
