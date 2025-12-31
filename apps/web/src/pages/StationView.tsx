@@ -151,13 +151,13 @@ export function StationView() {
     availableShiftIds.includes(s.id)
   );
 
-  const handleInviteClick = () => {
+  const handleInviteClick = useCallback(() => {
     if (limits?.canInviteAsOwner) {
       setShowInviteModal(true);
     } else {
       setShowInviteUpgradeModal(true);
     }
-  };
+  }, [limits?.canInviteAsOwner]);
 
   // Configure custom header for this page
   useHeaderConfig(
@@ -197,7 +197,7 @@ export function StationView() {
         />
       ),
     },
-    [station?.name, isDark, navigate, currentKitchen?.id]
+    [station?.name, isDark, navigate, currentKitchen?.id, handleInviteClick]
   );
 
   // Load kitchen data on refresh if we have kitchen but no stations

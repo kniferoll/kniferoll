@@ -69,8 +69,8 @@ export function InviteLinkModal({
     if (activeLink && qrCanvasRef.current) {
       const url = `${window.location.origin}/join/${activeLink.token}`;
       QRCode.toCanvas(qrCanvasRef.current, url, {
-        width: 200,
-        margin: 2,
+        width: 100,
+        margin: 1,
         color: {
           dark: isDark ? "#ffffff" : "#000000",
           light: isDark ? "#1e293b" : "#ffffff",
@@ -78,8 +78,8 @@ export function InviteLinkModal({
       }).catch(() => {
         // Fallback to data URL if canvas fails
         QRCode.toDataURL(url, {
-          width: 200,
-          margin: 2,
+          width: 100,
+          margin: 1,
           color: {
             dark: isDark ? "#ffffff" : "#000000",
             light: isDark ? "#1e293b" : "#ffffff",
@@ -268,38 +268,8 @@ export function InviteLinkModal({
 
       {/* Active invite section */}
       {activeLink ? (
-        <div className="space-y-4">
-          {/* QR Code */}
-          <div
-            className={`p-4 rounded-xl border text-center ${
-              isDark
-                ? "bg-slate-800 border-slate-700"
-                : "bg-stone-50 border-stone-200"
-            }`}
-          >
-            <canvas
-              ref={qrCanvasRef}
-              className="mx-auto mb-3"
-              style={{ width: 160, height: 160 }}
-            />
-            {!qrCanvasRef.current && qrCodeUrl && (
-              <img
-                src={qrCodeUrl}
-                alt="QR Code"
-                className="mx-auto mb-3"
-                style={{ width: 160, height: 160 }}
-              />
-            )}
-            <p
-              className={`text-xs ${
-                isDark ? "text-gray-500" : "text-gray-500"
-              }`}
-            >
-              Scan to join
-            </p>
-          </div>
-
-          {/* Short code */}
+        <div className="space-y-3">
+          {/* QR Code and Code side by side */}
           <div
             className={`p-4 rounded-xl border ${
               isDark
@@ -307,8 +277,24 @@ export function InviteLinkModal({
                 : "bg-stone-50 border-stone-200"
             }`}
           >
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center gap-4">
+              {/* QR Code - smaller */}
+              <div className="shrink-0">
+                <canvas
+                  ref={qrCanvasRef}
+                  style={{ width: 100, height: 100 }}
+                />
+                {!qrCanvasRef.current && qrCodeUrl && (
+                  <img
+                    src={qrCodeUrl}
+                    alt="QR Code"
+                    style={{ width: 100, height: 100 }}
+                  />
+                )}
+              </div>
+
+              {/* Code */}
+              <div className="flex-1 min-w-0">
                 <p
                   className={`text-xs font-medium mb-1 ${
                     isDark ? "text-gray-400" : "text-gray-500"
@@ -317,13 +303,21 @@ export function InviteLinkModal({
                   Join Code
                 </p>
                 <p
-                  className={`text-2xl font-mono font-bold tracking-wider ${
+                  className={`text-2xl font-mono font-bold tracking-wider mb-1 ${
                     isDark ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {getShortCode(activeLink.token)}
                 </p>
+                <p
+                  className={`text-xs ${
+                    isDark ? "text-gray-500" : "text-gray-500"
+                  }`}
+                >
+                  Enter at kniferoll.app/join
+                </p>
               </div>
+
               <Button
                 variant="secondary"
                 size="sm"
@@ -333,70 +327,61 @@ export function InviteLinkModal({
                 {copiedType === "code" ? "Copied!" : "Copy"}
               </Button>
             </div>
-            <p
-              className={`text-xs mt-2 ${
-                isDark ? "text-gray-500" : "text-gray-500"
+          </div>
+
+          {/* Full link - compact */}
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex-1 min-w-0 px-3 py-2 rounded-lg text-xs font-mono truncate ${
+                isDark
+                  ? "bg-slate-800 text-gray-400"
+                  : "bg-stone-100 text-gray-600"
               }`}
             >
-              Enter at kniferoll.app/join
-            </p>
-          </div>
-
-          {/* Full link */}
-          <div
-            className={`p-4 rounded-xl border ${
-              isDark
-                ? "bg-slate-800 border-slate-700"
-                : "bg-stone-50 border-stone-200"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p
-                  className={`text-xs font-medium mb-1 ${
-                    isDark ? "text-gray-400" : "text-gray-500"
-                  }`}
-                >
-                  Share Link
-                </p>
-                <p
-                  className={`text-sm font-mono truncate ${
-                    isDark ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  {`${window.location.origin}/join/${activeLink.token}`}
-                </p>
-              </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={copyLink}
-                className="shrink-0"
-              >
-                {copiedType === "link" ? "Copied!" : "Copy"}
-              </Button>
+              {`${window.location.origin}/join/${activeLink.token}`}
             </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={copyLink}
+              className="shrink-0"
+            >
+              {copiedType === "link" ? "Copied!" : "Copy Link"}
+            </Button>
           </div>
 
-          {/* Expiry info */}
-          <div className="flex items-center justify-between">
+          {/* Expiry and actions row */}
+          <div className="flex items-center justify-between pt-1">
             <p
-              className={`text-sm ${
-                isDark ? "text-gray-400" : "text-gray-600"
+              className={`text-xs ${
+                isDark ? "text-gray-500" : "text-gray-500"
               }`}
             >
               {getExpiryText(activeLink)} · Single use
             </p>
-            <button
-              onClick={() => revokeLink(activeLink.id)}
-              className={`text-sm font-medium transition-colors ${
-                isDark
-                  ? "text-red-400 hover:text-red-300"
-                  : "text-red-600 hover:text-red-700"
-              }`}
-            >
-              Revoke
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => revokeLink(activeLink.id)}
+                className={`text-xs font-medium transition-colors ${
+                  isDark
+                    ? "text-red-400 hover:text-red-300"
+                    : "text-red-600 hover:text-red-700"
+                }`}
+              >
+                Revoke
+              </button>
+              <button
+                onClick={generateInviteLink}
+                disabled={generating}
+                className={`text-xs font-medium transition-colors ${
+                  isDark
+                    ? "text-orange-400 hover:text-orange-300"
+                    : "text-orange-600 hover:text-orange-700"
+                } ${generating ? "opacity-50" : ""}`}
+              >
+                {generating ? "..." : "New Link"}
+              </button>
+            </div>
           </div>
         </div>
       ) : (

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore, useKitchenStore } from "@/stores";
 import {
@@ -104,13 +104,13 @@ export function KitchenDashboard() {
     return dayConfig && !dayConfig.is_open;
   });
 
-  const handleInviteClick = () => {
+  const handleInviteClick = useCallback(() => {
     if (limits?.canInviteAsOwner) {
       setShowInviteModal(true);
     } else {
       setShowInviteUpgradeModal(true);
     }
-  };
+  }, [limits?.canInviteAsOwner]);
 
   // Configure header: Back | Logo + Kitchen Name | Avatar Menu
   useHeaderConfig(
@@ -141,7 +141,7 @@ export function KitchenDashboard() {
         />
       ),
     },
-    [currentKitchen?.name, isDark, navigate, kitchenId]
+    [currentKitchen?.name, isDark, navigate, kitchenId, handleInviteClick]
   );
 
   // Load kitchen on mount or when kitchenId changes
