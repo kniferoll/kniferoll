@@ -88,7 +88,7 @@ jobs:
         run: pnpm test:e2e
         env:
           VITE_SUPABASE_URL: ${{ steps.supabase.outputs.api_url }}
-          VITE_SUPABASE_ANON_KEY: ${{ steps.supabase.outputs.anon_key }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ steps.supabase.outputs.anon_key }}
 
       - uses: actions/upload-artifact@v4
         if: failure()
