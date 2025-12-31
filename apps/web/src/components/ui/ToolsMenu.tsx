@@ -12,6 +12,8 @@ interface ToolsMenuProps {
   onToggleCompact?: () => void;
   onCopyRecentToToday?: () => void;
   onAddToNextDay?: () => void;
+  isFormHidden?: boolean;
+  onToggleFormHidden?: () => void;
   label?: string;
 }
 
@@ -31,6 +33,8 @@ export function ToolsMenu({
   onToggleCompact,
   onCopyRecentToToday,
   onAddToNextDay,
+  isFormHidden = false,
+  onToggleFormHidden,
   label = "Tools",
 }: ToolsMenuProps) {
   return (
@@ -66,6 +70,15 @@ export function ToolsMenu({
           isActive={isCompact}
         >
           Compact view
+        </DropdownItem>
+      )}
+      {onToggleFormHidden && (
+        <DropdownItem
+          onClick={onToggleFormHidden}
+          icon={<CompactIcon size={16} />}
+          isActive={isFormHidden}
+        >
+          Hide entry form
         </DropdownItem>
       )}
     </Dropdown>

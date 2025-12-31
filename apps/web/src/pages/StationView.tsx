@@ -87,6 +87,10 @@ export function StationView() {
     const stored = localStorage.getItem("kniferoll:compactView");
     return stored === "true";
   });
+  const [formHidden, setFormHidden] = useState(() => {
+    const stored = localStorage.getItem("kniferoll:formHidden");
+    return stored === "true";
+  });
   const [sortTrigger, setSortTrigger] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [editingItem, setEditingItem] = useState<{
@@ -103,6 +107,15 @@ export function StationView() {
     setIsCompact((prev) => {
       const newValue = !prev;
       localStorage.setItem("kniferoll:compactView", String(newValue));
+      return newValue;
+    });
+  }, []);
+
+  // Persist form hidden preference
+  const handleToggleFormHidden = useCallback(() => {
+    setFormHidden((prev) => {
+      const newValue = !prev;
+      localStorage.setItem("kniferoll:formHidden", String(newValue));
       return newValue;
     });
   }, []);
@@ -551,6 +564,8 @@ export function StationView() {
                     onToggleCompact={handleToggleCompact}
                     onCopyRecentToToday={handleCopyRecentToToday}
                     onAddToNextDay={handleAddToNextDay}
+                    isFormHidden={formHidden}
+                    onToggleFormHidden={handleToggleFormHidden}
                   />
                 </div>
               </div>
@@ -571,6 +586,8 @@ export function StationView() {
                       onToggleCompact={handleToggleCompact}
                       onCopyRecentToToday={handleCopyRecentToToday}
                       onAddToNextDay={handleAddToNextDay}
+                      isFormHidden={formHidden}
+                      onToggleFormHidden={handleToggleFormHidden}
                     />
                   </div>
 
@@ -649,15 +666,40 @@ export function StationView() {
         <div className="fixed bottom-0 left-0 right-0 bg-transparent pointer-events-none">
           <div className="px-4 py-4 pointer-events-auto flex justify-center">
             <div className="w-full max-w-2xl">
-              <PrepItemEntryForm
-                allSuggestions={masterSuggestions}
-                suggestions={suggestions}
-                quickUnits={quickUnits}
-                onAddItem={handleAddItem}
-                onDismissSuggestion={handleDismissSuggestion}
-                disabled={!selectedShiftId}
-                isLoading={addingItem}
-              />
+              <motion.div
+                initial={false}
+                animate={{
+                  height: formHidden ? 0 : "auto",
+                  opacity: formHidden ? 0 : 1,
+                }}
+                transition={{
+                  duration: 0.3,
+                  ease: [0.4, 0, 0.2, 1],
+                }}
+              >
+                <PrepItemEntryForm
+                  allSuggestions={masterSuggestions}
+                  suggestions={suggestions}
+                  quickUnits={quickUnits}
+                  onAddItem={handleAddItem}
+                  onDismissSuggestion={handleDismissSuggestion}
+                  disabled={!selectedShiftId}
+                  isLoading={addingItem}
+                />
+              </motion.div>
+              {/* Collapsed state: small expand button */}
+              {formHidden && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={handleToggleFormHidden}
+                  className="w-full py-3 px-4 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)] border border-stone-200 dark:border-slate-700 rounded-2xl text-sm font-medium text-stone-500 dark:text-slate-400 hover:text-stone-700 dark:hover:text-slate-200 hover:bg-stone-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  + Add prep item
+                </motion.button>
+              )}
             </div>
           </div>
         </div>

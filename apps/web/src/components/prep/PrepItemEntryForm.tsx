@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import type { KitchenUnit, RecencyScoredSuggestion } from "@kniferoll/types";
 import { UnitsModal } from "@/components/modals/UnitsModal";
@@ -38,6 +39,11 @@ export function PrepItemEntryForm({
   const [filteredAutocomplete, setFilteredAutocomplete] = useState<
     RecencyScoredSuggestion[]
   >([]);
+  const [autocompletePosition, setAutocompletePosition] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
   const descriptionInputRef = useRef<HTMLInputElement>(null);
   const quantityInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
@@ -122,6 +128,29 @@ export function PrepItemEntryForm({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Update autocomplete position when showing or when form focus changes
+  useEffect(() => {
+    if (showAutocomplete && descriptionInputRef.current) {
+      // Use requestAnimationFrame to ensure DOM has updated after focus change
+      const updatePosition = () => {
+        if (descriptionInputRef.current) {
+          const rect = descriptionInputRef.current.getBoundingClientRect();
+          setAutocompletePosition({
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+          });
+        }
+      };
+
+      // Update immediately and after a short delay to catch layout changes
+      updatePosition();
+      const timeoutId = setTimeout(updatePosition, 350); // After animation completes
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [showAutocomplete, description, isFormFocused]);
 
   // When a suggestion is tapped (from quick suggestions or autocomplete)
   const handleSuggestionTap = (suggestion: RecencyScoredSuggestion) => {
@@ -234,8 +263,8 @@ export function PrepItemEntryForm({
     <>
       <div
         className={`
-          bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl
-          shadow-[0_-4px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]
+          bg-white dark:bg-slate-900
+          shadow-lg dark:shadow-2xl
           border border-stone-200 dark:border-slate-700
           overflow-hidden
           transition-all duration-300 ease-in-out
@@ -289,11 +318,23 @@ export function PrepItemEntryForm({
                 autoComplete="off"
               />
 
-              {/* Autocomplete Dropdown */}
-              {showAutocomplete && filteredAutocomplete.length > 0 && (
+            </div>
+
+            {/* Autocomplete Dropdown - rendered in portal to escape overflow:hidden */}
+            {showAutocomplete &&
+              filteredAutocomplete.length > 0 &&
+              autocompletePosition &&
+              createPortal(
                 <div
                   ref={autocompleteRef}
-                  className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-600 rounded-xl shadow-lg dark:shadow-xl max-h-48 overflow-y-auto z-50 animate-slideDown"
+                  style={{
+                    position: "fixed",
+                    bottom: `calc(100vh - ${autocompletePosition.top}px + 8px)`,
+                    left: autocompletePosition.left,
+                    width: autocompletePosition.width,
+                    transition: "bottom 0.3s ease-out",
+                  }}
+                  className="bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-600 rounded-xl shadow-lg dark:shadow-xl max-h-48 overflow-y-auto z-50"
                 >
                   {filteredAutocomplete.map((suggestion) => (
                     <button
@@ -319,9 +360,9 @@ export function PrepItemEntryForm({
                         )}
                     </button>
                   ))}
-                </div>
+                </div>,
+                document.body
               )}
-            </div>
 
             {/* Inline Quantity Input */}
             <input
