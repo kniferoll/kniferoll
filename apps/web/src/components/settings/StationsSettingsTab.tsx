@@ -127,7 +127,7 @@ export function StationsSettingsTab({
       )}
 
       <SettingsSection
-        title={`Current Stations (${stations.length}/${maxStations})`}
+        title={`Current Stations`}
         description="Manage your kitchen's prep stations"
       >
         <div className="space-y-2">
