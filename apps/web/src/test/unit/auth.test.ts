@@ -11,7 +11,8 @@ const { mockSupabase } = vi.hoisted(() => ({
       signInWithPassword: vi.fn(),
       signOut: vi.fn(),
       updateUser: vi.fn(),
-      onAuthStateChange: vi.fn(() => ({
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      onAuthStateChange: vi.fn((_callback: (event: string, session: unknown) => void) => ({
         data: { subscription: { unsubscribe: vi.fn() } },
       })),
     },
