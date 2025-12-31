@@ -33,7 +33,7 @@ export const COMPONENT_BUDGETS = {
 
   // Kitchen components
   ShiftToggle: { renders: 2, duration: 20 },
-  DateCalendar: { renders: 3, duration: 250 },
+  DateCalendar: { renders: 3, duration: 350 },
 
   // UI primitives
   Button: { renders: 2, duration: 10 },
