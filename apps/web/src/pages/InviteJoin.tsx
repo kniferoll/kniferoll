@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/lib";
 import { signInAnonymously } from "@/lib";
@@ -26,6 +26,7 @@ export function InviteJoin() {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState("");
+  const autoJoinAttempted = useRef(false);
 
   // Load invite link on mount
   useEffect(() => {
@@ -91,6 +92,9 @@ export function InviteJoin() {
     setError("");
     setJoining(true);
 
+    // Prevent auto-join effect from also trying to join after signInAnonymously
+    autoJoinAttempted.current = true;
+
     try {
       if (!inviteLink || !kitchen) {
         throw new Error("Invite link or kitchen not loaded");
@@ -136,21 +140,12 @@ export function InviteJoin() {
 
   // Auto-join if user is already authenticated
   useEffect(() => {
-    if (user && inviteLink && kitchen) {
+    if (user && inviteLink && kitchen && !autoJoinAttempted.current) {
+      autoJoinAttempted.current = true;
+
       const handleAutoJoin = async () => {
         try {
-          const { data: existingMember } = await supabase
-            .from("kitchen_members")
-            .select("id")
-            .eq("kitchen_id", kitchen.id)
-            .eq("user_id", user.id)
-            .single();
-
-          if (existingMember) {
-            navigate(`/kitchen/${kitchen.id}`);
-            return;
-          }
-
+          // Try to insert - if user is already a member, we'll get a conflict error
           const { error: memberError } = await supabase
             .from("kitchen_members")
             .insert({
@@ -160,8 +155,15 @@ export function InviteJoin() {
               can_invite: false,
             });
 
+          // 23505 is unique_violation - user is already a member, just navigate
+          if (memberError && memberError.code === "23505") {
+            navigate(`/kitchen/${kitchen.id}`);
+            return;
+          }
+
           if (memberError) throw memberError;
 
+          // Successfully joined - increment use count
           await supabase
             .from("invite_links")
             .update({ use_count: inviteLink.use_count + 1 })

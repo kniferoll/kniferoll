@@ -731,13 +731,12 @@ export function StationView() {
       )}
 
       {/* Invite Modal */}
-      {showInviteModal && currentKitchen && (
-        <InviteLinkModal
-          kitchenId={currentKitchen.id}
-          kitchenName={currentKitchen.name}
-          onClose={() => setShowInviteModal(false)}
-        />
-      )}
+      <InviteLinkModal
+        isOpen={showInviteModal && !!currentKitchen}
+        kitchenId={currentKitchen?.id || ""}
+        kitchenName={currentKitchen?.name || ""}
+        onClose={() => setShowInviteModal(false)}
+      />
 
       {/* Edit Prep Item Modal */}
       <EditPrepItemModal

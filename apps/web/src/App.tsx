@@ -18,6 +18,9 @@ const Signup = lazy(() =>
 const InviteJoin = lazy(() =>
   import("./pages/InviteJoin").then((m) => ({ default: m.InviteJoin }))
 );
+const JoinWithCode = lazy(() =>
+  import("./pages/JoinWithCode").then((m) => ({ default: m.JoinWithCode }))
+);
 const Dashboard = lazy(() =>
   import("./pages/Dashboard").then((m) => ({ default: m.Dashboard }))
 );
@@ -89,6 +92,7 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/join" element={<JoinWithCode />} />
             <Route path="/join/:token" element={<InviteJoin />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />

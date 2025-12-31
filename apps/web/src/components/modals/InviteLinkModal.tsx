@@ -1,31 +1,95 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import QRCode from "qrcode";
 import { supabase } from "@/lib";
-import { Button } from "@/components/ui/Button";
+import { useDarkModeContext } from "@/context";
+import { Modal } from "../ui/Modal";
+import { Button } from "../ui/Button";
+import { IconBox } from "../ui/IconBox";
 import type { Database } from "@kniferoll/types";
 
 type InviteLink = Database["public"]["Tables"]["invite_links"]["Row"];
 
 interface InviteLinkModalProps {
+  isOpen: boolean;
   kitchenId: string;
   kitchenName: string;
   onClose: () => void;
 }
 
+/**
+ * Derive a human-readable 6-character code from the token.
+ * Uses first 6 chars of the UUID, uppercased, without hyphens.
+ */
+function getShortCode(token: string): string {
+  return token.replace(/-/g, "").slice(0, 6).toUpperCase();
+}
+
+/**
+ * InviteLinkModal - modal for creating and sharing invite links.
+ *
+ * Features:
+ * - Generate single-use, 24-hour invite links
+ * - QR code for easy scanning
+ * - Human-readable short code for manual entry
+ * - Copy link to clipboard
+ * - Revoke existing links
+ */
 export function InviteLinkModal({
+  isOpen,
   kitchenId,
   kitchenName,
   onClose,
 }: InviteLinkModalProps) {
+  const { isDark } = useDarkModeContext();
   const [inviteLinks, setInviteLinks] = useState<InviteLink[]>([]);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+  const [copiedType, setCopiedType] = useState<"link" | "code" | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Get the most recent active link
+  const activeLink = inviteLinks.find(
+    (link) =>
+      !link.revoked &&
+      new Date(link.expires_at) > new Date() &&
+      link.use_count < link.max_uses
+  );
 
   // Load existing invite links
   useEffect(() => {
-    loadInviteLinks();
+    if (isOpen) {
+      loadInviteLinks();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kitchenId]);
+  }, [kitchenId, isOpen]);
+
+  // Generate QR code when active link changes
+  useEffect(() => {
+    if (activeLink && qrCanvasRef.current) {
+      const url = `${window.location.origin}/join/${activeLink.token}`;
+      QRCode.toCanvas(qrCanvasRef.current, url, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: isDark ? "#ffffff" : "#000000",
+          light: isDark ? "#1e293b" : "#ffffff",
+        },
+      }).catch(() => {
+        // Fallback to data URL if canvas fails
+        QRCode.toDataURL(url, {
+          width: 200,
+          margin: 2,
+          color: {
+            dark: isDark ? "#ffffff" : "#000000",
+            light: isDark ? "#1e293b" : "#ffffff",
+          },
+        })
+          .then(setQrCodeUrl)
+          .catch(console.error);
+      });
+    }
+  }, [activeLink, isDark]);
 
   const loadInviteLinks = async () => {
     try {
@@ -33,7 +97,8 @@ export function InviteLinkModal({
         .from("invite_links")
         .select("*")
         .eq("kitchen_id", kitchenId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(10);
 
       if (err) throw err;
       setInviteLinks(data || []);
@@ -88,12 +153,25 @@ export function InviteLinkModal({
     }
   };
 
-  const copyToClipboard = async (link: InviteLink) => {
-    const url = `${window.location.origin}/join/${link.token}`;
+  const copyLink = async () => {
+    if (!activeLink) return;
+    const url = `${window.location.origin}/join/${activeLink.token}`;
     try {
       await navigator.clipboard.writeText(url);
-      setCopiedLinkId(link.id);
-      setTimeout(() => setCopiedLinkId(null), 2000);
+      setCopiedType("link");
+      setTimeout(() => setCopiedType(null), 2000);
+    } catch {
+      setError("Failed to copy to clipboard");
+    }
+  };
+
+  const copyCode = async () => {
+    if (!activeLink) return;
+    const code = getShortCode(activeLink.token);
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedType("code");
+      setTimeout(() => setCopiedType(null), 2000);
     } catch {
       setError("Failed to copy to clipboard");
     }
@@ -117,150 +195,241 @@ export function InviteLinkModal({
     }
   };
 
-  const isLinkExpired = (link: InviteLink): boolean => {
-    return new Date(link.expires_at) < new Date() || link.revoked;
+  const getExpiryText = (link: InviteLink): string => {
+    const expiresAt = new Date(link.expires_at);
+    const now = new Date();
+    const hoursLeft = Math.ceil(
+      (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60)
+    );
+    if (hoursLeft <= 0) return "Expired";
+    if (hoursLeft === 1) return "1 hour left";
+    return `${hoursLeft} hours left`;
   };
 
-  const isLinkMaxedOut = (link: InviteLink): boolean => {
-    return link.use_count >= link.max_uses;
-  };
-
-  const getInviteUrl = (token: string) => {
-    return `${window.location.origin}/join/${token}`;
+  const handleClose = () => {
+    setError(null);
+    setCopiedType(null);
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+    <Modal isOpen={isOpen} onClose={handleClose} size="md">
+      {/* Header */}
+      <div className="flex items-start gap-4 mb-6">
+        <IconBox
+          size="lg"
+          className="bg-linear-to-br from-orange-500 to-orange-600 border-0 shadow-lg shadow-orange-500/30 shrink-0"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </IconBox>
+        <div>
+          <h2
+            className={`text-xl font-semibold cursor-default ${
+              isDark ? "text-white" : "text-gray-900"
+            }`}
+          >
             Invite to {kitchenName}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-bold text-2xl"
+          <p
+            className={`text-sm mt-1 cursor-default ${
+              isDark ? "text-gray-400" : "text-gray-600"
+            }`}
           >
-            ×
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="p-6 space-y-6">
-          {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-4 text-red-700 dark:text-red-300">
-              {error}
-            </div>
-          )}
-
-          {/* Generate new link button */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Create a new invite link to share with team members. Links expire
-              in 24 hours and are single-use.
-            </p>
-            <Button
-              onClick={generateInviteLink}
-              disabled={generating}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {generating ? "Creating..." : "Generate New Link"}
-            </Button>
-          </div>
-
-          {/* Existing links */}
-          {inviteLinks.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Recent Links ({inviteLinks.length})
-              </h3>
-              <div className="space-y-2">
-                {inviteLinks.map((link) => {
-                  const expired = isLinkExpired(link);
-                  const maxedOut = isLinkMaxedOut(link);
-                  const url = getInviteUrl(link.token);
-                  const expiresIn = Math.ceil(
-                    (new Date(link.expires_at).getTime() -
-                      new Date().getTime()) /
-                      (1000 * 60 * 60)
-                  );
-
-                  return (
-                    <div
-                      key={link.id}
-                      className={`p-4 border rounded-lg ${
-                        expired || maxedOut
-                          ? "bg-gray-100 dark:bg-slate-800 border-gray-300 dark:border-gray-600 opacity-60"
-                          : "bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-gray-700"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <p className="text-sm font-mono break-all text-gray-600 dark:text-gray-400">
-                              {url}
-                            </p>
-                            {copiedLinkId === link.id && (
-                              <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded">
-                                Copied!
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
-                            <span>
-                              {expired ? "Expired" : `Expires in ${expiresIn}h`}
-                            </span>
-                            <span>
-                              {link.use_count}/{link.max_uses} uses
-                            </span>
-                            {link.revoked && (
-                              <span className="text-red-600">Revoked</span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 shrink-0">
-                          {!expired && !maxedOut && !link.revoked && (
-                            <button
-                              onClick={() => copyToClipboard(link)}
-                              className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-sm hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                            >
-                              Copy
-                            </button>
-                          )}
-
-                          {!link.revoked && (
-                            <button
-                              onClick={() => revokeLink(link.id)}
-                              className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-sm hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-                            >
-                              Revoke
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {inviteLinks.length === 0 && !generating && (
-            <p className="text-center text-gray-600 dark:text-gray-400">
-              No invite links yet. Create one to get started!
-            </p>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-2 p-6 border-t border-gray-200 dark:border-gray-700">
-          <Button variant="secondary" onClick={onClose}>
-            Close
-          </Button>
+            Share a link or code to invite team members
+          </p>
         </div>
       </div>
-    </div>
+
+      {error && (
+        <div
+          className={`p-3 rounded-lg text-sm mb-4 ${
+            isDark
+              ? "bg-red-950/50 text-red-400 border border-red-900/50"
+              : "bg-red-50 text-red-600 border border-red-100"
+          }`}
+        >
+          {error}
+        </div>
+      )}
+
+      {/* Active invite section */}
+      {activeLink ? (
+        <div className="space-y-4">
+          {/* QR Code */}
+          <div
+            className={`p-4 rounded-xl border text-center ${
+              isDark
+                ? "bg-slate-800 border-slate-700"
+                : "bg-stone-50 border-stone-200"
+            }`}
+          >
+            <canvas
+              ref={qrCanvasRef}
+              className="mx-auto mb-3"
+              style={{ width: 160, height: 160 }}
+            />
+            {!qrCanvasRef.current && qrCodeUrl && (
+              <img
+                src={qrCodeUrl}
+                alt="QR Code"
+                className="mx-auto mb-3"
+                style={{ width: 160, height: 160 }}
+              />
+            )}
+            <p
+              className={`text-xs ${
+                isDark ? "text-gray-500" : "text-gray-500"
+              }`}
+            >
+              Scan to join
+            </p>
+          </div>
+
+          {/* Short code */}
+          <div
+            className={`p-4 rounded-xl border ${
+              isDark
+                ? "bg-slate-800 border-slate-700"
+                : "bg-stone-50 border-stone-200"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p
+                  className={`text-xs font-medium mb-1 ${
+                    isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  Join Code
+                </p>
+                <p
+                  className={`text-2xl font-mono font-bold tracking-wider ${
+                    isDark ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  {getShortCode(activeLink.token)}
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={copyCode}
+                className="shrink-0"
+              >
+                {copiedType === "code" ? "Copied!" : "Copy"}
+              </Button>
+            </div>
+            <p
+              className={`text-xs mt-2 ${
+                isDark ? "text-gray-500" : "text-gray-500"
+              }`}
+            >
+              Enter at kniferoll.app/join
+            </p>
+          </div>
+
+          {/* Full link */}
+          <div
+            className={`p-4 rounded-xl border ${
+              isDark
+                ? "bg-slate-800 border-slate-700"
+                : "bg-stone-50 border-stone-200"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p
+                  className={`text-xs font-medium mb-1 ${
+                    isDark ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  Share Link
+                </p>
+                <p
+                  className={`text-sm font-mono truncate ${
+                    isDark ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  {`${window.location.origin}/join/${activeLink.token}`}
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={copyLink}
+                className="shrink-0"
+              >
+                {copiedType === "link" ? "Copied!" : "Copy"}
+              </Button>
+            </div>
+          </div>
+
+          {/* Expiry info */}
+          <div className="flex items-center justify-between">
+            <p
+              className={`text-sm ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              {getExpiryText(activeLink)} · Single use
+            </p>
+            <button
+              onClick={() => revokeLink(activeLink.id)}
+              className={`text-sm font-medium transition-colors ${
+                isDark
+                  ? "text-red-400 hover:text-red-300"
+                  : "text-red-600 hover:text-red-700"
+              }`}
+            >
+              Revoke
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* No active link - show generate button */
+        <div
+          className={`p-6 rounded-xl border text-center ${
+            isDark
+              ? "bg-slate-800/50 border-slate-700 border-dashed"
+              : "bg-stone-50 border-stone-200 border-dashed"
+          }`}
+        >
+          <p
+            className={`mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}
+          >
+            Generate a link to invite team members. Links expire in 24 hours and
+            are single-use.
+          </p>
+          <Button
+            variant="primary"
+            onClick={generateInviteLink}
+            disabled={generating}
+          >
+            {generating ? "Generating..." : "Generate Invite Link"}
+          </Button>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="flex justify-end mt-6">
+        <Button variant="secondary" onClick={handleClose}>
+          Done
+        </Button>
+      </div>
+    </Modal>
   );
 }

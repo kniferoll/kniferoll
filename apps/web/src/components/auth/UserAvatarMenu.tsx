@@ -35,13 +35,31 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
     navigate("/login");
   };
 
-  const userInitials =
-    user?.email
-      ?.split("@")[0]
-      .split(".")
-      .map((part) => part[0].toUpperCase())
-      .join("")
-      .slice(0, 2) || "U";
+  // Get user initials from email or display_name (for anonymous users)
+  const getUserInitials = () => {
+    // Try display_name first (set by anonymous users when joining)
+    const displayName = user?.user_metadata?.display_name;
+    if (displayName && typeof displayName === "string") {
+      return displayName
+        .split(" ")
+        .map((part) => part[0]?.toUpperCase() || "")
+        .join("")
+        .slice(0, 2) || "U";
+    }
+    // Fall back to email
+    if (user?.email) {
+      return user.email
+        .split("@")[0]
+        .split(".")
+        .map((part) => part[0]?.toUpperCase() || "")
+        .join("")
+        .slice(0, 2) || "U";
+    }
+    // Default for anonymous users without display_name
+    return "U";
+  };
+
+  const userInitials = getUserInitials();
 
   const menuItemStyles = `w-full px-4 py-2.5 text-left text-sm transition-colors cursor-pointer ${
     isDark
@@ -89,14 +107,16 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
                 isDark ? "text-white" : "text-gray-900"
               }`}
             >
-              {user?.email?.split("@")[0]}
+              {user?.user_metadata?.display_name ||
+                user?.email?.split("@")[0] ||
+                "Guest"}
             </div>
             <div
               className={`text-xs mt-1 ${
                 isDark ? "text-gray-400" : "text-gray-600"
               }`}
             >
-              {user?.email}
+              {user?.email || "Anonymous user"}
             </div>
           </div>
 

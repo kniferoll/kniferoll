@@ -501,13 +501,12 @@ export function KitchenDashboard() {
       </div>
 
       {/* Invite Modal */}
-      {showInviteModal && currentKitchen && (
-        <InviteLinkModal
-          kitchenId={kitchenId || ""}
-          kitchenName={currentKitchen.name}
-          onClose={() => setShowInviteModal(false)}
-        />
-      )}
+      <InviteLinkModal
+        isOpen={showInviteModal && !!currentKitchen}
+        kitchenId={kitchenId || ""}
+        kitchenName={currentKitchen?.name || ""}
+        onClose={() => setShowInviteModal(false)}
+      />
 
       {/* Add Station Modal */}
       <AddStationModal

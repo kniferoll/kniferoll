@@ -133,13 +133,12 @@ export function KitchenSettings() {
         </Card>
       </div>
 
-      {showInviteModal && kitchen && (
-        <InviteLinkModal
-          kitchenId={kitchen.id}
-          kitchenName={kitchen.name}
-          onClose={() => setShowInviteModal(false)}
-        />
-      )}
+      <InviteLinkModal
+        isOpen={showInviteModal && !!kitchen}
+        kitchenId={kitchen?.id || ""}
+        kitchenName={kitchen?.name || ""}
+        onClose={() => setShowInviteModal(false)}
+      />
 
       <UpgradeModal
         isOpen={showUpgradeModal}
