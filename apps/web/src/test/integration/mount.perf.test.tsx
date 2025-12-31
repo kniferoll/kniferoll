@@ -1,9 +1,10 @@
+import React from "react";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { readdirSync } from "fs";
 import { resolve } from "path";
-import { RENDER_BUDGETS, EXCLUDED_PAGES, getBudget } from "./budgets";
-import { TestProviders } from "../utils/providers";
+import { PAGE_BUDGETS, EXCLUDED_PAGES, getBudget, type PageBudgetName } from "./budgets";
+import { TestProviders, setTestAuthState } from "../utils/providers";
 import { createRenderTracker, expectWithinBudget } from "../utils/perf";
 
 // Import pages for testing
@@ -25,6 +26,7 @@ vi.mock("react-router-dom", async () => {
     useParams: vi.fn(() => ({
       kitchenId: "mock-kitchen-id",
       stationId: "mock-station-id",
+      token: "mock-token",
     })),
   };
 });
@@ -32,11 +34,14 @@ vi.mock("react-router-dom", async () => {
 // Reset mocks between tests
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default to unauthenticated state
+  setTestAuthState(false);
 });
 
 /**
  * Budget Coverage Test
  * Ensures all pages have budgets defined (except excluded ones)
+ * This test FAILS if a new page is added without a corresponding budget entry
  */
 describe("Budget Coverage", () => {
   const pagesDir = resolve(__dirname, "../../pages");
@@ -46,7 +51,18 @@ describe("Budget Coverage", () => {
     .filter((f) => !EXCLUDED_PAGES.includes(f as typeof EXCLUDED_PAGES[number]));
 
   it.each(pageFiles)("%s has a defined budget", (page) => {
-    expect(RENDER_BUDGETS).toHaveProperty(page);
+    expect(PAGE_BUDGETS).toHaveProperty(page);
+  });
+
+  it("all budgeted pages exist in the pages directory", () => {
+    const budgetedPages = Object.keys(PAGE_BUDGETS);
+    const actualPages = readdirSync(pagesDir)
+      .filter((f) => f.endsWith(".tsx"))
+      .map((f) => f.replace(".tsx", ""));
+
+    for (const budgetedPage of budgetedPages) {
+      expect(actualPages).toContain(budgetedPage);
+    }
   });
 });
 
@@ -55,6 +71,9 @@ describe("Budget Coverage", () => {
  * Tests each page's initial render performance against its budget
  */
 describe("Page Mount Performance", () => {
+  // Pages that require NO authentication (show login form, etc.)
+  const PUBLIC_PAGES = ["Landing", "Login", "Signup", "JoinWithCode", "InviteJoin"];
+
   /**
    * Test configuration for each page
    * - name: Page name (must match budget key)
@@ -62,8 +81,15 @@ describe("Page Mount Performance", () => {
    * - waitFor: data-testid to wait for (indicates load complete)
    * - initialRoute: Optional route for MemoryRouter
    */
-  // Pages that can be tested with minimal mocking
-  const simplePageConfigs = [
+  interface PageConfig {
+    name: string;
+    Component: () => React.JSX.Element | null;
+    waitFor: string;
+    initialRoute?: string;
+  }
+
+  const pageConfigs: PageConfig[] = [
+    // Public pages (no auth required)
     {
       name: "Landing",
       Component: Landing,
@@ -80,56 +106,52 @@ describe("Page Mount Performance", () => {
       waitFor: "page-signup",
     },
     {
-      name: "Dashboard",
-      Component: Dashboard,
-      waitFor: "page-dashboard",
-    },
-    {
       name: "JoinWithCode",
       Component: JoinWithCode,
       waitFor: "page-join-with-code",
     },
-  ] as const;
-
-  // Pages that need additional data mocking - tested separately with .skip
-  // TODO: Add proper mocks for these pages in future iterations
-  const _complexPageConfigs = [
     {
       name: "InviteJoin",
       Component: InviteJoin,
       waitFor: "page-invite-join",
-      note: "Needs invite token and kitchen data",
+      initialRoute: "/invite/mock-token",
+    },
+    // Authenticated pages (require user)
+    {
+      name: "Dashboard",
+      Component: Dashboard,
+      waitFor: "page-dashboard",
     },
     {
       name: "KitchenDashboard",
       Component: KitchenDashboard,
       waitFor: "page-kitchen-dashboard",
       initialRoute: "/kitchen/mock-kitchen-id",
-      note: "Needs kitchen, stations, and prep items data",
     },
     {
       name: "KitchenSettings",
       Component: KitchenSettings,
       waitFor: "page-kitchen-settings",
       initialRoute: "/kitchen/mock-kitchen-id/settings",
-      note: "Needs kitchen data",
     },
     {
       name: "StationView",
       Component: StationView,
       waitFor: "page-station-view",
       initialRoute: "/station/mock-station-id",
-      note: "Needs station, kitchen, and prep items data",
     },
-  ] as const;
+  ];
 
-  // Keep reference to avoid unused variable warning
-  void _complexPageConfigs;
+  describe.each(pageConfigs)("$name", ({ name, Component, waitFor: waitForTestId, initialRoute }) => {
+    beforeEach(() => {
+      // Set auth state based on page type
+      const isPublicPage = PUBLIC_PAGES.includes(name);
+      setTestAuthState(!isPublicPage);
+    });
 
-  describe.each(simplePageConfigs)("$name", ({ name, Component, waitFor: waitForTestId, initialRoute }) => {
     it(`mounts within render budget`, async () => {
       const { Tracker, metrics } = createRenderTracker();
-      const budget = getBudget(name as keyof typeof RENDER_BUDGETS);
+      const budget = getBudget(name as PageBudgetName);
 
       render(
         <TestProviders initialRoute={initialRoute}>
@@ -193,6 +215,11 @@ describe("Page Mount Performance", () => {
  * Ensures subsequent renders stay within budget
  */
 describe("Page Re-render Performance", () => {
+  beforeEach(() => {
+    // Re-render tests use authenticated pages
+    setTestAuthState(true);
+  });
+
   it("Dashboard handles re-renders efficiently", async () => {
     const { Tracker, metrics } = createRenderTracker();
 
@@ -226,5 +253,75 @@ describe("Page Re-render Performance", () => {
 
     // Should have minimal re-renders (just the update)
     expect(metrics.renderCount).toBeLessThanOrEqual(3);
+  });
+
+  it("KitchenDashboard handles re-renders efficiently", async () => {
+    const { Tracker, metrics } = createRenderTracker();
+
+    const { rerender } = render(
+      <TestProviders initialRoute="/kitchen/mock-kitchen-id">
+        <Tracker>
+          <KitchenDashboard />
+        </Tracker>
+      </TestProviders>
+    );
+
+    // Wait for initial load
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("page-kitchen-dashboard")).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Reset metrics for re-render measurement
+    metrics.reset();
+
+    // Force a re-render
+    rerender(
+      <TestProviders initialRoute="/kitchen/mock-kitchen-id">
+        <Tracker>
+          <KitchenDashboard />
+        </Tracker>
+      </TestProviders>
+    );
+
+    // Should have minimal re-renders
+    expect(metrics.renderCount).toBeLessThanOrEqual(5);
+  });
+
+  it("StationView handles re-renders efficiently", async () => {
+    const { Tracker, metrics } = createRenderTracker();
+
+    const { rerender } = render(
+      <TestProviders initialRoute="/station/mock-station-id">
+        <Tracker>
+          <StationView />
+        </Tracker>
+      </TestProviders>
+    );
+
+    // Wait for initial load
+    await waitFor(
+      () => {
+        expect(screen.getByTestId("page-station-view")).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Reset metrics for re-render measurement
+    metrics.reset();
+
+    // Force a re-render
+    rerender(
+      <TestProviders initialRoute="/station/mock-station-id">
+        <Tracker>
+          <StationView />
+        </Tracker>
+      </TestProviders>
+    );
+
+    // Should have minimal re-renders
+    expect(metrics.renderCount).toBeLessThanOrEqual(5);
   });
 });
