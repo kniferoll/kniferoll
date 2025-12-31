@@ -187,14 +187,14 @@ export function KitchenSettings() {
           </div>
         )}
 
-        {/* Billing Section */}
-        {activeSection === "billing" && isOwner && (
+        {/* Billing Section - available to any logged-in user */}
+        {activeSection === "billing" && user && (
           <div
             className={`divide-y ${
               isDark ? "divide-white/10" : "divide-gray-200"
             }`}
           >
-            <BillingSettingsTab userId={user!.id} />
+            <BillingSettingsTab userId={user.id} />
           </div>
         )}
 
