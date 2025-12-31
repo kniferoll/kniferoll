@@ -33,7 +33,7 @@ export const COMPONENT_BUDGETS = {
 
   // Kitchen components
   ShiftToggle: { renders: 2, duration: 20 },
-  DateCalendar: { renders: 3, duration: 300 }, // Calendar rendering is slow in CI
+  DateCalendar: { renders: 3, duration: 250 },
 
   // UI primitives
   Button: { renders: 2, duration: 10 },
