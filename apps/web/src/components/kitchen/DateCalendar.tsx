@@ -104,13 +104,13 @@ export function DateCalendar({
       {/* Trigger button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/10 border-2 border-gray-300 dark:border-white/20 rounded-lg hover:bg-gray-50 dark:hover:bg-white/20 transition-colors text-sm font-semibold text-gray-900 dark:text-white"
+        className="inline-flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800/50 border-2 border-stone-300 dark:border-slate-700 rounded-xl hover:bg-stone-50 dark:hover:bg-slate-800 hover:border-stone-400 dark:hover:border-slate-600 transition-all cursor-pointer text-sm font-semibold text-gray-900 dark:text-white"
       >
         <svg
           className={`w-5 h-5 transition-colors ${
             isToday
-              ? "text-blue-500 dark:text-blue-400"
-              : "text-gray-600 dark:text-white/70"
+              ? "text-orange-500 dark:text-orange-400"
+              : "text-gray-600 dark:text-slate-400"
           }`}
           fill="none"
           stroke="currentColor"
@@ -129,12 +129,12 @@ export function DateCalendar({
       {/* Calendar dropdown */}
       {isOpen && (
         <div className="absolute top-full mt-2 left-0 md:left-auto md:right-0 z-50 animate-slideDown">
-          <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 shadow-lg dark:shadow-xl p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-stone-200 dark:border-slate-700 shadow-xl dark:shadow-2xl dark:shadow-slate-900/50 p-4">
             {/* Go to Today button */}
             {showGoToToday && (
               <button
                 onClick={handleGoToToday}
-                className="w-full mb-3 px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors border border-blue-200 dark:border-blue-400"
+                className="w-full mb-3 px-3 py-2 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-slate-800 rounded-xl transition-colors border border-orange-200 dark:border-orange-500/30 cursor-pointer"
               >
                 Go to Today
               </button>
@@ -154,16 +154,16 @@ export function DateCalendar({
                 root: `${defaultClassNames.root}`,
                 month_caption: `${defaultClassNames.month_caption} justify-center text-base font-semibold text-gray-900 dark:text-slate-50`,
                 nav: `${defaultClassNames.nav}`,
-                button_previous: `${defaultClassNames.button_previous} hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors`,
-                button_next: `${defaultClassNames.button_next} hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors`,
+                button_previous: `${defaultClassNames.button_previous} hover:bg-stone-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer`,
+                button_next: `${defaultClassNames.button_next} hover:bg-stone-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer`,
                 chevron: `${defaultClassNames.chevron} fill-gray-600 dark:fill-slate-400`,
-                weekday: `${defaultClassNames.weekday} text-xs font-semibold text-gray-500 dark:text-slate-400`,
-                day: `${defaultClassNames.day} text-sm font-medium text-gray-900 dark:text-slate-50`,
-                day_button: `${defaultClassNames.day_button} rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors`,
-                today: `${defaultClassNames.today} bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-200`,
-                selected: `${defaultClassNames.selected} bg-blue-600 dark:bg-blue-700 text-white font-semibold`,
-                disabled: `${defaultClassNames.disabled} text-gray-300 dark:text-slate-600 cursor-not-allowed`,
-                outside: `${defaultClassNames.outside} text-gray-400 dark:text-slate-600`,
+                weekday: `${defaultClassNames.weekday} text-xs font-semibold text-stone-500 dark:text-slate-500`,
+                day: `${defaultClassNames.day} text-sm font-medium text-gray-900 dark:text-slate-200`,
+                day_button: `${defaultClassNames.day_button} rounded-xl hover:bg-stone-100 dark:hover:bg-slate-800 transition-colors cursor-pointer`,
+                today: `${defaultClassNames.today} bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-semibold`,
+                selected: `${defaultClassNames.selected} !bg-gradient-to-br !from-orange-500 !to-orange-600 text-white font-semibold shadow-lg shadow-orange-500/30`,
+                disabled: `${defaultClassNames.disabled} text-stone-300 dark:text-slate-600 !cursor-not-allowed hover:!bg-transparent`,
+                outside: `${defaultClassNames.outside} text-stone-400 dark:text-slate-600`,
               }}
               labels={{
                 labelPrevious: () => "Previous month",
