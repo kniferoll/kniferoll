@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { DayPicker, getDefaultClassNames } from "react-day-picker";
+import { DayPicker } from "react-day-picker";
 import { getTodayLocalDate, toLocalDate, formatToDateString } from "@/lib";
 import "react-day-picker/style.css";
 
@@ -94,8 +94,6 @@ export function DateCalendar({
     setMonth(toLocalDate(selectedDate));
   }, [selectedDate]);
 
-  const defaultClassNames = getDefaultClassNames();
-
   // Show "Go to Today" if selected date is different from today
   const showGoToToday = selectedDate !== todayString;
 
@@ -150,20 +148,36 @@ export function DateCalendar({
               disabled={disabledMatcher}
               showOutsideDays={false}
               fixedWeeks={false}
+              style={
+                {
+                  "--rdp-accent-color": "#f97316",
+                  "--rdp-accent-background-color": "#fff7ed",
+                  "--rdp-day_button-border-radius": "8px",
+                  "--rdp-selected-border": "none",
+                  "--rdp-today-color": "#ea580c",
+                } as React.CSSProperties
+              }
               classNames={{
-                root: `${defaultClassNames.root}`,
-                month_caption: `${defaultClassNames.month_caption} justify-center text-base font-semibold text-gray-900 dark:text-slate-50`,
-                nav: `${defaultClassNames.nav}`,
-                button_previous: `${defaultClassNames.button_previous} hover:bg-stone-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer`,
-                button_next: `${defaultClassNames.button_next} hover:bg-stone-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer`,
-                chevron: `${defaultClassNames.chevron} fill-gray-600 dark:fill-slate-400`,
-                weekday: `${defaultClassNames.weekday} text-xs font-semibold text-stone-500 dark:text-slate-500`,
-                day: `${defaultClassNames.day} text-sm font-medium text-gray-900 dark:text-slate-200`,
-                day_button: `${defaultClassNames.day_button} rounded-xl hover:bg-stone-100 dark:hover:bg-slate-800 transition-colors cursor-pointer`,
-                today: `${defaultClassNames.today} bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-semibold`,
-                selected: `${defaultClassNames.selected} !bg-gradient-to-br !from-orange-500 !to-orange-600 text-white font-semibold shadow-lg shadow-orange-500/30`,
-                disabled: `${defaultClassNames.disabled} text-stone-300 dark:text-slate-600 !cursor-not-allowed hover:!bg-transparent`,
-                outside: `${defaultClassNames.outside} text-stone-400 dark:text-slate-600`,
+                month_caption:
+                  "rdp-month_caption flex justify-center py-2 text-base font-semibold text-gray-800 dark:text-slate-100 cursor-default",
+                button_previous:
+                  "rdp-button_previous p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors cursor-pointer",
+                button_next:
+                  "rdp-button_next p-1.5 rounded-lg hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors cursor-pointer",
+                chevron: "rdp-chevron w-4 h-4 fill-stone-500 dark:fill-slate-400",
+                weekday:
+                  "rdp-weekday text-xs font-medium text-stone-400 dark:text-slate-500 w-9 h-9",
+                day: "rdp-day w-9 h-9 text-center",
+                day_button:
+                  "rdp-day_button w-9 h-9 text-sm font-medium rounded-lg cursor-pointer text-stone-700 dark:text-slate-300 transition-all duration-150 hover:bg-stone-200 dark:hover:bg-slate-600 hover:scale-105",
+                today:
+                  "rdp-today [&>button]:font-semibold [&>button]:text-orange-600 [&>button]:dark:text-orange-400",
+                selected:
+                  "rdp-selected [&>button]:bg-orange-500 [&>button]:text-white [&>button]:font-semibold [&>button]:hover:bg-orange-500 [&>button]:shadow-md [&>button]:shadow-orange-500/40",
+                disabled:
+                  "rdp-disabled [&>button]:text-stone-300 [&>button]:dark:text-slate-600 [&>button]:cursor-not-allowed [&>button]:hover:bg-transparent [&>button]:hover:scale-100",
+                outside:
+                  "rdp-outside [&>button]:text-stone-300 [&>button]:dark:text-slate-600",
               }}
               labels={{
                 labelPrevious: () => "Previous month",
