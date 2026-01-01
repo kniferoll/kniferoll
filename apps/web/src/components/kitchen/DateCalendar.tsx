@@ -151,25 +151,19 @@ export function DateCalendar({
               showOutsideDays={false}
               fixedWeeks={false}
               classNames={{
-                root: `${defaultClassNames.root} [&_.rdp-caption]:mb-4`,
-                month_caption:
-                  "flex justify-center text-base font-semibold text-gray-900 dark:text-slate-50",
-                nav: "flex items-center",
-                button_previous: `${defaultClassNames.button_previous} p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors`,
-                button_next: `${defaultClassNames.button_next} p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors`,
-                chevron:
-                  "w-5 h-5 text-gray-600 dark:text-slate-400 fill-current",
-                weekday:
-                  "text-xs font-semibold text-gray-500 dark:text-slate-400 h-10 w-10",
-                day: "h-10 w-10 text-sm font-medium rounded-lg transition-all flex items-center justify-center text-gray-900 dark:text-slate-50 hover:bg-gray-100 dark:hover:bg-slate-800",
-                day_button: "w-full h-full flex items-center justify-center",
-                today:
-                  "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700",
-                selected:
-                  "bg-blue-600 dark:bg-blue-700 text-white font-semibold shadow-md dark:shadow-lg hover:bg-blue-600 dark:hover:bg-blue-700",
-                disabled:
-                  "text-gray-300 dark:text-slate-600 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent",
-                outside: "text-gray-400 dark:text-slate-600",
+                root: `${defaultClassNames.root}`,
+                month_caption: `${defaultClassNames.month_caption} justify-center text-base font-semibold text-gray-900 dark:text-slate-50`,
+                nav: `${defaultClassNames.nav}`,
+                button_previous: `${defaultClassNames.button_previous} hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors`,
+                button_next: `${defaultClassNames.button_next} hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors`,
+                chevron: `${defaultClassNames.chevron} fill-gray-600 dark:fill-slate-400`,
+                weekday: `${defaultClassNames.weekday} text-xs font-semibold text-gray-500 dark:text-slate-400`,
+                day: `${defaultClassNames.day} text-sm font-medium text-gray-900 dark:text-slate-50`,
+                day_button: `${defaultClassNames.day_button} rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors`,
+                today: `${defaultClassNames.today} bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-200`,
+                selected: `${defaultClassNames.selected} bg-blue-600 dark:bg-blue-700 text-white font-semibold`,
+                disabled: `${defaultClassNames.disabled} text-gray-300 dark:text-slate-600 cursor-not-allowed`,
+                outside: `${defaultClassNames.outside} text-gray-400 dark:text-slate-600`,
               }}
               labels={{
                 labelPrevious: () => "Previous month",
