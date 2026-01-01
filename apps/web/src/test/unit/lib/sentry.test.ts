@@ -23,6 +23,11 @@ describe("sentry", () => {
 
       expect(Sentry.init).not.toHaveBeenCalled();
     });
+
+    // Note: Testing production mode initialization would require env stubbing
+    // which is not straightforward with import.meta.env.PROD
+    // The beforeSend function behavior is tested indirectly through
+    // integration tests or manually in staging/production environments
   });
 
   describe("setSentryUser", () => {
