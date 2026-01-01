@@ -122,7 +122,7 @@ export function KitchenDashboard() {
         <div className="flex items-center gap-2">
           <Logo size="sm" showText={false} />
           <span
-            className={`text-lg font-semibold ${
+            className={`text-lg font-semibold cursor-default ${
               isDark ? "text-white" : "text-stone-900"
             }`}
           >
