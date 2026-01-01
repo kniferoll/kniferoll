@@ -26,12 +26,12 @@ export default defineConfig({
         "src/vite-env.d.ts",
       ],
       // Coverage thresholds - CI will fail if coverage drops below these
-      // Updated 2024-12-31: increased from ~28% to ~37%
+      // Updated 2024-12-31: increased from ~35% to ~40%
       thresholds: {
-        statements: 35,
-        branches: 29,
-        functions: 33,
-        lines: 35,
+        statements: 40,
+        branches: 34,
+        functions: 39,
+        lines: 40,
       },
     },
   },

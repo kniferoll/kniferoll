@@ -21,7 +21,7 @@ Increase test coverage by 10% toward our goal of 90%.
 2. **Create a new branch**
 
    ```bash
-   git checkout -b test/increase-coverage-$(date +%Y%m%d)
+   git checkout -b test/increase-coverage-$(date +%Y%m%d%H%M%S)
    ```
 
 3. **Identify targets**
@@ -36,6 +36,7 @@ Increase test coverage by 10% toward our goal of 90%.
    ### Test file location rules
 
    **Component tests are colocated** with source files:
+
    ```
    src/components/ui/Button.tsx
    src/components/ui/Button.test.tsx    ← next to source
@@ -44,6 +45,7 @@ Increase test coverage by 10% toward our goal of 90%.
    ```
 
    **Non-component tests** go in `src/test/` with structure mirroring source:
+
    ```
    src/test/unit/lib/           ← tests for src/lib/*.ts
    src/test/unit/stores/        ← tests for src/stores/*.ts
@@ -52,6 +54,7 @@ Increase test coverage by 10% toward our goal of 90%.
    ```
 
    **Rules:**
+
    - Component/hook tests: colocate as `Name.test.tsx` next to source
    - Pure utility functions (`lib/`): place in `test/unit/lib/`
    - Zustand stores: place in `test/unit/stores/`
@@ -194,6 +197,7 @@ Tests use transactions for isolation (`begin`/`rollback`).
 ### Application-level Supabase testing
 
 For integration tests that hit the real database:
+
 - Use unique IDs per test to avoid conflicts
 - Create test users with `adminSupabase.auth.admin.createUser()`
 - Don't rely on clean database state - make tests independent

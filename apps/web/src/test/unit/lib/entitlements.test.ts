@@ -218,5 +218,237 @@ describe("entitlements", () => {
       const result = await canGenerateInvite("user-1", "kitchen-1");
       expect(result).toBe(false);
     });
+
+    describe("canCreateKitchen", () => {
+      it("returns true when user is under kitchen limit", async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (mockSupabase.from as any).mockImplementation((table: string) => {
+          if (table === "user_profiles") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: "user-1", plan: "pro" },
+                  error: null,
+                }),
+              })),
+            };
+          }
+          if (table === "kitchens") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockResolvedValue({ count: 2, error: null }),
+              })),
+            };
+          }
+          return { select: vi.fn() };
+        });
+
+        const { canCreateKitchen } = await import("@/lib/entitlements");
+        const result = await canCreateKitchen("user-1");
+        expect(result).toBe(true);
+      });
+
+      it("returns false when user has no profile", async () => {
+        mockSupabase.from.mockImplementation(() => ({
+          select: vi.fn(() => ({
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+          })),
+        }));
+
+        const { canCreateKitchen } = await import("@/lib/entitlements");
+        const result = await canCreateKitchen("user-1");
+        expect(result).toBe(false);
+      });
+
+      it("returns false when user is at kitchen limit (free plan)", async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (mockSupabase.from as any).mockImplementation((table: string) => {
+          if (table === "user_profiles") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: "user-1", plan: "free" },
+                  error: null,
+                }),
+              })),
+            };
+          }
+          if (table === "kitchens") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockResolvedValue({ count: 1, error: null }),
+              })),
+            };
+          }
+          return { select: vi.fn() };
+        });
+
+        const { canCreateKitchen } = await import("@/lib/entitlements");
+        const result = await canCreateKitchen("user-1");
+        expect(result).toBe(false);
+      });
+    });
+
+    describe("canCreateStation", () => {
+      it("returns true when owner is under station limit", async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (mockSupabase.from as any).mockImplementation((table: string) => {
+          if (table === "kitchens") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                single: vi.fn().mockResolvedValue({
+                  data: { owner_id: "user-1" },
+                  error: null,
+                }),
+              })),
+            };
+          }
+          if (table === "user_profiles") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: "user-1", plan: "pro" },
+                  error: null,
+                }),
+              })),
+            };
+          }
+          if (table === "stations") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockResolvedValue({ count: 3, error: null }),
+              })),
+            };
+          }
+          return { select: vi.fn() };
+        });
+
+        const { canCreateStation } = await import("@/lib/entitlements");
+        const result = await canCreateStation("user-1", "kitchen-1");
+        expect(result).toBe(true);
+      });
+
+      it("returns false when kitchen fetch fails", async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (mockSupabase.from as any).mockImplementation((table: string) => {
+          if (table === "kitchens") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                single: vi.fn().mockResolvedValue({
+                  data: null,
+                  error: { message: "Not found" },
+                }),
+              })),
+            };
+          }
+          return { select: vi.fn() };
+        });
+
+        const { canCreateStation } = await import("@/lib/entitlements");
+        const result = await canCreateStation("user-1", "kitchen-1");
+        expect(result).toBe(false);
+      });
+
+      it("returns false when user is not the owner", async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (mockSupabase.from as any).mockImplementation((table: string) => {
+          if (table === "kitchens") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                single: vi.fn().mockResolvedValue({
+                  data: { owner_id: "different-user" },
+                  error: null,
+                }),
+              })),
+            };
+          }
+          return { select: vi.fn() };
+        });
+
+        const { canCreateStation } = await import("@/lib/entitlements");
+        const result = await canCreateStation("user-1", "kitchen-1");
+        expect(result).toBe(false);
+      });
+
+      it("returns false when user profile not found", async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (mockSupabase.from as any).mockImplementation((table: string) => {
+          if (table === "kitchens") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                single: vi.fn().mockResolvedValue({
+                  data: { owner_id: "user-1" },
+                  error: null,
+                }),
+              })),
+            };
+          }
+          if (table === "user_profiles") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: null,
+                  error: null,
+                }),
+              })),
+            };
+          }
+          return { select: vi.fn() };
+        });
+
+        const { canCreateStation } = await import("@/lib/entitlements");
+        const result = await canCreateStation("user-1", "kitchen-1");
+        expect(result).toBe(false);
+      });
+
+      it("returns false when free user is at station limit", async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (mockSupabase.from as any).mockImplementation((table: string) => {
+          if (table === "kitchens") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                single: vi.fn().mockResolvedValue({
+                  data: { owner_id: "user-1" },
+                  error: null,
+                }),
+              })),
+            };
+          }
+          if (table === "user_profiles") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockReturnThis(),
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: "user-1", plan: "free" },
+                  error: null,
+                }),
+              })),
+            };
+          }
+          if (table === "stations") {
+            return {
+              select: vi.fn(() => ({
+                eq: vi.fn().mockResolvedValue({ count: 1, error: null }),
+              })),
+            };
+          }
+          return { select: vi.fn() };
+        });
+
+        const { canCreateStation } = await import("@/lib/entitlements");
+        const result = await canCreateStation("user-1", "kitchen-1");
+        expect(result).toBe(false);
+      });
+    });
   });
 });
