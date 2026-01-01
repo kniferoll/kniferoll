@@ -1,5 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { DayPicker, getDefaultClassNames } from "react-day-picker";
 import { getTodayLocalDate, toLocalDate, formatToDateString } from "@/lib";
+import "react-day-picker/style.css";
 
 interface DateCalendarProps {
   selectedDate: string; // ISO date string (YYYY-MM-DD)
@@ -7,196 +9,15 @@ interface DateCalendarProps {
   closedDays?: string[]; // Array of day names (e.g., ["sunday", "monday"])
 }
 
-function CalendarGrid({
-  selectedDate,
-  onDateSelect,
-  closedDays = [],
-  onClose,
-}: DateCalendarProps & { onClose: () => void }) {
-  const [viewDate, setViewDate] = useState(() => {
-    const date = toLocalDate(selectedDate);
-    return new Date(date.getFullYear(), date.getMonth(), 1);
-  });
-
-  const today = toLocalDate(getTodayLocalDate());
-
-  const selectedDateObj = toLocalDate(selectedDate);
-
-  // Get first day of month and number of days
-  const firstDayOfMonth = new Date(
-    viewDate.getFullYear(),
-    viewDate.getMonth(),
-    1
-  );
-  const lastDayOfMonth = new Date(
-    viewDate.getFullYear(),
-    viewDate.getMonth() + 1,
-    0
-  );
-  const daysInMonth = lastDayOfMonth.getDate();
-  const startingDayOfWeek = firstDayOfMonth.getDay();
-
-  // Create array of day objects
-  const days = [];
-  for (let i = 0; i < startingDayOfWeek; i++) {
-    days.push(null);
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push(i);
-  }
-
-  const isDayNameClosed = (date: Date) => {
-    const dayName = date
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
-    return closedDays.includes(dayName);
-  };
-
-  const handleDateClick = (day: number) => {
-    const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
-    const dateString = formatToDateString(newDate);
-    onDateSelect(dateString);
-  };
-
-  const handleGoToToday = () => {
-    const dateString = formatToDateString(today);
-    onDateSelect(dateString);
-    setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
-  };
-
-  const handlePrevMonth = () => {
-    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
-  };
-
-  const handleNextMonth = () => {
-    setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
-  };
-
-  const monthName = viewDate.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-  return (
-    <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6 shadow-sm dark:shadow-lg w-80 max-w-[calc(100vw-32px)]">
-      {/* Header with month/year and navigation */}
-      <div className="flex items-center justify-between mb-6">
-        <button
-          onClick={handlePrevMonth}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-          aria-label="Previous month"
-        >
-          <svg
-            className="w-5 h-5 text-gray-600 dark:text-slate-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-
-        <div className="flex-1 text-center">
-          <h3 className="text-base font-semibold text-gray-900 dark:text-slate-50">
-            {monthName}
-          </h3>
-        </div>
-
-        <button
-          onClick={handleNextMonth}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-          aria-label="Next month"
-        >
-          <svg
-            className="w-5 h-5 text-gray-600 dark:text-slate-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
-      </div>
-
-      {/* Today button */}
-      {selectedDate !== formatToDateString(today) && (
-        <button
-          onClick={handleGoToToday}
-          className="w-full mb-4 px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors border border-blue-200 dark:border-blue-400"
-        >
-          Go to Today
-        </button>
-      )}
-
-      {/* Week day headers */}
-      <div className="grid grid-cols-7 gap-2 mb-3">
-        {weekDays.map((day) => (
-          <div
-            key={day}
-            className="h-10 flex items-center justify-center text-xs font-semibold text-gray-500 dark:text-slate-400"
-          >
-            {day}
-          </div>
-        ))}
-      </div>
-
-      {/* Calendar days */}
-      <div className="grid grid-cols-7 gap-2">
-        {days.map((day, index) => {
-          if (day === null) {
-            return <div key={`empty-${index}`} className="h-10" />;
-          }
-
-          const date = new Date(
-            viewDate.getFullYear(),
-            viewDate.getMonth(),
-            day
-          );
-          const isClosed = isDayNameClosed(date);
-          const isSelected = date.getTime() === selectedDateObj.getTime();
-          const isToday = date.getTime() === today.getTime();
-
-          return (
-            <button
-              key={day}
-              onClick={() => {
-                if (!isClosed) {
-                  handleDateClick(day);
-                  onClose();
-                }
-              }}
-              disabled={isClosed}
-              className={`h-10 rounded-lg text-sm font-medium transition-all flex items-center justify-center ${
-                isClosed
-                  ? "text-gray-300 dark:text-slate-600 cursor-not-allowed"
-                  : isSelected
-                  ? "bg-blue-600 dark:bg-blue-700 text-white font-semibold shadow-md dark:shadow-lg"
-                  : isToday
-                  ? "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700 hover:bg-blue-200 dark:hover:bg-blue-800"
-                  : "text-gray-900 dark:text-slate-50 hover:bg-gray-100 dark:hover:bg-slate-800"
-              }`}
-              title={isClosed ? "Kitchen closed" : ""}
-            >
-              {day}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+const DAY_NAME_TO_INDEX: Record<string, number> = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6,
+};
 
 export function DateCalendar({
   selectedDate,
@@ -204,10 +25,12 @@ export function DateCalendar({
   closedDays = [],
 }: DateCalendarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [month, setMonth] = useState(() => toLocalDate(selectedDate));
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedDateObj = toLocalDate(selectedDate);
   const todayString = getTodayLocalDate();
+  const today = toLocalDate(todayString);
   const isToday = selectedDate === todayString;
 
   const formattedDate = selectedDateObj.toLocaleDateString("en-US", {
@@ -215,6 +38,37 @@ export function DateCalendar({
     month: "short",
     day: "numeric",
   });
+
+  // Convert closedDays names to day indices for react-day-picker
+  const closedDayIndices = closedDays
+    .map((day) => DAY_NAME_TO_INDEX[day.toLowerCase()])
+    .filter((index) => index !== undefined);
+
+  // Matcher for disabled days
+  const disabledMatcher = useCallback(
+    (date: Date) => {
+      const dayOfWeek = date.getDay();
+      return closedDayIndices.includes(dayOfWeek);
+    },
+    [closedDayIndices]
+  );
+
+  const handleSelect = useCallback(
+    (date: Date | undefined) => {
+      if (date) {
+        const dateString = formatToDateString(date);
+        onDateSelect(dateString);
+        setIsOpen(false);
+      }
+    },
+    [onDateSelect]
+  );
+
+  const handleGoToToday = useCallback(() => {
+    onDateSelect(todayString);
+    setMonth(today);
+    setIsOpen(false);
+  }, [onDateSelect, todayString, today]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -235,9 +89,19 @@ export function DateCalendar({
     }
   }, [isOpen]);
 
+  // Update month view when selected date changes externally
+  useEffect(() => {
+    setMonth(toLocalDate(selectedDate));
+  }, [selectedDate]);
+
+  const defaultClassNames = getDefaultClassNames();
+
+  // Show "Go to Today" if selected date is different from today
+  const showGoToToday = selectedDate !== todayString;
+
   return (
     <div className="relative inline-block" ref={containerRef}>
-      {/* Minimal date display button */}
+      {/* Trigger button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="inline-flex items-center gap-2 px-3 py-2 bg-white dark:bg-white/10 border-2 border-gray-300 dark:border-white/20 rounded-lg hover:bg-gray-50 dark:hover:bg-white/20 transition-colors text-sm font-semibold text-gray-900 dark:text-white"
@@ -262,18 +126,62 @@ export function DateCalendar({
         {formattedDate}
       </button>
 
-      {/* Dropdown with calendar grid */}
+      {/* Calendar dropdown */}
       {isOpen && (
         <div className="absolute top-full mt-2 left-0 md:left-auto md:right-0 z-50 animate-slideDown">
           <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 shadow-lg dark:shadow-xl p-4">
-            <CalendarGrid
-              selectedDate={selectedDate}
-              onDateSelect={(date) => {
-                onDateSelect(date);
-                setIsOpen(false);
+            {/* Go to Today button */}
+            {showGoToToday && (
+              <button
+                onClick={handleGoToToday}
+                className="w-full mb-3 px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-colors border border-blue-200 dark:border-blue-400"
+              >
+                Go to Today
+              </button>
+            )}
+
+            <DayPicker
+              mode="single"
+              selected={selectedDateObj}
+              onSelect={handleSelect}
+              month={month}
+              onMonthChange={setMonth}
+              today={today}
+              disabled={disabledMatcher}
+              showOutsideDays={false}
+              fixedWeeks={false}
+              classNames={{
+                root: `${defaultClassNames.root} [&_.rdp-caption]:mb-4`,
+                month_caption:
+                  "flex justify-center text-base font-semibold text-gray-900 dark:text-slate-50",
+                nav: "flex items-center",
+                button_previous: `${defaultClassNames.button_previous} p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors`,
+                button_next: `${defaultClassNames.button_next} p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors`,
+                chevron:
+                  "w-5 h-5 text-gray-600 dark:text-slate-400 fill-current",
+                weekday:
+                  "text-xs font-semibold text-gray-500 dark:text-slate-400 h-10 w-10",
+                day: "h-10 w-10 text-sm font-medium rounded-lg transition-all flex items-center justify-center text-gray-900 dark:text-slate-50 hover:bg-gray-100 dark:hover:bg-slate-800",
+                day_button: "w-full h-full flex items-center justify-center",
+                today:
+                  "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700",
+                selected:
+                  "bg-blue-600 dark:bg-blue-700 text-white font-semibold shadow-md dark:shadow-lg hover:bg-blue-600 dark:hover:bg-blue-700",
+                disabled:
+                  "text-gray-300 dark:text-slate-600 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent",
+                outside: "text-gray-400 dark:text-slate-600",
               }}
-              closedDays={closedDays}
-              onClose={() => setIsOpen(false)}
+              labels={{
+                labelPrevious: () => "Previous month",
+                labelNext: () => "Next month",
+              }}
+              formatters={{
+                formatCaption: (date) =>
+                  date.toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  }),
+              }}
             />
           </div>
         </div>
