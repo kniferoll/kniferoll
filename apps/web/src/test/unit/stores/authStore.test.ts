@@ -131,7 +131,7 @@ describe("authStore", () => {
       expect(state.loading).toBe(false);
     });
 
-    it("returns error message on failure", async () => {
+    it("returns generic error message on failure for security", async () => {
       mockSupabase.auth.signInWithPassword.mockResolvedValue({
         data: { session: null, user: null },
         error: { message: "Invalid credentials" },
@@ -139,7 +139,8 @@ describe("authStore", () => {
 
       const result = await useAuthStore.getState().signIn("test@example.com", "wrong");
 
-      expect(result.error).toBe("Invalid credentials");
+      // Generic message hides whether email exists (security best practice)
+      expect(result.error).toBe("Invalid email or password");
       expect(useAuthStore.getState().loading).toBe(false);
     });
 

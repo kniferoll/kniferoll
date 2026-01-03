@@ -61,7 +61,8 @@ export const useAuthStore = create<AuthState>()(
         } else {
           set({ loading: false });
         }
-        return { error: error?.message };
+        // Return generic error message for security - don't reveal if email exists
+        return { error: error ? "Invalid email or password" : undefined };
       },
 
       signUp: async (email, password, name) => {
