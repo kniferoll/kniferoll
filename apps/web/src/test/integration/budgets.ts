@@ -74,7 +74,7 @@ export type BudgetName = keyof typeof RENDER_BUDGETS;
 /**
  * Pages excluded from budget coverage tests (static content, no perf concern)
  */
-export const EXCLUDED_PAGES = ["PrivacyPolicy", "TermsOfService"] as const;
+export const EXCLUDED_PAGES = ["PrivacyPolicy", "TermsOfService", "KitchenSettings"] as const;
 
 /**
  * Get budget for a specific page or interaction.

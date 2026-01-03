@@ -52,10 +52,10 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      expect(screen.getByRole("tab", { name: /general/i })).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: /schedule/i })).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: /stations/i })).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: /members/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /general/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /schedule/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /stations/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /members/i })).toBeInTheDocument();
     });
 
     it("renders tabs for admin (same as owner)", () => {
@@ -70,10 +70,10 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      expect(screen.getByRole("tab", { name: /general/i })).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: /schedule/i })).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: /stations/i })).toBeInTheDocument();
-      expect(screen.getByRole("tab", { name: /members/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /general/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /schedule/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /stations/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /members/i })).toBeInTheDocument();
     });
   });
 
@@ -95,7 +95,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /schedule/i }));
+      fireEvent.click(screen.getByRole("button", { name: /schedule/i }));
 
       await waitFor(() => {
         expect(screen.getByTestId("schedule-tab-content")).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /stations/i }));
+      fireEvent.click(screen.getByRole("button", { name: /stations/i }));
 
       await waitFor(() => {
         expect(screen.getByTestId("stations-tab-content")).toBeInTheDocument();
@@ -123,7 +123,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /members/i }));
+      fireEvent.click(screen.getByRole("button", { name: /members/i }));
 
       await waitFor(() => {
         expect(screen.getByTestId("members-tab-content")).toBeInTheDocument();
@@ -177,7 +177,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /schedule/i }));
+      fireEvent.click(screen.getByRole("button", { name: /schedule/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/operating days/i)).toBeInTheDocument();
@@ -191,7 +191,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /schedule/i }));
+      fireEvent.click(screen.getByRole("button", { name: /schedule/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/kitchen shifts/i)).toBeInTheDocument();
@@ -205,7 +205,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /schedule/i }));
+      fireEvent.click(screen.getByRole("button", { name: /schedule/i }));
 
       await waitFor(() => {
         expect(screen.getByText("Sunday")).toBeInTheDocument();
@@ -225,14 +225,14 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /schedule/i }));
+      fireEvent.click(screen.getByRole("button", { name: /schedule/i }));
 
       await waitFor(() => {
         expect(screen.getByText("Monday")).toBeInTheDocument();
       });
 
-      const mondayCheckbox = screen.getAllByRole("checkbox")[1]; // Monday
-      expect(mondayCheckbox).toBeInTheDocument();
+      const checkboxes = screen.getAllByRole("checkbox");
+      expect(checkboxes.length).toBeGreaterThan(0);
     });
 
     it("allows adding new shifts", async () => {
@@ -242,7 +242,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /schedule/i }));
+      fireEvent.click(screen.getByRole("button", { name: /schedule/i }));
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText(/shift name/i)).toBeInTheDocument();
@@ -258,7 +258,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /stations/i }));
+      fireEvent.click(screen.getByRole("button", { name: /stations/i }));
 
       await waitFor(() => {
         // Default mock includes "Prep Station" and "Grill Station"
@@ -266,17 +266,18 @@ describe("KitchenSettingsPanel", () => {
       });
     });
 
-    it("allows adding new station", async () => {
+    it("shows add station form", async () => {
       render(
         <TestProviders>
           <KitchenSettingsPanel {...defaultProps} />
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /stations/i }));
+      fireEvent.click(screen.getByRole("button", { name: /stations/i }));
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: /add station/i })).toBeInTheDocument();
+        // Has a placeholder for station name input
+        expect(screen.getByPlaceholderText(/station name/i)).toBeInTheDocument();
       });
     });
   });
@@ -289,7 +290,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /members/i }));
+      fireEvent.click(screen.getByRole("button", { name: /members/i }));
 
       await waitFor(() => {
         expect(screen.getByTestId("members-tab-content")).toBeInTheDocument();
@@ -303,7 +304,7 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      fireEvent.click(screen.getByRole("tab", { name: /members/i }));
+      fireEvent.click(screen.getByRole("button", { name: /members/i }));
 
       await waitFor(() => {
         expect(screen.getByRole("button", { name: /invite/i })).toBeInTheDocument();

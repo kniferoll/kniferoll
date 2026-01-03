@@ -52,10 +52,10 @@ export const createMockMember = (overrides = {}) => ({
   id: "mock-member-id",
   kitchen_id: "mock-kitchen-id",
   user_id: "mock-user-id",
-  anonymous_user_id: null,
   role: "owner" as const,
   can_invite: true,
-  created_at: "2024-01-01T00:00:00.000Z",
+  joined_at: "2024-01-01T00:00:00.000Z",
+  updated_at: "2024-01-01T00:00:00.000Z",
   ...overrides,
 });
 

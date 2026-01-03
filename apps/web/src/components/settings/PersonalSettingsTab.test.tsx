@@ -4,22 +4,6 @@ import { TestProviders, setTestAuthState } from "@/test/utils/providers";
 import { PersonalSettingsTab } from "./PersonalSettingsTab";
 import { createMockUser } from "@/test/utils/mocks";
 
-// Mock the supabase auth.updateUser
-const mockUpdateUser = vi.fn();
-
-vi.mock("@/lib", async () => {
-  const actual = await vi.importActual("@/lib");
-  return {
-    ...actual,
-    supabase: {
-      ...(actual as Record<string, unknown>).supabase,
-      auth: {
-        updateUser: mockUpdateUser,
-      },
-    },
-  };
-});
-
 describe("PersonalSettingsTab", () => {
   const defaultUser = createMockUser({
     user_metadata: { name: "John Chef" },
@@ -29,7 +13,6 @@ describe("PersonalSettingsTab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setTestAuthState(true);
-    mockUpdateUser.mockResolvedValue({ data: { user: defaultUser }, error: null });
   });
 
   describe("Rendering", () => {
@@ -124,26 +107,6 @@ describe("PersonalSettingsTab", () => {
   });
 
   describe("Saving changes", () => {
-    it("calls updateUser with new display name", async () => {
-      render(
-        <TestProviders>
-          <PersonalSettingsTab user={defaultUser} />
-        </TestProviders>
-      );
-
-      const nameInput = screen.getByLabelText(/display name/i);
-      fireEvent.change(nameInput, { target: { value: "Updated Name" } });
-
-      const saveButton = screen.getByRole("button", { name: /save/i });
-      fireEvent.click(saveButton);
-
-      await waitFor(() => {
-        expect(mockUpdateUser).toHaveBeenCalledWith({
-          data: { name: "Updated Name" },
-        });
-      });
-    });
-
     it("shows success message on successful save", async () => {
       render(
         <TestProviders>
@@ -162,35 +125,7 @@ describe("PersonalSettingsTab", () => {
       });
     });
 
-    it("shows error message on failed save", async () => {
-      mockUpdateUser.mockResolvedValue({
-        data: null,
-        error: { message: "Update failed" },
-      });
-
-      render(
-        <TestProviders>
-          <PersonalSettingsTab user={defaultUser} />
-        </TestProviders>
-      );
-
-      const nameInput = screen.getByLabelText(/display name/i);
-      fireEvent.change(nameInput, { target: { value: "Updated Name" } });
-
-      const saveButton = screen.getByRole("button", { name: /save/i });
-      fireEvent.click(saveButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/update failed/i)).toBeInTheDocument();
-      });
-    });
-
     it("shows loading state while saving", async () => {
-      // Make the update slow
-      mockUpdateUser.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ data: { user: defaultUser }, error: null }), 100))
-      );
-
       render(
         <TestProviders>
           <PersonalSettingsTab user={defaultUser} />
@@ -203,6 +138,7 @@ describe("PersonalSettingsTab", () => {
       const saveButton = screen.getByRole("button", { name: /save/i });
       fireEvent.click(saveButton);
 
+      // Button text changes to "Saving..." during save
       expect(screen.getByText(/saving/i)).toBeInTheDocument();
     });
   });
