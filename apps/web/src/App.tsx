@@ -33,9 +33,9 @@ const KitchenDashboard = lazy(() =>
 const StationView = lazy(() =>
   import("./pages/StationView").then((m) => ({ default: m.StationView }))
 );
-const KitchenSettings = lazy(() =>
-  import("./pages/KitchenSettings").then((m) => ({
-    default: m.KitchenSettings,
+const Settings = lazy(() =>
+  import("./pages/Settings").then((m) => ({
+    default: m.Settings,
   }))
 );
 const TermsOfService = lazy(() =>
@@ -133,9 +133,11 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/kitchen/:kitchenId" element={<KitchenDashboard />} />
               <Route path="/station/:stationId" element={<StationView />} />
+              <Route path="/settings" element={<Settings />} />
+              {/* Redirect old kitchen settings to new unified settings */}
               <Route
                 path="/kitchen/:kitchenId/settings"
-                element={<KitchenSettings />}
+                element={<Navigate to="/settings" replace />}
               />
             </Route>
 

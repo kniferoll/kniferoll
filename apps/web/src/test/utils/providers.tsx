@@ -375,8 +375,18 @@ vi.mock("@/hooks", () => ({
   })),
   useKitchenShifts: vi.fn(() => ({
     shifts: defaultMockData.shifts,
+    shiftDays: defaultMockData.shiftDays,
     loading: false,
   })),
+  useKitchenShiftActions: vi.fn(() => ({
+    addShift: vi.fn(() => Promise.resolve()),
+    updateShift: vi.fn(() => Promise.resolve()),
+    deleteShift: vi.fn(() => Promise.resolve()),
+    updateShiftDay: vi.fn(() => Promise.resolve()),
+    loading: false,
+    error: null,
+  })),
+  DAYS_OF_WEEK: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
   useKitchenUnits: vi.fn(() => ({
     units: defaultMockData.units,
     loading: false,
@@ -418,7 +428,10 @@ vi.mock("@/hooks", () => ({
     loading: false,
     error: null,
   })),
-  useRealtimeMembers: vi.fn(),
+  useRealtimeMembers: vi.fn(() => ({
+    members: defaultMockData.members,
+    loading: false,
+  })),
   useRealtimePrepItems: vi.fn(),
   useRealtimeStations: vi.fn(),
   useStations: vi.fn(() => ({
@@ -438,7 +451,7 @@ vi.mock("@/hooks", () => ({
     loading: false,
   })),
   useUserSubscription: vi.fn(() => ({
-    subscription: { plan: "pro" },
+    profile: { plan: "pro", stripe_customer_id: "cus_test", subscription_period_end: null },
     loading: false,
   })),
   useVisualViewport: vi.fn(() => ({

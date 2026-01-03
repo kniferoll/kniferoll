@@ -15,7 +15,7 @@ import { Signup } from "@/pages/Signup";
 import { InviteJoin } from "@/pages/InviteJoin";
 import { JoinWithCode } from "@/pages/JoinWithCode";
 import { KitchenDashboard } from "@/pages/KitchenDashboard";
-import { KitchenSettings } from "@/pages/KitchenSettings";
+import { Settings } from "@/pages/Settings";
 import { StationView } from "@/pages/StationView";
 
 // Mock react-router-dom useParams for pages that need route params
@@ -129,10 +129,10 @@ describe("Page Mount Performance", () => {
       initialRoute: "/kitchen/mock-kitchen-id",
     },
     {
-      name: "KitchenSettings",
-      Component: KitchenSettings,
-      waitFor: "page-kitchen-settings",
-      initialRoute: "/kitchen/mock-kitchen-id/settings",
+      name: "Settings",
+      Component: Settings,
+      waitFor: "page-settings",
+      initialRoute: "/settings",
     },
     {
       name: "StationView",
