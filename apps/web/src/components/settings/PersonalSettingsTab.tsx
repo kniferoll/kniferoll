@@ -11,21 +11,30 @@ interface PersonalSettingsTabProps {
   user: User;
 }
 
+// Get user's display name with fallbacks (same pattern as UserAvatarMenu)
+function getUserDisplayName(user: User): string {
+  const name = user.user_metadata?.name;
+  if (name && typeof name === "string") return name;
+
+  const displayName = user.user_metadata?.display_name;
+  if (displayName && typeof displayName === "string") return displayName;
+
+  return "";
+}
+
 export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
   const { isDark, toggle } = useDarkModeContext();
-  const [displayName, setDisplayName] = useState(
-    user.user_metadata?.name || ""
-  );
+  const originalName = getUserDisplayName(user);
+  const [displayName, setDisplayName] = useState(originalName);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const originalName = user.user_metadata?.name || "";
   const hasChanges = displayName !== originalName;
 
   useEffect(() => {
-    setDisplayName(user.user_metadata?.name || "");
-  }, [user.user_metadata?.name]);
+    setDisplayName(getUserDisplayName(user));
+  }, [user]);
 
   const handleSave = async () => {
     if (!displayName.trim()) {
