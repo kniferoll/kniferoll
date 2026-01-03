@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDarkModeContext } from "@/context";
-import { useStripeCheckout } from "@/hooks";
+import { useStripeCheckout, usePlanLimits } from "@/hooks";
 import {
   Card,
   Tabs,
@@ -34,17 +34,23 @@ export function KitchenSettingsPanel({
 }: KitchenSettingsPanelProps) {
   const { isDark } = useDarkModeContext();
   const { handleCheckout } = useStripeCheckout();
+  const { limits } = usePlanLimits();
 
   const [activeTab, setActiveTab] = useState("general");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"stations" | "invites">(
+    "stations"
+  );
 
   const isOwner = membership.role === "owner";
+  // Owner can invite if they have a pro plan, non-owners check their can_invite permission
+  const canInvite = isOwner ? limits?.canInviteAsOwner : membership.can_invite;
 
   return (
     <div data-testid="kitchen-settings-panel">
       <h2
-        className={`text-xl font-bold mb-6 ${
+        className={`text-lg md:text-xl font-bold mb-4 md:mb-6 truncate ${
           isDark ? "text-white" : "text-gray-900"
         }`}
       >
@@ -84,7 +90,10 @@ export function KitchenSettingsPanel({
               <StationsSettingsTab
                 kitchenId={kitchen.id}
                 isOwner={isOwner}
-                onUpgradeClick={() => setShowUpgradeModal(true)}
+                onUpgradeClick={() => {
+                  setUpgradeReason("stations");
+                  setShowUpgradeModal(true);
+                }}
               />
             </div>
           </TabPanel>
@@ -95,7 +104,15 @@ export function KitchenSettingsPanel({
                 kitchenId={kitchen.id}
                 userId={userId}
                 isOwner={isOwner}
-                onInviteClick={() => setShowInviteModal(true)}
+                canInvite={!!canInvite}
+                onInviteClick={() => {
+                  if (canInvite) {
+                    setShowInviteModal(true);
+                  } else {
+                    setUpgradeReason("invites");
+                    setShowUpgradeModal(true);
+                  }
+                }}
               />
             </div>
           </TabPanel>
@@ -112,8 +129,16 @@ export function KitchenSettingsPanel({
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
-        title="Unlock Unlimited Stations"
-        description="Your free plan includes 1 station per kitchen. Upgrade to Pro to add as many stations as your kitchen needs."
+        title={
+          upgradeReason === "invites"
+            ? "Invite Your Team"
+            : "Unlock Unlimited Stations"
+        }
+        description={
+          upgradeReason === "invites"
+            ? "Free accounts cannot invite team members. Upgrade to Pro for $29/month to invite your team and collaborate in real-time."
+            : "Your free plan includes 1 station per kitchen. Upgrade to Pro for $29/month to add as many stations as your kitchen needs."
+        }
         features={[
           "Unlimited stations per kitchen",
           "Invite your team with shareable links",
