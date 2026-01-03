@@ -201,6 +201,12 @@ export function KitchenDashboard() {
     .filter((s) => availableShiftIds.includes(s.id))
     .map((s) => s.name);
 
+  // Get the shift ID for the currently selected shift name
+  const selectedShiftId = useMemo(() => {
+    const shift = kitchenShifts.find((s) => s.name === selectedShift);
+    return shift?.id ?? null;
+  }, [kitchenShifts, selectedShift]);
+
   // Auto-select first available shift if current shift is no longer available
   useEffect(() => {
     if (availableShifts.length > 0) {
@@ -244,10 +250,10 @@ export function KitchenDashboard() {
 
   // Fetch progress data for all stations
   useEffect(() => {
-    if (!stations.length) {
-       
+    if (!stations.length || !selectedShiftId) {
+
       setProgress([]);
-       
+
       setIsProgressLoading(false);
       return;
     }
@@ -265,7 +271,8 @@ export function KitchenDashboard() {
           .from("prep_items")
           .select("id, status, station_id")
           .in("station_id", stationIds)
-          .eq("shift_date", selectedDate);
+          .eq("shift_date", selectedDate)
+          .eq("shift_id", selectedShiftId);
 
         if (error) {
           console.error("Error fetching items:", error);
@@ -327,7 +334,7 @@ export function KitchenDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [stations, selectedDate, kitchenId, hasLoadedOnce]);
+  }, [stations, selectedDate, selectedShiftId, kitchenId, hasLoadedOnce]);
 
   // Loading states
   if (!user || !kitchenId) {
