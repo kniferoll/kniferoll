@@ -171,7 +171,7 @@ export function Dashboard() {
                             e.stopPropagation();
                             setSettingsMenuOpen(null);
                             if (item === "Kitchen Settings") {
-                              navigate(`/kitchen/${kitchen.id}/settings`);
+                              navigate(`/settings?section=${kitchen.id}`);
                             }
                           }}
                           className={`w-full px-4 py-3 text-left text-sm transition-colors cursor-pointer ${

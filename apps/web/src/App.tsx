@@ -1,5 +1,11 @@
 import { useEffect, Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useParams,
+} from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { Analytics } from "@vercel/analytics/react";
 import { useAuthStore } from "./stores/authStore";
@@ -73,6 +79,12 @@ function LoadingFallback() {
       }}
     />
   );
+}
+
+// Redirect old kitchen settings URLs to new unified settings with search param
+function KitchenSettingsRedirect() {
+  const { kitchenId } = useParams<{ kitchenId: string }>();
+  return <Navigate to={`/settings?section=${kitchenId}`} replace />;
 }
 
 function ErrorFallback({ resetError }: { resetError: () => void }) {
@@ -152,10 +164,10 @@ function App() {
               <Route path="/kitchen/:kitchenId" element={<KitchenDashboard />} />
               <Route path="/station/:stationId" element={<StationView />} />
               <Route path="/settings" element={<Settings />} />
-              {/* Redirect old kitchen settings to new unified settings */}
+              {/* Redirect old kitchen settings to new unified settings with section param */}
               <Route
                 path="/kitchen/:kitchenId/settings"
-                element={<Navigate to="/settings" replace />}
+                element={<KitchenSettingsRedirect />}
               />
             </Route>
 
