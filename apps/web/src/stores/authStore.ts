@@ -1,7 +1,52 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { supabase, setSentryUser } from "@/lib";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User, Session, AuthError } from "@supabase/supabase-js";
+
+/**
+ * Transforms Supabase auth errors into user-friendly messages.
+ * Uses error codes from Supabase Auth API for reliable matching.
+ * @see https://supabase.com/docs/guides/auth/debugging/error-codes
+ */
+function getAuthErrorMessage(error: AuthError | null, context: "signup" | "password"): string | undefined {
+  if (!error) return undefined;
+
+  const code = error.code;
+
+  // Rate limiting (applies to all contexts)
+  if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
+    return "Too many attempts. Please wait a moment and try again.";
+  }
+
+  // Signup-specific errors
+  if (context === "signup") {
+    if (code === "user_already_exists" || code === "email_exists") {
+      return "An account with this email already exists. Try signing in instead.";
+    }
+    if (code === "weak_password") {
+      return "Password is too weak. Please use a stronger password.";
+    }
+    if (code === "email_address_invalid" || code === "validation_failed") {
+      return "Please enter a valid email address.";
+    }
+    if (code === "email_provider_disabled" || code === "signup_disabled") {
+      return "Sign ups are currently disabled.";
+    }
+  }
+
+  // Password update errors
+  if (context === "password") {
+    if (code === "same_password") {
+      return "New password must be different from your current password.";
+    }
+    if (code === "weak_password") {
+      return "Password is too weak. Please use a stronger password.";
+    }
+  }
+
+  // Generic fallback
+  return "Something went wrong. Please try again.";
+}
 
 interface AuthState {
   user: User | null;
@@ -50,43 +95,62 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signIn: async (email, password) => {
-        set({ loading: true });
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (data.session) {
-          set({
-            session: data.session,
-            user: data.session.user,
-            loading: false,
+        // Note: Don't set loading here - it causes App.tsx to unmount routes
+        // The Login component has its own isSubmitting state for UI feedback
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
           });
-        } else {
-          set({ loading: false });
+
+          if (error) {
+            // Handle specific error codes from Supabase
+            const code = error.code;
+            if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
+              return { error: "Too many attempts. Please wait a moment and try again." };
+            }
+            // Generic message for security - don't reveal if email exists
+            return { error: "Invalid email or password" };
+          }
+
+          if (data.session) {
+            set({
+              session: data.session,
+              user: data.session.user,
+            });
+          }
+          return { error: undefined };
+        } catch {
+          return { error: "Invalid email or password" };
         }
-        // Return generic error message for security - don't reveal if email exists
-        return { error: error ? "Invalid email or password" : undefined };
       },
 
       signUp: async (email, password, name) => {
-        set({ loading: true });
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name },
-          },
-        });
-        if (data.session) {
-          set({
-            session: data.session,
-            user: data.session.user,
-            loading: false,
+        // Note: Don't set loading here - it causes App.tsx to unmount routes
+        // The Signup component has its own isSubmitting state for UI feedback
+        try {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { name },
+            },
           });
-        } else {
-          set({ loading: false });
+
+          if (error) {
+            return { error: getAuthErrorMessage(error, "signup") };
+          }
+
+          if (data.session) {
+            set({
+              session: data.session,
+              user: data.session.user,
+            });
+          }
+          return { error: undefined };
+        } catch {
+          return { error: "Something went wrong. Please try again." };
         }
-        return { error: error?.message };
       },
 
       signOut: async () => {
@@ -105,7 +169,7 @@ export const useAuthStore = create<AuthState>()(
         const { error } = await supabase.auth.updateUser({
           password: newPassword,
         });
-        return { error: error?.message };
+        return { error: getAuthErrorMessage(error, "password") };
       },
 
       refreshUser: async () => {

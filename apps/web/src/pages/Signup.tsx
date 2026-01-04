@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores";
 import { useDarkModeContext } from "@/context";
 import { preloadDashboard } from "@/lib/preload";
 import { validateEmail, validatePassword } from "@/lib";
-import { AuthForm, FormInput } from "@/components";
+import { AuthForm, FormInput, PasswordRequirements } from "@/components";
 import { Card } from "@/components/ui/Card";
 
 export function Signup() {
@@ -16,7 +16,7 @@ export function Signup() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const { signUp, loading, user, session } = useAuthStore();
+  const { signUp, user, session } = useAuthStore();
   const { isDark } = useDarkModeContext();
   const navigate = useNavigate();
 
@@ -115,18 +115,23 @@ export function Signup() {
     }
 
     setIsSubmitting(true);
-    const result = await signUp(trimmedEmail, password, trimmedName);
-    if (result.error) {
-      setError(result.error);
-      setIsSubmitting(false);
-    } else {
-      // If no session, email confirmation is required
-      const currentSession = useAuthStore.getState().session;
-      if (!currentSession) {
-        setShowConfirmation(true);
-        setIsSubmitting(false);
+
+    try {
+      const result = await signUp(trimmedEmail, password, trimmedName);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        // If no session, email confirmation is required
+        const currentSession = useAuthStore.getState().session;
+        if (!currentSession) {
+          setShowConfirmation(true);
+        }
+        // If session exists, useEffect will handle navigation
       }
-      // If session exists, useEffect will handle navigation
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -137,7 +142,7 @@ export function Signup() {
         subtitle="Get started with your first prep list"
         onSubmit={handleSubmit}
         submitButtonText="Create Account"
-        loading={loading}
+        loading={isSubmitting}
         error={error}
         footerText="Already have an account?"
         footerLink={{ text: "Sign in", to: "/login" }}
@@ -157,16 +162,20 @@ export function Signup() {
           onChange={(e) => setEmail(e.target.value)}
           error={emailError}
         />
-        <FormInput
-          id="password"
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={8}
-          helperText="At least 8 characters"
-          error={passwordError}
-        />
+        <div>
+          <FormInput
+            id="password"
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            minLength={8}
+            error={passwordError}
+          />
+          <div className="mt-2">
+            <PasswordRequirements password={password} />
+          </div>
+        </div>
       </AuthForm>
     </div>
   );

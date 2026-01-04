@@ -128,7 +128,6 @@ describe("authStore", () => {
       const state = useAuthStore.getState();
       expect(state.session).toEqual(mockSession);
       expect(state.user).toEqual(mockUser);
-      expect(state.loading).toBe(false);
     });
 
     it("returns generic error message on failure for security", async () => {
@@ -141,20 +140,10 @@ describe("authStore", () => {
 
       // Generic message hides whether email exists (security best practice)
       expect(result.error).toBe("Invalid email or password");
-      expect(useAuthStore.getState().loading).toBe(false);
     });
 
-    it("sets loading to true during sign in", async () => {
-      mockSupabase.auth.signInWithPassword.mockImplementation(() => {
-        expect(useAuthStore.getState().loading).toBe(true);
-        return Promise.resolve({
-          data: { session: mockSession, user: mockUser },
-          error: null,
-        });
-      });
-
-      await useAuthStore.getState().signIn("test@example.com", "password");
-    });
+    // Note: signIn no longer sets loading to avoid unmounting routes in App.tsx
+    // The Login component uses its own isSubmitting state for UI feedback
   });
 
   describe("signUp", () => {
@@ -170,7 +159,6 @@ describe("authStore", () => {
       const state = useAuthStore.getState();
       expect(state.session).toEqual(mockSession);
       expect(state.user).toEqual(mockUser);
-      expect(state.loading).toBe(false);
     });
 
     it("passes name in user metadata", async () => {
@@ -190,16 +178,15 @@ describe("authStore", () => {
       });
     });
 
-    it("returns error message on failure", async () => {
+    it("returns user-friendly error message on failure", async () => {
       mockSupabase.auth.signUp.mockResolvedValue({
         data: { session: null, user: null },
-        error: { message: "Email already registered" },
+        error: { code: "user_already_exists", message: "User already registered" },
       });
 
       const result = await useAuthStore.getState().signUp("test@example.com", "password", "Test");
 
-      expect(result.error).toBe("Email already registered");
-      expect(useAuthStore.getState().loading).toBe(false);
+      expect(result.error).toBe("An account with this email already exists. Try signing in instead.");
     });
 
     it("handles signup without immediate session (email confirmation required)", async () => {
@@ -211,8 +198,10 @@ describe("authStore", () => {
       const result = await useAuthStore.getState().signUp("test@example.com", "password", "Test");
 
       expect(result.error).toBeUndefined();
-      expect(useAuthStore.getState().loading).toBe(false);
     });
+
+    // Note: signUp no longer sets loading to avoid unmounting routes in App.tsx
+    // The Signup component uses its own isSubmitting state for UI feedback
   });
 
   describe("signOut", () => {

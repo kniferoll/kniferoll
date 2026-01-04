@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { useDarkModeContext } from "@/context";
 import { validatePassword, validatePasswordMatch } from "@/lib";
-import { FormInput } from "@/components";
+import { FormInput, PasswordRequirements } from "@/components";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Alert } from "@/components/ui/Alert";
@@ -53,12 +53,18 @@ export function ResetPassword() {
     }
 
     setIsSubmitting(true);
-    const result = await updatePassword(password);
-    if (result.error) {
-      setError(result.error);
+
+    try {
+      const result = await updatePassword(password);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setIsSubmitting(false);
-    } else {
-      navigate("/dashboard", { replace: true });
     }
   };
 
@@ -138,15 +144,19 @@ export function ResetPassword() {
       <Card padding="lg">
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && <Alert variant="error">{error}</Alert>}
-          <FormInput
-            id="password"
-            label="New password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={passwordError}
-            helperText="At least 8 characters"
-          />
+          <div>
+            <FormInput
+              id="password"
+              label="New password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              error={passwordError}
+            />
+            <div className="mt-2">
+              <PasswordRequirements password={password} />
+            </div>
+          </div>
           <FormInput
             id="confirm-password"
             label="Confirm password"

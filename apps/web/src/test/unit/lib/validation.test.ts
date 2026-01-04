@@ -3,6 +3,7 @@ import {
   validateEmail,
   validatePassword,
   validatePasswordMatch,
+  getPasswordRequirements,
   EMAIL_REGEX,
   PASSWORD_MIN_LENGTH,
 } from "@/lib/validation";
@@ -51,12 +52,10 @@ describe("validation utilities", () => {
   });
 
   describe("validatePassword", () => {
-    it("returns valid for password meeting minimum length", () => {
-      expect(validatePassword("password123")).toEqual({ isValid: true });
-      expect(validatePassword("12345678")).toEqual({ isValid: true });
-      expect(validatePassword("a".repeat(PASSWORD_MIN_LENGTH))).toEqual({
-        isValid: true,
-      });
+    it("returns valid for password meeting all requirements", () => {
+      expect(validatePassword("Password1")).toEqual({ isValid: true });
+      expect(validatePassword("Abcdefgh1")).toEqual({ isValid: true });
+      expect(validatePassword("MyPassword123")).toEqual({ isValid: true });
     });
 
     it("returns error for empty password", () => {
@@ -67,13 +66,63 @@ describe("validation utilities", () => {
     });
 
     it("returns error for password below minimum length", () => {
-      expect(validatePassword("short")).toEqual({
+      expect(validatePassword("Pass1")).toEqual({
         isValid: false,
         error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters`,
       });
-      expect(validatePassword("1234567")).toEqual({
+      expect(validatePassword("Abc123")).toEqual({
         isValid: false,
         error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters`,
+      });
+    });
+
+    it("returns error for password missing lowercase", () => {
+      expect(validatePassword("PASSWORD1")).toEqual({
+        isValid: false,
+        error: "Password is too weak",
+      });
+    });
+
+    it("returns error for password missing uppercase", () => {
+      expect(validatePassword("password1")).toEqual({
+        isValid: false,
+        error: "Password is too weak",
+      });
+    });
+
+    it("returns error for password missing digit", () => {
+      expect(validatePassword("Password")).toEqual({
+        isValid: false,
+        error: "Password is too weak",
+      });
+    });
+  });
+
+  describe("getPasswordRequirements", () => {
+    it("returns all false for empty password", () => {
+      expect(getPasswordRequirements("")).toEqual({
+        minLength: false,
+        hasLowercase: false,
+        hasUppercase: false,
+        hasDigit: false,
+      });
+    });
+
+    it("returns correct requirements for partial password", () => {
+      expect(getPasswordRequirements("abc")).toEqual({
+        minLength: false,
+        hasLowercase: true,
+        hasUppercase: false,
+        hasDigit: false,
+      });
+    });
+
+    it("returns all true for valid password", () => {
+      expect(getPasswordRequirements("Password1")).toEqual({
+        minLength: true,
+        hasLowercase: true,
+        hasUppercase: true,
+        hasDigit: true,
       });
     });
   });
