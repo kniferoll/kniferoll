@@ -8,7 +8,7 @@ import {
   usePrepStore,
 } from "@/stores";
 import { useRealtimePrepItems, useHeaderConfig, usePlanLimits, useStripeCheckout, useVisualViewport } from "@/hooks";
-import { supabase, getDeviceToken } from "@/lib";
+import { supabase, getDeviceToken, safeGetItem, safeSetItem } from "@/lib";
 import { jsDateToDatabaseDayOfWeek, toLocalDate, isClosedDay, findNextOpenDay } from "@/lib";
 
 import {
@@ -96,11 +96,11 @@ export function StationView() {
   // UI state for controls
   const [controlsCollapsed, setControlsCollapsed] = useState(false);
   const [isCompact, setIsCompact] = useState(() => {
-    const stored = localStorage.getItem("kniferoll:compactView");
+    const stored = safeGetItem("kniferoll:compactView");
     return stored === "true";
   });
   const [formHidden, setFormHidden] = useState(() => {
-    const stored = localStorage.getItem("kniferoll:formHidden");
+    const stored = safeGetItem("kniferoll:formHidden");
     return stored === "true";
   });
   const [sortTrigger, setSortTrigger] = useState(false);
@@ -119,7 +119,7 @@ export function StationView() {
   const handleToggleCompact = useCallback(() => {
     setIsCompact((prev) => {
       const newValue = !prev;
-      localStorage.setItem("kniferoll:compactView", String(newValue));
+      safeSetItem("kniferoll:compactView", String(newValue));
       return newValue;
     });
   }, []);
@@ -128,7 +128,7 @@ export function StationView() {
   const handleToggleFormHidden = useCallback(() => {
     setFormHidden((prev) => {
       const newValue = !prev;
-      localStorage.setItem("kniferoll:formHidden", String(newValue));
+      safeSetItem("kniferoll:formHidden", String(newValue));
       return newValue;
     });
   }, []);
