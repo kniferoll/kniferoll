@@ -1,3 +1,15 @@
+/**
+ * Create Portal Session Edge Function
+ *
+ * Creates Stripe Billing Portal sessions for subscription management.
+ *
+ * DEPLOYMENT:
+ * This function must be deployed with --no-verify-jwt flag since we handle
+ * JWT verification manually to extract user info:
+ *
+ *   supabase functions deploy create-portal-session --no-verify-jwt
+ */
+
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
