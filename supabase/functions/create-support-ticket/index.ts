@@ -193,7 +193,7 @@ Deno.serve(async (req: Request) => {
 
     // Build description with user's message prominently displayed
     // The user will see replies to this ticket, so keep it clean and professional
-    const userName = body.metadata?.userName || user.user_metadata?.name || "User";
+    const userName = body.metadata?.userName || user.user_metadata?.display_name || "User";
     const userEmail = user.email || body.metadata?.userEmail || "Unknown";
 
     // Format: User message first (what they'll see in replies), then internal metadata
