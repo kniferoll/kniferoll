@@ -51,7 +51,10 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
             category,
             message: message.trim(),
             metadata: {
-              userName: user?.user_metadata?.display_name || user?.email?.split("@")[0],
+              userName:
+                user?.user_metadata?.name ||
+                user?.user_metadata?.display_name ||
+                user?.email?.split("@")[0],
               userEmail: user?.email,
               kitchenName: currentKitchen?.name,
               appVersion: "1.0.0",
