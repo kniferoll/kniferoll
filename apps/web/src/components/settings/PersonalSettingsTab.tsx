@@ -88,7 +88,36 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
       {error && <Alert variant="error">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
 
-      <SettingsSection title="Profile">
+      <SettingsSection
+        title="Profile"
+        headerAction={
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-xs ${
+                isDark ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              Dark
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isDark ? "true" : "false"}
+              aria-label="Toggle dark mode"
+              onClick={toggle}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                isDark ? "bg-orange-500" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                  isDark ? "translate-x-4.5" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+        }
+      >
         <div className="space-y-4">
           <FormInput
             label="Display Name"
@@ -114,46 +143,6 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
-        </div>
-      </SettingsSection>
-
-      <SettingsSection title="Preferences">
-        <div
-          className={`flex items-center justify-between p-4 rounded-xl ${
-            isDark ? "bg-slate-800" : "bg-stone-50"
-          }`}
-        >
-          <div>
-            <p
-              className={`font-medium ${
-                isDark ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Dark Mode
-            </p>
-            <p
-              className={`text-sm ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              Use dark theme throughout the app
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={isDark ? "true" : "false"}
-            onClick={toggle}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-              isDark ? "bg-orange-500" : "bg-gray-300"
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isDark ? "translate-x-6" : "translate-x-1"
-              }`}
-            />
-          </button>
         </div>
       </SettingsSection>
 

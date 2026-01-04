@@ -6,6 +6,7 @@ interface SettingsSectionProps {
   description?: string;
   children: ReactNode;
   className?: string;
+  headerAction?: ReactNode;
 }
 
 export function SettingsSection({
@@ -13,18 +14,26 @@ export function SettingsSection({
   description,
   children,
   className = "",
+  headerAction,
 }: SettingsSectionProps) {
   const { isDark } = useDarkModeContext();
 
   return (
     <div className={`py-5 sm:py-6 ${className}`}>
-      <h3
-        className={`text-sm font-semibold mb-0.5 ${
-          isDark ? "text-white" : "text-gray-900"
+      <div
+        className={`flex items-center justify-between gap-4 ${
+          description ? "mb-0.5" : "mb-4"
         }`}
       >
-        {title}
-      </h3>
+        <h3
+          className={`text-base font-semibold ${
+            isDark ? "text-white" : "text-gray-900"
+          }`}
+        >
+          {title}
+        </h3>
+        {headerAction}
+      </div>
       {description && (
         <p
           className={`text-xs sm:text-sm mb-4 ${
