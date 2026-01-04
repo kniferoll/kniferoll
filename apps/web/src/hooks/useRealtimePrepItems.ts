@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { supabase } from "@/lib";
+import { supabase, captureError } from "@/lib";
 import { usePrepStore, type PrepItemWithDescription } from "@/stores";
 import type { DbPrepItem } from "@kniferoll/types";
 
@@ -129,10 +129,11 @@ export function useRealtimePrepItems(
         }
       )
       .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          console.log(`Realtime subscribed: prep_items for station ${stationId}`);
-        } else if (status === "CHANNEL_ERROR") {
-          console.error("Realtime subscription error for prep_items");
+        if (status === "CHANNEL_ERROR") {
+          captureError(new Error("Realtime subscription error for prep_items"), {
+            context: "useRealtimePrepItems",
+            stationId,
+          });
         }
       });
 

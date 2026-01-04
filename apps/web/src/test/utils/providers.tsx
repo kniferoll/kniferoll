@@ -308,6 +308,11 @@ vi.mock("@/lib", () => ({
   // suggestionUtils
   filterSuggestions: vi.fn(() => []),
   rankSuggestions: vi.fn(() => []),
+
+  // sentry
+  captureError: vi.fn(),
+  initSentry: vi.fn(),
+  setSentryUser: vi.fn(),
 }));
 
 // ============================================================================

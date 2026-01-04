@@ -21,7 +21,7 @@ import {
 } from "@/components";
 import type { Database } from "@kniferoll/types";
 import { preloadKitchenDashboard } from "@/lib/preload";
-import { safeSetItem } from "@/lib";
+import { safeSetItem, captureError } from "@/lib";
 type Kitchen = Database["public"]["Tables"]["kitchens"]["Row"];
 
 /**
@@ -223,7 +223,7 @@ export function Dashboard() {
           try {
             await handleCheckout();
           } catch (error) {
-            console.error("Checkout failed:", error);
+            captureError(error as Error, { context: "Dashboard.checkout" });
           }
         }}
       />

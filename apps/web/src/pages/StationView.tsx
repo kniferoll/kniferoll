@@ -8,7 +8,7 @@ import {
   usePrepStore,
 } from "@/stores";
 import { useRealtimePrepItems, useHeaderConfig, usePlanLimits, useStripeCheckout, useVisualViewport } from "@/hooks";
-import { supabase, getDeviceToken, safeGetItem, safeSetItem } from "@/lib";
+import { supabase, getDeviceToken, safeGetItem, safeSetItem, captureError } from "@/lib";
 import { jsDateToDatabaseDayOfWeek, toLocalDate, isClosedDay, findNextOpenDay } from "@/lib";
 
 import {
@@ -803,7 +803,7 @@ export function StationView() {
           try {
             await handleCheckout();
           } catch (error) {
-            console.error("Checkout failed:", error);
+            captureError(error as Error, { context: "StationView.checkout" });
           }
         }}
       />

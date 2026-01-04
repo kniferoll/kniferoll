@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { captureError } from "./sentry";
 import type { UserProfile } from "@kniferoll/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -12,7 +13,7 @@ export async function getCurrentSession() {
   } = await supabase.auth.getSession();
 
   if (error) {
-    console.error("Error getting session:", error);
+    captureError(error, { context: "getCurrentSession" });
     return null;
   }
 
@@ -29,7 +30,7 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   if (error) {
-    console.error("Error getting current user:", error);
+    captureError(error, { context: "getCurrentUser" });
     return null;
   }
 
@@ -52,7 +53,7 @@ export async function signInAnonymously() {
   const { data, error } = await supabase.auth.signInAnonymously();
 
   if (error) {
-    console.error("Error signing in anonymously:", error);
+    captureError(error, { context: "signInAnonymously" });
     return { user: null, error };
   }
 
@@ -79,7 +80,7 @@ export async function signUp(
   });
 
   if (error) {
-    console.error("Error signing up:", error);
+    captureError(error, { context: "signUp" });
     return { user: null, error };
   }
 
@@ -96,7 +97,7 @@ export async function signIn(email: string, password: string) {
   });
 
   if (error) {
-    console.error("Error signing in:", error);
+    captureError(error, { context: "signIn" });
     return { user: null, error };
   }
 
@@ -110,7 +111,7 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    console.error("Error signing out:", error);
+    captureError(error, { context: "signOut" });
     return { error };
   }
 
@@ -131,7 +132,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     .single();
 
   if (error) {
-    console.error("Error fetching user profile:", error);
+    captureError(error, { context: "getCurrentUserProfile" });
     return null;
   }
 
@@ -153,7 +154,7 @@ export async function updateUserProfile(
     .single();
 
   if (error) {
-    console.error("Error updating user profile:", error);
+    captureError(error, { context: "updateUserProfile", userId });
     return { error };
   }
 
@@ -169,7 +170,7 @@ export async function updateUserDisplayName(displayName: string) {
   });
 
   if (error) {
-    console.error("Error updating display name:", error);
+    captureError(error, { context: "updateUserDisplayName" });
     return { error };
   }
 

@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { captureError } from "./sentry";
 import type { Database } from "@kniferoll/types";
 
 type UserPlan = Database["public"]["Enums"]["user_plan"];
@@ -40,7 +41,7 @@ export async function getOwnedKitchenCount(userId: string): Promise<number> {
     .eq("owner_id", userId);
 
   if (error) {
-    console.error("Error fetching kitchen count:", error);
+    captureError(error, { context: "getOwnedKitchenCount", userId });
     return 0;
   }
 
@@ -70,7 +71,7 @@ export async function getStationCount(kitchenId: string): Promise<number> {
     .eq("kitchen_id", kitchenId);
 
   if (error) {
-    console.error("Error fetching station count:", error);
+    captureError(error, { context: "getStationCount", kitchenId });
     return 0;
   }
 
@@ -92,7 +93,9 @@ export async function canCreateStation(
     .single();
 
   if (kitchenError || !kitchen) {
-    console.error("Error fetching kitchen:", kitchenError);
+    if (kitchenError) {
+      captureError(kitchenError, { context: "canCreateStation", kitchenId });
+    }
     return false;
   }
 
@@ -123,7 +126,7 @@ export async function getMembership(userId: string, kitchenId: string) {
     .single();
 
   if (error) {
-    console.error("Error fetching membership:", error);
+    captureError(error, { context: "getMembership", userId, kitchenId });
     return null;
   }
 

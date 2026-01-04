@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { supabase } from "@/lib";
+import { supabase, captureError } from "@/lib";
 import type {
   DbKitchenUnit,
   DbPrepItem,
@@ -390,7 +390,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
           get().loadSuggestionsAndUnits(kitchenId, stationId, shiftDate, shiftId);
         } catch (err) {
           // Silent fail for background suggestion update - not critical
-          console.warn("Failed to update suggestions:", err);
+          captureError(err as Error, { context: "updateSuggestions" });
         }
       });
 
