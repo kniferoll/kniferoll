@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useDarkModeContext } from "@/context";
 import { useAuthStore } from "@/stores";
 import { useKitchens, useHeaderConfig } from "@/hooks";
@@ -58,25 +58,33 @@ function SupportSettingsPanel() {
 export function Settings() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isDark } = useDarkModeContext();
   const { user } = useAuthStore();
   const { kitchens, loading: kitchensLoading } = useKitchens(user?.id);
 
-  // Get initial section from navigation state (e.g., from UserAvatarMenu)
+  // Get initial section from URL params or navigation state (for backwards compatibility)
+  const urlSection = searchParams.get("section");
   const locationSection = (location.state as { section?: string } | null)
     ?.section;
-  const [activeSection, setActiveSection] = useState<string>(
-    locationSection || "personal"
-  );
+  const initialSection = urlSection || locationSection || "personal";
+  const [activeSection, setActiveSection] = useState<string>(initialSection);
   const [memberships, setMemberships] = useState<KitchenMember[]>([]);
   const [membershipsLoading, setMembershipsLoading] = useState(true);
 
-  // Update section when navigating with state (e.g., from UserAvatarMenu)
+  // Update section when URL params or navigation state changes
   useEffect(() => {
-    if (locationSection) {
-      setActiveSection(locationSection);
+    const newSection = urlSection || locationSection;
+    if (newSection) {
+      setActiveSection(newSection);
     }
-  }, [locationSection]);
+  }, [urlSection, locationSection]);
+
+  // Update URL when section changes (keeps URL in sync with state)
+  const handleSectionChange = (newSection: string) => {
+    setActiveSection(newSection);
+    setSearchParams({ section: newSection }, { replace: true });
+  };
 
   // Fetch memberships for all kitchens
   useEffect(() => {
@@ -144,7 +152,7 @@ export function Settings() {
   });
 
   const handleKitchenDeleted = () => {
-    setActiveSection("personal");
+    handleSectionChange("personal");
   };
 
   // Mobile nav pill button styles
@@ -174,19 +182,19 @@ export function Settings() {
             <div className="flex gap-2 pb-2">
               {/* Account section pills */}
               <button
-                onClick={() => setActiveSection("personal")}
+                onClick={() => handleSectionChange("personal")}
                 className={getMobilePillClass(activeSection === "personal")}
               >
                 Personal
               </button>
               <button
-                onClick={() => setActiveSection("billing")}
+                onClick={() => handleSectionChange("billing")}
                 className={getMobilePillClass(activeSection === "billing")}
               >
                 Billing
               </button>
               <button
-                onClick={() => setActiveSection("support")}
+                onClick={() => handleSectionChange("support")}
                 className={getMobilePillClass(activeSection === "support")}
               >
                 Support
@@ -205,7 +213,7 @@ export function Settings() {
               {manageableKitchens.map((kitchen) => (
                 <button
                   key={kitchen.id}
-                  onClick={() => setActiveSection(kitchen.id)}
+                  onClick={() => handleSectionChange(kitchen.id)}
                   className={getMobilePillClass(activeSection === kitchen.id)}
                 >
                   {kitchen.name}
@@ -220,7 +228,7 @@ export function Settings() {
           <div className="hidden md:block">
             <SettingsSidebar
               activeSection={activeSection}
-              onSectionChange={setActiveSection}
+              onSectionChange={handleSectionChange}
               kitchens={kitchens}
               memberships={memberships}
             />

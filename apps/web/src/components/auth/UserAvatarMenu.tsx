@@ -173,7 +173,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
               <>
                 <button
                   onClick={() => {
-                    navigate(`/kitchen/${kitchenId}/settings`);
+                    navigate(`/settings?section=${kitchenId}`);
                     setUserMenuOpen(false);
                   }}
                   className={menuItemStyles}
@@ -234,7 +234,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
             {/* Account items */}
             <button
               onClick={() => {
-                navigate("/settings", { state: { section: "personal" } });
+                navigate("/settings?section=personal");
                 setUserMenuOpen(false);
               }}
               className={menuItemStyles}
@@ -258,7 +258,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
             </button>
             <button
               onClick={() => {
-                navigate("/settings", { state: { section: "billing" } });
+                navigate("/settings?section=billing");
                 setUserMenuOpen(false);
               }}
               className={menuItemStyles}
@@ -282,7 +282,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
             </button>
             <button
               onClick={() => {
-                navigate("/settings", { state: { section: "support" } });
+                navigate("/settings?section=support");
                 setUserMenuOpen(false);
               }}
               className={menuItemStyles}
