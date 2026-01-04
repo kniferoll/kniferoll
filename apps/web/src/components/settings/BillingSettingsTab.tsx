@@ -115,7 +115,7 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
                 isDark ? "text-orange-300" : "text-orange-700"
               }`}
             >
-              <li>✓ Unlimited kitchens</li>
+              <li>✓ Up to 5 kitchens</li>
               <li>✓ Unlimited stations per kitchen</li>
               <li>✓ Invite team members</li>
               <li>✓ Real-time collaboration</li>
@@ -127,7 +127,7 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
             disabled={checkoutLoading}
             fullWidth
           >
-            {checkoutLoading ? "Redirecting..." : "Upgrade to Pro - $9/month"}
+            {checkoutLoading ? "Redirecting..." : "Upgrade to Pro - $29/month"}
           </Button>
         </SettingsSection>
       )}
