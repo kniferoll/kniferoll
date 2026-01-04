@@ -53,6 +53,7 @@ interface AuthState {
   session: Session | null;
   loading: boolean;
   initialized: boolean;
+  pendingPasswordReset: boolean;
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (
@@ -64,6 +65,7 @@ interface AuthState {
   resetPasswordForEmail: (email: string) => Promise<{ error?: string }>;
   updatePassword: (newPassword: string) => Promise<{ error?: string }>;
   refreshUser: () => Promise<void>;
+  clearPendingPasswordReset: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -73,6 +75,7 @@ export const useAuthStore = create<AuthState>()(
       session: null,
       loading: true,
       initialized: false,
+      pendingPasswordReset: false,
 
       initialize: async () => {
         if (get().initialized) return;
@@ -88,7 +91,16 @@ export const useAuthStore = create<AuthState>()(
         });
         setSentryUser(session?.user?.id ?? null);
 
-        supabase.auth.onAuthStateChange((_event, session) => {
+        supabase.auth.onAuthStateChange((event, session) => {
+          // Handle password recovery - user clicked reset link in email
+          if (event === "PASSWORD_RECOVERY") {
+            set({ session, user: session?.user ?? null, pendingPasswordReset: true });
+            setSentryUser(session?.user?.id ?? null);
+            // Redirect to reset password page
+            window.location.href = "/reset-password";
+            return;
+          }
+
           set({ session, user: session?.user ?? null });
           setSentryUser(session?.user?.id ?? null);
         });
@@ -169,6 +181,10 @@ export const useAuthStore = create<AuthState>()(
         const { error } = await supabase.auth.updateUser({
           password: newPassword,
         });
+        if (!error) {
+          // Clear the pending password reset flag on success
+          set({ pendingPasswordReset: false });
+        }
         return { error: getAuthErrorMessage(error, "password") };
       },
 
@@ -179,6 +195,10 @@ export const useAuthStore = create<AuthState>()(
         if (user) {
           set({ user });
         }
+      },
+
+      clearPendingPasswordReset: () => {
+        set({ pendingPasswordReset: false });
       },
     }),
     {

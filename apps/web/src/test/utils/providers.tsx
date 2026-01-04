@@ -40,6 +40,7 @@ function getTestAuthStore() {
       session: defaultMockData.session,
       loading: false,
       initialized: true,
+      pendingPasswordReset: false,
       initialize: vi.fn(),
       signIn: vi.fn(() => Promise.resolve({ error: undefined })),
       signUp: vi.fn(() => Promise.resolve({ error: undefined })),
@@ -47,6 +48,7 @@ function getTestAuthStore() {
       resetPasswordForEmail: vi.fn(() => Promise.resolve({ error: undefined })),
       updatePassword: vi.fn(() => Promise.resolve({ error: undefined })),
       refreshUser: vi.fn(() => Promise.resolve()),
+      clearPendingPasswordReset: vi.fn(),
     };
   }
   return {
@@ -54,6 +56,7 @@ function getTestAuthStore() {
     session: null,
     loading: false,
     initialized: true,
+    pendingPasswordReset: false,
     initialize: vi.fn(),
     signIn: vi.fn(() => Promise.resolve({ error: undefined })),
     signUp: vi.fn(() => Promise.resolve({ error: undefined })),
@@ -61,6 +64,7 @@ function getTestAuthStore() {
     resetPasswordForEmail: vi.fn(() => Promise.resolve({ error: undefined })),
     updatePassword: vi.fn(() => Promise.resolve({ error: undefined })),
     refreshUser: vi.fn(() => Promise.resolve()),
+    clearPendingPasswordReset: vi.fn(),
   };
 }
 
