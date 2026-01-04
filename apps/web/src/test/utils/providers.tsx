@@ -329,10 +329,22 @@ vi.mock("@/lib", () => ({
     }
     return { isValid: true };
   }),
+  getPasswordRequirements: vi.fn((password: string) => ({
+    minLength: password.length >= 8,
+    hasLowercase: /[a-z]/.test(password),
+    hasUppercase: /[A-Z]/.test(password),
+    hasDigit: /\d/.test(password),
+  })),
   validatePassword: vi.fn((password: string) => {
     if (!password) return { isValid: false, error: "Password is required" };
     if (password.length < 8) {
       return { isValid: false, error: "Password must be at least 8 characters" };
+    }
+    const hasLowercase = /[a-z]/.test(password);
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    if (!hasLowercase || !hasUppercase || !hasDigit) {
+      return { isValid: false, error: "Password is too weak" };
     }
     return { isValid: true };
   }),

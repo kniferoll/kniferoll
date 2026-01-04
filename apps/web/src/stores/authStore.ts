@@ -88,34 +88,28 @@ export const useAuthStore = create<AuthState>()(
         });
         setSentryUser(session?.user?.id ?? null);
 
-        supabase.auth.onAuthStateChange((event, session) => {
-          console.log("[authStore] onAuthStateChange:", event, session);
+        supabase.auth.onAuthStateChange((_event, session) => {
           set({ session, user: session?.user ?? null });
           setSentryUser(session?.user?.id ?? null);
         });
       },
 
       signIn: async (email, password) => {
-        console.log("[authStore] signIn called");
         // Note: Don't set loading here - it causes App.tsx to unmount routes
         // The Login component has its own isSubmitting state for UI feedback
         try {
-          console.log("[authStore] Calling supabase.auth.signInWithPassword...");
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
           });
-          console.log("[authStore] Supabase response:", { data, error });
 
           if (error) {
             // Handle specific error codes from Supabase
             const code = error.code;
-            console.log("[authStore] Error code:", code);
             if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
               return { error: "Too many attempts. Please wait a moment and try again." };
             }
             // Generic message for security - don't reveal if email exists
-            console.log("[authStore] Returning error: Invalid email or password");
             return { error: "Invalid email or password" };
           }
 
@@ -126,8 +120,7 @@ export const useAuthStore = create<AuthState>()(
             });
           }
           return { error: undefined };
-        } catch (err) {
-          console.error("[authStore] Caught exception:", err);
+        } catch {
           return { error: "Invalid email or password" };
         }
       },

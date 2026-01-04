@@ -6,6 +6,13 @@ export interface ValidationResult {
   error?: string;
 }
 
+export interface PasswordRequirements {
+  minLength: boolean;
+  hasLowercase: boolean;
+  hasUppercase: boolean;
+  hasDigit: boolean;
+}
+
 export function validateEmail(email: string): ValidationResult {
   const trimmed = email.trim();
   if (!trimmed) {
@@ -17,16 +24,36 @@ export function validateEmail(email: string): ValidationResult {
   return { isValid: true };
 }
 
+export function getPasswordRequirements(password: string): PasswordRequirements {
+  return {
+    minLength: password.length >= PASSWORD_MIN_LENGTH,
+    hasLowercase: /[a-z]/.test(password),
+    hasUppercase: /[A-Z]/.test(password),
+    hasDigit: /\d/.test(password),
+  };
+}
+
 export function validatePassword(password: string): ValidationResult {
   if (!password) {
     return { isValid: false, error: "Password is required" };
   }
-  if (password.length < PASSWORD_MIN_LENGTH) {
+
+  const requirements = getPasswordRequirements(password);
+
+  if (!requirements.minLength) {
     return {
       isValid: false,
       error: `Password must be at least ${PASSWORD_MIN_LENGTH} characters`,
     };
   }
+
+  if (!requirements.hasLowercase || !requirements.hasUppercase || !requirements.hasDigit) {
+    return {
+      isValid: false,
+      error: "Password is too weak",
+    };
+  }
+
   return { isValid: true };
 }
 

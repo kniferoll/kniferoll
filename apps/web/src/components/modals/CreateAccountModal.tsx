@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { FormInput } from "../ui/FormInput";
+import { PasswordRequirements } from "../ui/PasswordRequirements";
 import { Alert } from "../ui/Alert";
 
 interface CreateAccountModalProps {
@@ -143,14 +144,18 @@ export function CreateAccountModal({
           error={emailError}
           autoFocus
         />
-        <FormInput
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          error={passwordError}
-          helperText="At least 8 characters"
-        />
+        <div>
+          <FormInput
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={passwordError}
+          />
+          <div className="mt-2">
+            <PasswordRequirements password={password} />
+          </div>
+        </div>
 
         <div className="flex gap-3 pt-2">
           <Button

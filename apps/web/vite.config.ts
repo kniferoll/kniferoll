@@ -101,8 +101,7 @@ export default defineConfig({
     minify: "terser",
     terserOptions: {
       compress: {
-        // Temporarily disabled for debugging auth error issue
-        // drop_console: true,
+        drop_console: true,
       },
     },
   },

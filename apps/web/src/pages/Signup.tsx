@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores";
 import { useDarkModeContext } from "@/context";
 import { preloadDashboard } from "@/lib/preload";
 import { validateEmail, validatePassword } from "@/lib";
-import { AuthForm, FormInput } from "@/components";
+import { AuthForm, FormInput, PasswordRequirements } from "@/components";
 import { Card } from "@/components/ui/Card";
 
 export function Signup() {
@@ -162,16 +162,20 @@ export function Signup() {
           onChange={(e) => setEmail(e.target.value)}
           error={emailError}
         />
-        <FormInput
-          id="password"
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={8}
-          helperText="At least 8 characters"
-          error={passwordError}
-        />
+        <div>
+          <FormInput
+            id="password"
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            minLength={8}
+            error={passwordError}
+          />
+          <div className="mt-2">
+            <PasswordRequirements password={password} />
+          </div>
+        </div>
       </AuthForm>
     </div>
   );
