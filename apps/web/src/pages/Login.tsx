@@ -51,9 +51,14 @@ export function Login() {
 
     setIsSubmitting(true);
 
-    const result = await signIn(trimmedEmail, password);
-    if (result.error) {
-      setError(result.error);
+    try {
+      const result = await signIn(trimmedEmail, password);
+      if (result.error) {
+        setError(result.error);
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setIsSubmitting(false);
     }
   };

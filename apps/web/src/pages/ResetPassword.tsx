@@ -53,12 +53,18 @@ export function ResetPassword() {
     }
 
     setIsSubmitting(true);
-    const result = await updatePassword(password);
-    if (result.error) {
-      setError(result.error);
+
+    try {
+      const result = await updatePassword(password);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setIsSubmitting(false);
-    } else {
-      navigate("/dashboard", { replace: true });
     }
   };
 

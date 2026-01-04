@@ -115,18 +115,23 @@ export function Signup() {
     }
 
     setIsSubmitting(true);
-    const result = await signUp(trimmedEmail, password, trimmedName);
-    if (result.error) {
-      setError(result.error);
-      setIsSubmitting(false);
-    } else {
-      // If no session, email confirmation is required
-      const currentSession = useAuthStore.getState().session;
-      if (!currentSession) {
-        setShowConfirmation(true);
-        setIsSubmitting(false);
+
+    try {
+      const result = await signUp(trimmedEmail, password, trimmedName);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        // If no session, email confirmation is required
+        const currentSession = useAuthStore.getState().session;
+        if (!currentSession) {
+          setShowConfirmation(true);
+        }
+        // If session exists, useEffect will handle navigation
       }
-      // If session exists, useEffect will handle navigation
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
