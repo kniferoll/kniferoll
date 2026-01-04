@@ -153,6 +153,36 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
     }
   };
 
+  const reorderShifts = async (shiftIds: string[]) => {
+    if (!kitchenId) throw new Error("Kitchen ID required");
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Update display_order for each shift
+      const updates = shiftIds.map((id, index) => ({
+        id,
+        display_order: index,
+      }));
+
+      for (const update of updates) {
+        const { error: err } = await supabase
+          .from("kitchen_shifts")
+          .update({ display_order: update.display_order })
+          .eq("id", update.id);
+
+        if (err) throw err;
+      }
+    } catch (err) {
+      const e = err instanceof Error ? err : new Error(String(err));
+      setError(e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateShiftDay = async (
     dayOfWeek: number,
     isOpen: boolean,
@@ -208,6 +238,7 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
     addShift,
     updateShift,
     deleteShift,
+    reorderShifts,
     updateShiftDay,
     loading,
     error,
