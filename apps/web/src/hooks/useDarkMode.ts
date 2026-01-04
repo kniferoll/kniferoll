@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { safeGetItem, safeSetItem } from "@/lib";
 
 // Helper function to apply dark mode class to document
 const applyDarkMode = (dark: boolean) => {
@@ -15,7 +16,7 @@ export function useDarkMode() {
 
   useEffect(() => {
     // Check if user has a saved preference
-    const saved = localStorage.getItem("dark-mode");
+    const saved = safeGetItem("dark-mode");
     if (saved !== null) {
       const isDarkMode = saved === "true";
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -26,7 +27,7 @@ export function useDarkMode() {
       const prefersDark = window.matchMedia(
         "(prefers-color-scheme: dark)"
       ).matches;
-       
+
       setIsDark(prefersDark);
       applyDarkMode(prefersDark);
     }
@@ -34,7 +35,7 @@ export function useDarkMode() {
     // Listen for system preference changes
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e: MediaQueryListEvent) => {
-      const saved = localStorage.getItem("dark-mode");
+      const saved = safeGetItem("dark-mode");
       if (saved === null) {
         // Only follow system if user hasn't set a preference
         setIsDark(e.matches);
@@ -49,7 +50,7 @@ export function useDarkMode() {
   const toggle = () => {
     setIsDark((prev) => {
       const newValue = !prev;
-      localStorage.setItem("dark-mode", String(newValue));
+      safeSetItem("dark-mode", String(newValue));
       applyDarkMode(newValue);
       return newValue;
     });

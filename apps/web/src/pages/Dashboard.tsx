@@ -21,6 +21,7 @@ import {
 } from "@/components";
 import type { Database } from "@kniferoll/types";
 import { preloadKitchenDashboard } from "@/lib/preload";
+import { safeSetItem } from "@/lib";
 type Kitchen = Database["public"]["Tables"]["kitchens"]["Row"];
 
 /**
@@ -71,7 +72,7 @@ export function Dashboard() {
   }, [settingsMenuOpen]);
 
   const handleSelectKitchen = (kitchen: Kitchen) => {
-    localStorage.setItem("kniferoll_last_kitchen", kitchen.id);
+    safeSetItem("kniferoll_last_kitchen", kitchen.id);
     navigate(`/kitchen/${kitchen.id}`);
   };
 
@@ -86,7 +87,7 @@ export function Dashboard() {
 
   const handleKitchenCreated = (kitchenId: string) => {
     setOnboardingModalOpen(false);
-    localStorage.setItem("kniferoll_last_kitchen", kitchenId);
+    safeSetItem("kniferoll_last_kitchen", kitchenId);
     navigate(`/kitchen/${kitchenId}`);
   };
 

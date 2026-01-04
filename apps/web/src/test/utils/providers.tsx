@@ -274,6 +274,17 @@ vi.mock("@/lib", () => ({
     Promise.resolve({ user: { ...defaultMockData.user, id: "anon-user-id" }, error: null })
   ),
 
+  // storage
+  safeGetItem: vi.fn((key: string) => localStorage.getItem(key)),
+  safeSetItem: vi.fn((key: string, value: string) => {
+    localStorage.setItem(key, value);
+    return true;
+  }),
+  safeRemoveItem: vi.fn((key: string) => {
+    localStorage.removeItem(key);
+    return true;
+  }),
+
   // dateUtils
   getTodayLocalDate: vi.fn(() => new Date().toISOString().split("T")[0]),
   toLocalDate: vi.fn((dateStr: string) => new Date(dateStr + "T12:00:00")),

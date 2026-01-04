@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@kniferoll/types";
+import { safeGetItem, safeSetItem } from "./storage";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -16,10 +17,10 @@ if (!supabaseUrl || !supabaseKey) {
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
 export function getDeviceToken(): string {
-  let token = localStorage.getItem("kniferoll_device_token");
+  let token = safeGetItem("kniferoll_device_token");
   if (!token) {
     token = crypto.randomUUID();
-    localStorage.setItem("kniferoll_device_token", token);
+    safeSetItem("kniferoll_device_token", token);
   }
   return token;
 }

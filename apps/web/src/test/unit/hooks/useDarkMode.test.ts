@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
+
+// Mock @/lib before importing the hook that uses it
+vi.mock("@/lib", () => ({
+  safeGetItem: vi.fn((key: string) => localStorage.getItem(key)),
+  safeSetItem: vi.fn((key: string, value: string) => {
+    localStorage.setItem(key, value);
+    return true;
+  }),
+}));
+
 import { useDarkMode } from "@/hooks/useDarkMode";
 
 describe("useDarkMode", () => {
