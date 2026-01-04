@@ -152,6 +152,7 @@ Deno.serve(async (req: Request) => {
           quantity: 1,
         },
       ],
+      allow_promotion_codes: true,
       success_url: body.successUrl,
       cancel_url: body.cancelUrl,
       metadata: {
