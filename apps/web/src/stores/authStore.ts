@@ -1,7 +1,48 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { supabase, setSentryUser } from "@/lib";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User, Session, AuthError } from "@supabase/supabase-js";
+
+/**
+ * Transforms Supabase auth errors into user-friendly messages.
+ * Avoids exposing technical details while providing actionable feedback.
+ */
+function getAuthErrorMessage(error: AuthError | null, context: "signup" | "password"): string | undefined {
+  if (!error) return undefined;
+
+  const message = error.message.toLowerCase();
+
+  // Signup-specific errors
+  if (context === "signup") {
+    if (message.includes("user already registered") || message.includes("already registered")) {
+      return "An account with this email already exists. Try signing in instead.";
+    }
+    if (message.includes("password") && message.includes("weak")) {
+      return "Password is too weak. Please use a stronger password.";
+    }
+    if (message.includes("email") && message.includes("invalid")) {
+      return "Please enter a valid email address.";
+    }
+  }
+
+  // Password update errors
+  if (context === "password") {
+    if (message.includes("same password") || message.includes("different from the old password")) {
+      return "New password must be different from your current password.";
+    }
+    if (message.includes("weak")) {
+      return "Password is too weak. Please use a stronger password.";
+    }
+  }
+
+  // Rate limiting (applies to all contexts)
+  if (message.includes("rate limit") || message.includes("too many requests")) {
+    return "Too many attempts. Please wait a moment and try again.";
+  }
+
+  // Generic fallback
+  return "Something went wrong. Please try again.";
+}
 
 interface AuthState {
   user: User | null;
@@ -86,7 +127,7 @@ export const useAuthStore = create<AuthState>()(
         } else {
           set({ loading: false });
         }
-        return { error: error?.message };
+        return { error: getAuthErrorMessage(error, "signup") };
       },
 
       signOut: async () => {
@@ -105,7 +146,7 @@ export const useAuthStore = create<AuthState>()(
         const { error } = await supabase.auth.updateUser({
           password: newPassword,
         });
-        return { error: error?.message };
+        return { error: getAuthErrorMessage(error, "password") };
       },
 
       refreshUser: async () => {

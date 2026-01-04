@@ -190,15 +190,15 @@ describe("authStore", () => {
       });
     });
 
-    it("returns error message on failure", async () => {
+    it("returns user-friendly error message on failure", async () => {
       mockSupabase.auth.signUp.mockResolvedValue({
         data: { session: null, user: null },
-        error: { message: "Email already registered" },
+        error: { message: "User already registered" },
       });
 
       const result = await useAuthStore.getState().signUp("test@example.com", "password", "Test");
 
-      expect(result.error).toBe("Email already registered");
+      expect(result.error).toBe("An account with this email already exists. Try signing in instead.");
       expect(useAuthStore.getState().loading).toBe(false);
     });
 
