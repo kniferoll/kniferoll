@@ -13,8 +13,8 @@ import {
   StationsSettingsTab,
   MembersSettingsTab,
   BillingSettingsTab,
+  PersonalSettingsTab,
 } from "@/components";
-import { SettingsFormSection } from "@/components/ui/SettingsFormSection";
 
 function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(" ");
@@ -165,22 +165,8 @@ export function KitchenSettings() {
         onSecondaryNavClick={setActiveKitchenTab}
       >
         {/* Account Settings Section */}
-        {effectiveSection === "account" && (
-          <div
-            className={`divide-y ${
-              isDark ? "divide-white/10" : "divide-gray-200"
-            }`}
-          >
-            <SettingsFormSection
-              title="Account Information"
-              description="Manage your personal account details and preferences."
-            >
-              <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-                Account settings coming soon. This will include profile
-                management, email preferences, and notification settings.
-              </p>
-            </SettingsFormSection>
-          </div>
+        {effectiveSection === "account" && user && (
+          <PersonalSettingsTab user={user} />
         )}
 
         {/* Billing Section - available to any logged-in user */}

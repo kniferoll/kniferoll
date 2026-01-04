@@ -40,7 +40,7 @@ interface SidebarContentProps {
   onKitchenSelect?: (kitchenId: string) => void;
   userSection?: React.ReactNode;
   onCloseSidebar: () => void;
-  isDark: boolean;
+  isDark: boolean | null;
 }
 
 function SidebarContent({

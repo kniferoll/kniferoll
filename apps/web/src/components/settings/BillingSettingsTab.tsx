@@ -69,12 +69,12 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
   }
 
   return (
-    <div className="py-6 space-y-8">
+    <div className="py-4 space-y-6">
       {error && <Alert variant="error">{error}</Alert>}
 
       {/* Plan Status Card */}
       <div
-        className={`relative overflow-hidden rounded-2xl ${
+        className={`relative overflow-hidden rounded-xl ${
           isPro
             ? isDark
               ? "bg-gradient-to-br from-orange-500/20 via-orange-600/10 to-transparent border border-orange-500/30"
@@ -86,22 +86,22 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
       >
         {/* Decorative gradient orb for Pro */}
         {isPro && (
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-orange-400/30 to-orange-600/10 rounded-full blur-3xl" />
+          <div className="absolute -top-16 -right-16 w-32 h-32 bg-gradient-to-br from-orange-400/30 to-orange-600/10 rounded-full blur-3xl" />
         )}
 
-        <div className="relative p-6 sm:p-8">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="space-y-1">
+        <div className="relative p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="space-y-0.5">
               <p
-                className={`text-sm font-medium ${
+                className={`text-xs font-medium ${
                   isDark ? "text-slate-400" : "text-gray-500"
                 }`}
               >
                 Current Plan
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <h2
-                  className={`text-3xl font-bold ${
+                  className={`text-2xl font-bold ${
                     isPro
                       ? isDark
                         ? "text-orange-400"
@@ -114,7 +114,7 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
                   {isPro ? "Pro" : "Free"}
                 </h2>
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                     isPro
                       ? isDark
                         ? "bg-orange-500/20 text-orange-300 ring-1 ring-orange-500/30"
@@ -131,12 +131,12 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
 
             {isPro && (
               <div
-                className={`flex items-center justify-center w-12 h-12 rounded-xl ${
+                className={`flex items-center justify-center w-10 h-10 rounded-lg ${
                   isDark ? "bg-orange-500/20" : "bg-orange-100"
                 }`}
               >
                 <svg
-                  className={`w-6 h-6 ${
+                  className={`w-5 h-5 ${
                     isDark ? "text-orange-400" : "text-orange-600"
                   }`}
                   fill="none"
@@ -155,13 +155,13 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
           </div>
 
           {isPro && profile?.subscription_period_end && (
-            <div className="mt-4 pt-4 border-t border-orange-500/20">
+            <div className="mt-3 pt-3 border-t border-orange-500/20">
               <p
-                className={`text-sm ${
+                className={`text-xs ${
                   isDark ? "text-slate-400" : "text-gray-600"
                 }`}
               >
-                <span className="font-medium">Next renewal:</span>{" "}
+                <span className="font-medium">Renews:</span>{" "}
                 {new Date(profile.subscription_period_end).toLocaleDateString(
                   "en-US",
                   {
@@ -176,12 +176,11 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
 
           {!isPro && (
             <p
-              className={`mt-3 text-sm ${
+              className={`mt-2 text-xs ${
                 isDark ? "text-slate-400" : "text-gray-500"
               }`}
             >
-              Upgrade to Pro to unlock unlimited kitchens, stations, and team
-              collaboration features.
+              Upgrade to unlock unlimited kitchens, stations, and collaboration.
             </p>
           )}
         </div>
@@ -256,31 +255,31 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
               </div>
               {!isPro && limits.ownedKitchens >= limits.maxKitchens && (
                 <p
-                  className={`mt-2 text-xs ${
+                  className={`mt-1.5 text-[10px] ${
                     isDark ? "text-amber-400" : "text-amber-600"
                   }`}
                 >
-                  Upgrade to add more kitchens
+                  Upgrade for more
                 </p>
               )}
             </div>
 
             {/* Stations Usage */}
             <div
-              className={`rounded-xl p-5 ${
+              className={`rounded-lg p-3 ${
                 isDark
                   ? "bg-slate-800/60 border border-slate-700"
                   : "bg-white border border-stone-200"
               }`}
             >
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-2 mb-2">
                 <div
-                  className={`flex items-center justify-center w-9 h-9 rounded-lg ${
+                  className={`flex items-center justify-center w-7 h-7 rounded-md ${
                     isDark ? "bg-purple-500/20" : "bg-purple-50"
                   }`}
                 >
                   <svg
-                    className={`w-5 h-5 ${
+                    className={`w-4 h-4 ${
                       isDark ? "text-purple-400" : "text-purple-600"
                     }`}
                     fill="none"
@@ -295,34 +294,32 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
                     />
                   </svg>
                 </div>
-                <div>
-                  <p
-                    className={`text-sm font-medium ${
-                      isDark ? "text-slate-300" : "text-gray-700"
-                    }`}
-                  >
-                    Stations per Kitchen
-                  </p>
-                </div>
+                <p
+                  className={`text-xs font-medium ${
+                    isDark ? "text-slate-300" : "text-gray-700"
+                  }`}
+                >
+                  Stations
+                </p>
               </div>
               <div className="flex items-baseline gap-1">
                 <span
-                  className={`text-2xl font-bold ${
+                  className={`text-xl font-bold ${
                     isDark ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {limits.maxStationsPerKitchen === Infinity
-                    ? "Unlimited"
+                    ? "\u221E"
                     : limits.maxStationsPerKitchen}
                 </span>
               </div>
               {!isPro && (
                 <p
-                  className={`mt-2 text-xs ${
+                  className={`mt-1.5 text-[10px] ${
                     isDark ? "text-slate-400" : "text-gray-500"
                   }`}
                 >
-                  Pro gives you unlimited stations
+                  Per kitchen
                 </p>
               )}
             </div>
@@ -334,82 +331,81 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
       {isPro ? (
         <div>
           <h3
-            className={`text-sm font-semibold mb-4 ${
+            className={`text-xs font-semibold mb-3 ${
               isDark ? "text-white" : "text-gray-900"
             }`}
           >
             Manage Subscription
           </h3>
           <div
-            className={`rounded-xl p-5 ${
+            className={`rounded-lg p-4 ${
               isDark
                 ? "bg-slate-800/60 border border-slate-700"
                 : "bg-white border border-stone-200"
             }`}
           >
             <p
-              className={`text-sm mb-4 ${
+              className={`text-xs mb-3 ${
                 isDark ? "text-slate-400" : "text-gray-600"
               }`}
             >
-              Access your Stripe customer portal to update payment methods, view
-              invoices, or cancel your subscription.
+              Update payment, view invoices, or cancel subscription.
             </p>
             <Button
               variant="secondary"
               onClick={handleManageSubscription}
               disabled={portalLoading}
+              className="text-sm"
             >
-              {portalLoading ? "Opening portal..." : "Manage Billing"}
+              {portalLoading ? "Opening..." : "Manage Billing"}
             </Button>
           </div>
         </div>
       ) : (
         <div>
           <h3
-            className={`text-sm font-semibold mb-4 ${
+            className={`text-xs font-semibold mb-3 ${
               isDark ? "text-white" : "text-gray-900"
             }`}
           >
             Upgrade to Pro
           </h3>
           <div
-            className={`rounded-2xl overflow-hidden ${
+            className={`rounded-xl overflow-hidden ${
               isDark
                 ? "bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700"
                 : "bg-gradient-to-br from-white to-stone-50 border border-stone-200"
             }`}
           >
-            <div className="p-6">
-              <div className="flex items-baseline gap-2 mb-6">
+            <div className="p-4">
+              <div className="flex items-baseline gap-1.5 mb-4">
                 <span
-                  className={`text-4xl font-bold ${
+                  className={`text-2xl font-bold ${
                     isDark ? "text-white" : "text-gray-900"
                   }`}
                 >
                   $9
                 </span>
                 <span
-                  className={`text-sm ${
+                  className={`text-xs ${
                     isDark ? "text-slate-400" : "text-gray-500"
                   }`}
                 >
-                  / month
+                  /mo
                 </span>
               </div>
 
-              <ul className="space-y-3 mb-6">
+              <ul className="space-y-2 mb-4">
                 {[
                   { icon: "🏠", text: "Up to 5 kitchens" },
-                  { icon: "📍", text: "Unlimited stations per kitchen" },
-                  { icon: "👥", text: "Invite unlimited team members" },
+                  { icon: "📍", text: "Unlimited stations" },
+                  { icon: "👥", text: "Unlimited team members" },
                   { icon: "⚡", text: "Real-time collaboration" },
-                  { icon: "📊", text: "Priority support" },
                 ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <span className="text-lg">{feature.icon}</span>
+                  <li key={i} className="flex items-center gap-2">
+                    <span className="text-sm">{feature.icon}</span>
                     <span
-                      className={`text-sm ${
+                      className={`text-xs ${
                         isDark ? "text-slate-300" : "text-gray-700"
                       }`}
                     >
@@ -424,7 +420,7 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
                 onClick={handleUpgrade}
                 disabled={checkoutLoading}
                 fullWidth
-                size="lg"
+                className="text-sm"
               >
                 {checkoutLoading ? "Redirecting..." : "Upgrade to Pro"}
               </Button>

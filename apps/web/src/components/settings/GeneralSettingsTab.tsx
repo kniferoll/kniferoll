@@ -89,18 +89,18 @@ export function GeneralSettingsTab({
   return (
     <>
       {error && (
-        <div className="pt-6">
+        <div className="pt-4">
           <Alert variant="error">{error}</Alert>
         </div>
       )}
       {success && (
-        <div className="pt-6">
+        <div className="pt-4">
           <Alert variant="success">{success}</Alert>
         </div>
       )}
 
       <SettingsSection title="Kitchen Name">
-        <div className="flex gap-4">
+        <div className="flex gap-2 sm:gap-3">
           <div className="flex-1">
             <FormInput
               value={kitchenName}
@@ -114,6 +114,7 @@ export function GeneralSettingsTab({
               variant="primary"
               onClick={handleSave}
               disabled={saving || kitchenName === kitchen.name}
+              className="text-sm shrink-0"
             >
               {saving ? "Saving..." : "Save"}
             </Button>
@@ -125,12 +126,11 @@ export function GeneralSettingsTab({
         <SettingsSection title="Danger Zone">
           <DangerZone>
             <p
-              className={`text-sm mb-4 ${
+              className={`text-xs sm:text-sm mb-3 ${
                 isDark ? "text-gray-400" : "text-gray-600"
               }`}
             >
-              Permanently delete this kitchen and all its data. This cannot be
-              undone.
+              Permanently delete this kitchen and all its data.
             </p>
             <Button
               variant="secondary"

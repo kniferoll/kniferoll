@@ -429,12 +429,12 @@ export function ScheduleSettingsTab({
   return (
     <>
       {error && (
-        <div className="pt-6">
+        <div className="pt-4">
           <Alert variant="error">{error}</Alert>
         </div>
       )}
       {success && (
-        <div className="pt-6">
+        <div className="pt-4">
           <Alert variant="success">{success}</Alert>
         </div>
       )}
@@ -442,20 +442,20 @@ export function ScheduleSettingsTab({
       {/* Shifts */}
       <SettingsSection
         title="Kitchen Shifts"
-        description="Define the shifts your kitchen runs. Drag to reorder."
+        description="Define your shifts. Drag to reorder."
       >
         <div
-          className={`rounded-xl p-4 ${
+          className={`rounded-lg p-3 ${
             isDark ? "bg-slate-800" : "bg-stone-50"
           }`}
         >
-          <div className="space-y-2 mb-4">
+          <div className="space-y-1.5 mb-3">
             {loading ? (
-              <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                 Loading shifts...
               </p>
             ) : localShifts.length === 0 ? (
-              <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                 No shifts defined yet. Add your first shift below.
               </p>
             ) : (
@@ -489,7 +489,7 @@ export function ScheduleSettingsTab({
                         : "transform 0.15s ease",
                       zIndex: isTouchDragging ? 50 : undefined,
                     }}
-                    className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg border transition-all ${
                       shift.is_hidden
                         ? isDark
                           ? "bg-slate-900/50 border-slate-700/50 opacity-60"
@@ -509,13 +509,13 @@ export function ScheduleSettingsTab({
                         : ""
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       {/* Drag handle - only show for non-hidden shifts */}
                       {isOwner &&
                         localShifts.length > 1 &&
                         !shift.is_hidden && (
                           <div
-                            className={`touch-none select-none p-1 rounded cursor-grab active:cursor-grabbing ${
+                            className={`touch-none select-none p-0.5 rounded cursor-grab active:cursor-grabbing ${
                               isDark
                                 ? "text-slate-400 hover:text-slate-300 hover:bg-slate-700"
                                 : "text-stone-400 hover:text-stone-600 hover:bg-stone-100"
@@ -538,7 +538,7 @@ export function ScheduleSettingsTab({
                             }}
                           >
                             <svg
-                              className="w-5 h-5"
+                              className="w-4 h-4"
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -547,7 +547,7 @@ export function ScheduleSettingsTab({
                           </div>
                         )}
                       <span
-                        className={`font-semibold ${
+                        className={`text-sm font-medium ${
                           shift.is_hidden
                             ? isDark
                               ? "text-slate-400"
@@ -560,7 +560,7 @@ export function ScheduleSettingsTab({
                         {shift.name}
                         {shift.is_hidden && (
                           <span
-                            className={`ml-2 text-xs font-normal px-2 py-0.5 rounded ${
+                            className={`ml-1.5 text-[10px] font-normal px-1.5 py-0.5 rounded ${
                               isDark
                                 ? "bg-slate-700 text-slate-400"
                                 : "bg-stone-200 text-stone-500"
@@ -575,7 +575,7 @@ export function ScheduleSettingsTab({
                       (shift.is_hidden ? (
                         <button
                           onClick={() => handleUnhideShift(shift.id)}
-                          className={`font-medium cursor-pointer ${
+                          className={`text-xs font-medium cursor-pointer ${
                             isDark
                               ? "text-slate-400 hover:text-slate-300"
                               : "text-stone-500 hover:text-stone-700"
@@ -589,7 +589,7 @@ export function ScheduleSettingsTab({
                             onClick={() =>
                               handleHideShift(shift.id, shift.name)
                             }
-                            className={`font-medium cursor-pointer ${
+                            className={`text-xs font-medium cursor-pointer ${
                               isDark
                                 ? "text-slate-400 hover:text-slate-300"
                                 : "text-stone-500 hover:text-stone-700"
@@ -601,7 +601,7 @@ export function ScheduleSettingsTab({
                             onClick={() =>
                               handleDeleteShift(shift.id, shift.name)
                             }
-                            className="text-red-500 hover:text-red-600 font-medium cursor-pointer"
+                            className="text-xs font-medium text-red-500 hover:text-red-600 cursor-pointer"
                           >
                             Delete
                           </button>
@@ -615,7 +615,7 @@ export function ScheduleSettingsTab({
 
           {isOwner && (
             <div
-              className={`border-t pt-4 ${
+              className={`border-t pt-3 ${
                 isDark ? "border-slate-700" : "border-stone-200"
               }`}
             >
@@ -625,13 +625,14 @@ export function ScheduleSettingsTab({
                     value={newShiftName}
                     onChange={(e) => setNewShiftName(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleAddShift()}
-                    placeholder="Shift name (e.g., Late Dinner)"
+                    placeholder="Shift name (e.g., Dinner)"
                   />
                 </div>
                 <Button
                   variant="primary"
                   onClick={handleAddShift}
                   disabled={!newShiftName.trim()}
+                  className="text-sm"
                 >
                   Add
                 </Button>
@@ -644,9 +645,9 @@ export function ScheduleSettingsTab({
       {/* Weekly Schedule - Per-Day Shift Assignment */}
       <SettingsSection
         title="Weekly Schedule"
-        description="Configure which shifts run on each day of the week"
+        description="Configure which shifts run each day"
       >
-        <div className="space-y-3">
+        <div className="space-y-2">
           {DAYS_OF_WEEK.map((day, dayIndex) => {
             const dayConfig = localDays.find((d) => d.dayIndex === dayIndex);
             const activeShiftIds = dayConfig?.shiftIds ?? [];
@@ -658,7 +659,7 @@ export function ScheduleSettingsTab({
             return (
               <div
                 key={dayIndex}
-                className={`rounded-xl border overflow-hidden ${
+                className={`rounded-lg border overflow-hidden ${
                   isDark
                     ? isOpen
                       ? "border-slate-600 bg-slate-800"
@@ -670,13 +671,13 @@ export function ScheduleSettingsTab({
               >
                 {/* Day header */}
                 <div
-                  className={`flex items-center justify-between p-3 border-b ${
+                  className={`flex items-center justify-between px-3 py-2 border-b ${
                     isDark ? "border-slate-700" : "border-stone-100"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <span
-                      className={`font-semibold min-w-[100px] ${
+                      className={`text-sm font-medium min-w-[70px] sm:min-w-[80px] ${
                         isDark ? "text-white" : "text-gray-900"
                       } ${!isOpen ? "opacity-50" : ""}`}
                     >
@@ -684,7 +685,7 @@ export function ScheduleSettingsTab({
                     </span>
                     {!isOpen && (
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                           isDark
                             ? "bg-slate-700 text-slate-400"
                             : "bg-stone-200 text-stone-500"
@@ -695,34 +696,33 @@ export function ScheduleSettingsTab({
                     )}
                     {isOpen && activeShiftIds.length > 0 && (
                       <span
-                        className={`text-xs ${
+                        className={`text-[10px] ${
                           isDark ? "text-slate-400" : "text-stone-500"
                         }`}
                       >
-                        {activeShiftIds.length} shift
-                        {activeShiftIds.length !== 1 ? "s" : ""}
+                        {activeShiftIds.length} shift{activeShiftIds.length !== 1 ? "s" : ""}
                       </span>
                     )}
                   </div>
                   {isOwner && localShifts.length > 0 && (
                     <button
                       onClick={() => toggleAllShiftsForDay(dayIndex)}
-                      className={`text-sm font-medium transition-colors ${
+                      className={`text-xs font-medium transition-colors ${
                         isDark
                           ? "text-orange-400 hover:text-orange-300"
                           : "text-orange-600 hover:text-orange-700"
                       }`}
                     >
-                      {allSelected ? "Clear all" : "Select all"}
+                      {allSelected ? "Clear" : "All"}
                     </button>
                   )}
                 </div>
 
                 {/* Shift checkboxes */}
                 {localShifts.length === 0 ? (
-                  <div className="p-3">
+                  <div className="px-3 py-2">
                     <p
-                      className={`text-sm ${
+                      className={`text-xs ${
                         isDark ? "text-slate-400" : "text-stone-500"
                       }`}
                     >
@@ -730,13 +730,13 @@ export function ScheduleSettingsTab({
                     </p>
                   </div>
                 ) : (
-                  <div className="p-3 flex flex-wrap gap-2">
+                  <div className="px-2.5 py-2 flex flex-wrap gap-1.5">
                     {localShifts.map((shift) => {
                       const isActive = activeShiftIds.includes(shift.id);
                       return (
                         <label
                           key={shift.id}
-                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all ${
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all text-xs ${
                             isDark
                               ? isActive
                                 ? "bg-orange-500/20 border border-orange-500/50 text-orange-300"
@@ -756,7 +756,7 @@ export function ScheduleSettingsTab({
                             className="sr-only"
                           />
                           <span
-                            className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
+                            className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition-colors ${
                               isActive
                                 ? isDark
                                   ? "bg-orange-500 border-orange-500"
@@ -768,7 +768,7 @@ export function ScheduleSettingsTab({
                           >
                             {isActive && (
                               <svg
-                                className="w-3 h-3 text-white"
+                                className="w-2.5 h-2.5 text-white"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -780,7 +780,7 @@ export function ScheduleSettingsTab({
                               </svg>
                             )}
                           </span>
-                          <span className="text-sm font-medium">
+                          <span className="font-medium">
                             {shift.name}
                           </span>
                         </label>
@@ -797,29 +797,30 @@ export function ScheduleSettingsTab({
       {/* Save/Cancel Buttons */}
       {isOwner && (
         <div
-          className={`sticky bottom-0 py-4 border-t ${
+          className={`sticky bottom-0 py-3 border-t ${
             isDark
               ? "bg-slate-900/95 border-slate-700 backdrop-blur-sm"
               : "bg-white/95 border-stone-200 backdrop-blur-sm"
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
               {hasChanges && (
                 <span
-                  className={`text-sm ${
+                  className={`text-xs sm:text-sm ${
                     isDark ? "text-amber-400" : "text-amber-600"
                   }`}
                 >
-                  You have unsaved changes
+                  Unsaved changes
                 </span>
               )}
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 shrink-0">
               <Button
                 variant="ghost"
                 onClick={handleCancel}
                 disabled={!hasChanges || saving}
+                className="text-sm"
               >
                 Cancel
               </Button>
@@ -827,8 +828,9 @@ export function ScheduleSettingsTab({
                 variant="primary"
                 onClick={handleSave}
                 disabled={!hasChanges || saving}
+                className="text-sm"
               >
-                {saving ? "Saving..." : "Save Changes"}
+                {saving ? "Saving..." : "Save"}
               </Button>
             </div>
           </div>

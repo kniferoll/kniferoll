@@ -7,6 +7,29 @@ import { FormInput } from "../ui/FormInput";
 import { SettingsSection } from "../ui/SettingsSection";
 import type { User } from "@supabase/supabase-js";
 
+// Simple helper to format account creation date
+function formatMemberSince(dateStr: string | undefined): string {
+  if (!dateStr) return "Unknown";
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 1) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+  }
+  if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return `${months} month${months > 1 ? "s" : ""} ago`;
+  }
+  const years = Math.floor(diffDays / 365);
+  return `${years} year${years > 1 ? "s" : ""} ago`;
+}
+
 interface PersonalSettingsTabProps {
   user: User;
 }
@@ -131,6 +154,47 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
               }`}
             />
           </button>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title="Account Details">
+        <div
+          className={`p-4 rounded-xl space-y-3 ${
+            isDark ? "bg-slate-800" : "bg-stone-50"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span
+              className={`text-sm ${
+                isDark ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              Member since
+            </span>
+            <span
+              className={`text-sm font-medium ${
+                isDark ? "text-white" : "text-gray-900"
+              }`}
+            >
+              {formatMemberSince(user.created_at)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span
+              className={`text-sm ${
+                isDark ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              Account ID
+            </span>
+            <span
+              className={`text-xs font-mono ${
+                isDark ? "text-gray-500" : "text-gray-400"
+              }`}
+            >
+              {user.id.slice(0, 8)}...{user.id.slice(-4)}
+            </span>
+          </div>
         </div>
       </SettingsSection>
     </div>

@@ -182,12 +182,12 @@ export function StationsSettingsTab({
   return (
     <>
       {error && (
-        <div className="pt-6">
+        <div className="pt-4">
           <Alert variant="error">{error}</Alert>
         </div>
       )}
       {success && (
-        <div className="pt-6">
+        <div className="pt-4">
           <Alert variant="success">{success}</Alert>
         </div>
       )}
@@ -196,32 +196,32 @@ export function StationsSettingsTab({
         title={`Current Stations`}
         description="Manage your kitchen's prep stations"
       >
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {activeStations.length === 0 ? (
-            <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
               No stations yet. Add your first station below.
             </p>
           ) : (
             activeStations.map((station) => (
               <div
                 key={station.id}
-                className={`flex items-center justify-between p-4 rounded-xl ${
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg ${
                   isDark ? "bg-slate-800" : "bg-stone-50"
                 }`}
               >
                 <span
-                  className={`font-medium ${
+                  className={`text-sm font-medium truncate mr-2 ${
                     isDark ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {station.name}
                 </span>
                 {isOwner && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-3 shrink-0">
                     <button
                       onClick={() => handleHideClick(station)}
                       disabled={saving}
-                      className={`font-semibold disabled:opacity-50 cursor-pointer ${
+                      className={`text-xs font-medium disabled:opacity-50 cursor-pointer ${
                         isDark
                           ? "text-slate-400 hover:text-slate-300"
                           : "text-gray-500 hover:text-gray-700"
@@ -232,7 +232,7 @@ export function StationsSettingsTab({
                     <button
                       onClick={() => handleDeleteClick(station)}
                       disabled={saving}
-                      className="text-red-500 hover:text-red-600 font-semibold disabled:opacity-50 cursor-pointer"
+                      className="text-xs font-medium text-red-500 hover:text-red-600 disabled:opacity-50 cursor-pointer"
                     >
                       Delete
                     </button>
@@ -248,26 +248,26 @@ export function StationsSettingsTab({
       {hiddenStations.length > 0 && (
         <SettingsSection
           title="Hidden Stations"
-          description="These stations are hidden from active use but their data is preserved"
+          description="Hidden from active use but data is preserved"
         >
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {hiddenStations.map((station) => (
               <div
                 key={station.id}
-                className={`flex items-center justify-between p-4 rounded-xl ${
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg ${
                   isDark ? "bg-slate-800/50" : "bg-stone-100/50"
                 }`}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <span
-                    className={`font-medium ${
+                    className={`text-sm font-medium truncate ${
                       isDark ? "text-slate-400" : "text-gray-500"
                     }`}
                   >
                     {station.name}
                   </span>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${
                       isDark
                         ? "bg-slate-700 text-slate-400"
                         : "bg-stone-200 text-gray-500"
@@ -277,18 +277,18 @@ export function StationsSettingsTab({
                   </span>
                 </div>
                 {isOwner && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-3 shrink-0">
                     <button
                       onClick={() => handleUnhide(station)}
                       disabled={saving}
-                      className="text-orange-500 hover:text-orange-600 font-semibold disabled:opacity-50 cursor-pointer"
+                      className="text-xs font-medium text-orange-500 hover:text-orange-600 disabled:opacity-50 cursor-pointer"
                     >
                       Unhide
                     </button>
                     <button
                       onClick={() => handleDeleteClick(station)}
                       disabled={saving}
-                      className="text-red-500 hover:text-red-600 font-semibold disabled:opacity-50 cursor-pointer"
+                      className="text-xs font-medium text-red-500 hover:text-red-600 disabled:opacity-50 cursor-pointer"
                     >
                       Delete
                     </button>
@@ -303,12 +303,12 @@ export function StationsSettingsTab({
       {isOwner && (
         <SettingsSection title="Add Station">
           {isAtLimit ? (
-            <Alert variant="warning" className="mb-4">
+            <Alert variant="warning" className="mb-3 text-sm">
               You've reached the maximum number of stations for your plan.
             </Alert>
           ) : null}
 
-          <div className="flex gap-4">
+          <div className="flex gap-2 sm:gap-3">
             <div className="flex-1">
               <FormInput
                 value={newStationName}
@@ -319,14 +319,15 @@ export function StationsSettingsTab({
               />
             </div>
             {isAtLimit ? (
-              <Button variant="primary" onClick={onUpgradeClick}>
-                Upgrade to Pro
+              <Button variant="primary" onClick={onUpgradeClick} className="text-sm shrink-0">
+                Upgrade
               </Button>
             ) : (
               <Button
                 variant="primary"
                 onClick={handleAdd}
                 disabled={saving || !newStationName.trim()}
+                className="text-sm shrink-0"
               >
                 Add
               </Button>

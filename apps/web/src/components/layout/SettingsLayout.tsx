@@ -64,11 +64,13 @@ export function SettingsLayout({
       {/* Main content */}
       <main
         className={classNames(
-          "min-h-[calc(100vh-73px)] px-6 lg:px-8",
+          "min-h-[calc(100vh-73px)] px-4 sm:px-6 lg:px-8",
           isDark ? "bg-transparent" : "bg-transparent"
         )}
       >
-        {children}
+        <div className="mx-auto max-w-2xl">
+          {children}
+        </div>
       </main>
     </div>
   );
