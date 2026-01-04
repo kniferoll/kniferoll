@@ -14,6 +14,7 @@ vi.mock("@/lib/supabase", () => ({
 vi.mock("@/lib", () => ({
   supabase: mockSupabase,
   rankSuggestions: vi.fn((suggestions: unknown[]) => suggestions),
+  captureError: vi.fn(),
 }));
 
 // Import after mocking

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import type { KitchenUnit, RecencyScoredSuggestion } from "@kniferoll/types";
+import { captureError } from "@/lib";
 import { UnitsModal } from "@/components/modals/UnitsModal";
 import { Pill } from "@/components/ui";
 import { usePrepEntryStore } from "@/stores";
@@ -224,7 +225,7 @@ export function PrepItemEntryForm({
         }, 0);
       }
     } catch (error) {
-      console.error("Error adding item:", error);
+      captureError(error as Error, { context: "PrepItemEntryForm.addItem" });
     } finally {
       isSubmitting.current = false;
     }

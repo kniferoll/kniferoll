@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useAuthStore } from "@/stores";
-import { redirectToCheckout } from "@/lib";
+import { redirectToCheckout, captureError } from "@/lib";
 
 /**
  * Hook for handling Stripe checkout redirects
@@ -27,7 +27,7 @@ export function useStripeCheckout() {
       // Don't set loading false on success - we're redirecting
     } catch (error) {
       setLoading(false);
-      console.error("Checkout error:", error);
+      captureError(error as Error, { context: "useStripeCheckout" });
       throw error;
     }
   }, [user]);

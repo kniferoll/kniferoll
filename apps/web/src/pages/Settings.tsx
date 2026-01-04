@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDarkModeContext } from "@/context";
 import { useAuthStore } from "@/stores";
 import { useKitchens, useHeaderConfig } from "@/hooks";
-import { supabase } from "@/lib";
+import { supabase, captureError } from "@/lib";
 import { BackButton } from "@/components";
 import {
   SettingsSidebar,
@@ -45,7 +45,7 @@ export function Settings() {
         if (error) throw error;
         setMemberships(data || []);
       } catch (err) {
-        console.error("Failed to fetch memberships:", err);
+        captureError(err as Error, { context: "Settings.fetchMemberships" });
       } finally {
         setMembershipsLoading(false);
       }

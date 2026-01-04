@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/lib";
+import { supabase, captureError } from "@/lib";
 import { usePrepEntryStore, usePrepStore } from "@/stores";
 import { Pill } from "@/components/ui";
 import { XIcon, CheckIcon } from "@/components/icons";
@@ -111,7 +111,7 @@ export function CopyRecentItemsModal({
         ]);
 
         if (recentResponse.error) {
-          console.error("Error fetching recent items:", recentResponse.error);
+          captureError(recentResponse.error, { context: "CopyRecentItemsModal.fetchRecentItems" });
           return;
         }
 
@@ -288,7 +288,7 @@ export function CopyRecentItemsModal({
       const { error } = await supabase.from("prep_items").insert(itemsToAdd);
 
       if (error) {
-        console.error("Error adding items:", error);
+        captureError(error, { context: "CopyRecentItemsModal.addItems" });
       }
 
       // Reload prep items to show the new items

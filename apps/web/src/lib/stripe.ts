@@ -4,10 +4,12 @@
  */
 
 import { supabase } from "./supabase";
+import { captureError } from "./sentry";
 
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
-if (!STRIPE_PUBLISHABLE_KEY) {
+if (!STRIPE_PUBLISHABLE_KEY && import.meta.env.DEV) {
+  // Only warn in development - production builds should have this set
   console.warn("VITE_STRIPE_PUBLISHABLE_KEY is not set");
 }
 
@@ -47,7 +49,7 @@ export async function redirectToCheckout(options: {
       throw new Error("No checkout URL returned");
     }
   } catch (error) {
-    console.error("Stripe checkout error:", error);
+    captureError(error as Error, { context: "redirectToCheckout" });
     throw error;
   }
 }
@@ -78,7 +80,7 @@ export async function getCustomerPortalUrl(options: {
     const { portalUrl } = data;
     return portalUrl;
   } catch (error) {
-    console.error("Stripe portal error:", error);
+    captureError(error as Error, { context: "getCustomerPortalUrl" });
     throw error;
   }
 }
@@ -94,7 +96,7 @@ export async function redirectToCustomerPortal(options: {
     const portalUrl = await getCustomerPortalUrl(options);
     window.location.href = portalUrl;
   } catch (error) {
-    console.error("Failed to redirect to portal:", error);
+    captureError(error as Error, { context: "redirectToCustomerPortal" });
     throw error;
   }
 }

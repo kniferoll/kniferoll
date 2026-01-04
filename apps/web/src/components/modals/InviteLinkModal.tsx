@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import QRCode from "qrcode";
-import { supabase } from "@/lib";
+import { supabase, captureError } from "@/lib";
 import { useDarkModeContext } from "@/context";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
@@ -86,7 +86,7 @@ export function InviteLinkModal({
           },
         })
           .then(setQrCodeUrl)
-          .catch(console.error);
+          .catch((err) => captureError(err, { context: "InviteLinkModal.qrCode" }));
       });
     }
   }, [activeLink, isDark]);

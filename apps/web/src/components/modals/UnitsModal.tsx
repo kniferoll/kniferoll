@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import { useKitchenStore, usePrepEntryStore } from "@/stores";
-import { supabase } from "@/lib";
+import { supabase, captureError } from "@/lib";
 import type { KitchenUnit } from "@kniferoll/types";
 import { Pill } from "@/components/ui";
 import { ChevronDownIcon, XIcon } from "@/components/icons";
@@ -136,7 +136,7 @@ export function UnitsModal({
         onUnitSelected(data);
       }
     } catch (err) {
-      console.error("Error creating unit:", err);
+      captureError(err as Error, { context: "UnitsModal.createUnit" });
     } finally {
       setIsCreating(false);
     }
