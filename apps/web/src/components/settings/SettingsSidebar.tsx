@@ -78,6 +78,14 @@ export function SettingsSidebar({
             >
               Billing
             </button>
+            <button
+              onClick={() => onSectionChange("support")}
+              className={getButtonClass(activeSection === "support")}
+              aria-selected={activeSection === "support"}
+              role="button"
+            >
+              Support
+            </button>
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import { useDarkModeContext } from "@/context";
 import { useAuthStore } from "@/stores";
 import { useKitchens, useHeaderConfig } from "@/hooks";
 import { supabase, captureError } from "@/lib";
-import { BackButton } from "@/components";
+import { BackButton, SupportModal } from "@/components";
 import {
   SettingsSidebar,
   PersonalSettingsTab,
@@ -14,6 +14,46 @@ import {
 import type { Database } from "@kniferoll/types";
 
 type KitchenMember = Database["public"]["Tables"]["kitchen_members"]["Row"];
+
+function SupportSettingsPanel() {
+  const { isDark } = useDarkModeContext();
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+
+  return (
+    <div
+      className={`rounded-xl p-6 ${isDark ? "bg-slate-900" : "bg-white"}`}
+      data-testid="support-panel"
+    >
+      <h2
+        className={`text-xl font-semibold mb-4 ${
+          isDark ? "text-white" : "text-gray-900"
+        }`}
+      >
+        Support
+      </h2>
+      <p className={`mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+        Have a question, found a bug, or want to request a feature? We&apos;re
+        here to help.
+      </p>
+
+      <button
+        onClick={() => setIsSupportModalOpen(true)}
+        className={`px-6 py-3 rounded-xl font-medium transition-colors ${
+          isDark
+            ? "bg-orange-500 hover:bg-orange-600 text-white"
+            : "bg-orange-500 hover:bg-orange-600 text-white"
+        }`}
+      >
+        Contact Support
+      </button>
+
+      <SupportModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
+      />
+    </div>
+  );
+}
 
 export function Settings() {
   const navigate = useNavigate();
@@ -132,6 +172,12 @@ export function Settings() {
               >
                 Billing
               </button>
+              <button
+                onClick={() => setActiveSection("support")}
+                className={getMobilePillClass(activeSection === "support")}
+              >
+                Support
+              </button>
 
               {/* Divider */}
               {manageableKitchens.length > 0 && (
@@ -183,6 +229,10 @@ export function Settings() {
             ) : activeSection === "billing" ? (
               <div data-testid="billing-settings-panel">
                 <BillingSettingsTab userId={user.id} />
+              </div>
+            ) : activeSection === "support" ? (
+              <div data-testid="support-settings-panel">
+                <SupportSettingsPanel />
               </div>
             ) : selectedKitchen && selectedMembership ? (
               <KitchenSettingsPanel
