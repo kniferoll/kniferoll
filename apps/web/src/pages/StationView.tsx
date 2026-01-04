@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -8,7 +8,7 @@ import {
   usePrepStore,
 } from "@/stores";
 import { useRealtimePrepItems, useHeaderConfig, usePlanLimits, useStripeCheckout, useVisualViewport } from "@/hooks";
-import { supabase, getDeviceToken } from "@/lib";
+import { supabase, getDeviceToken, safeGetItem, safeSetItem } from "@/lib";
 import { jsDateToDatabaseDayOfWeek, toLocalDate, isClosedDay, findNextOpenDay } from "@/lib";
 
 import {
@@ -76,23 +76,31 @@ export function StationView() {
 
   // Local state
   const station = stations.find((s) => s.id === stationId);
-  const [kitchenShifts, setKitchenShifts] = useState<
-    Array<{ id: string; name: string }>
-  >([]);
-  const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
-  const [shiftDays, setShiftDays] = useState<
-    Map<number, { is_open: boolean; shift_ids: string[] }>
-  >(new Map());
+
+  // Batch shift-related state into single object to reduce renders
+  const [shiftConfig, setShiftConfig] = useState<{
+    shifts: Array<{ id: string; name: string }>;
+    selectedId: string | null;
+    dayMap: Map<number, { is_open: boolean; shift_ids: string[] }>;
+  }>({
+    shifts: [],
+    selectedId: null,
+    dayMap: new Map(),
+  });
+
+  // Track if initial shift load has happened to prevent loops
+  const initialShiftLoadRef = useRef(false);
+
   const [closedAlertDismissed, setClosedAlertDismissed] = useState(false);
 
   // UI state for controls
   const [controlsCollapsed, setControlsCollapsed] = useState(false);
   const [isCompact, setIsCompact] = useState(() => {
-    const stored = localStorage.getItem("kniferoll:compactView");
+    const stored = safeGetItem("kniferoll:compactView");
     return stored === "true";
   });
   const [formHidden, setFormHidden] = useState(() => {
-    const stored = localStorage.getItem("kniferoll:formHidden");
+    const stored = safeGetItem("kniferoll:formHidden");
     return stored === "true";
   });
   const [sortTrigger, setSortTrigger] = useState(false);
@@ -111,7 +119,7 @@ export function StationView() {
   const handleToggleCompact = useCallback(() => {
     setIsCompact((prev) => {
       const newValue = !prev;
-      localStorage.setItem("kniferoll:compactView", String(newValue));
+      safeSetItem("kniferoll:compactView", String(newValue));
       return newValue;
     });
   }, []);
@@ -120,13 +128,13 @@ export function StationView() {
   const handleToggleFormHidden = useCallback(() => {
     setFormHidden((prev) => {
       const newValue = !prev;
-      localStorage.setItem("kniferoll:formHidden", String(newValue));
+      safeSetItem("kniferoll:formHidden", String(newValue));
       return newValue;
     });
   }, []);
 
-  // Get closed days for calendar
-  const dayNamesForCalendar = [
+  // Day names constant (stable reference)
+  const dayNamesForCalendar = useMemo(() => [
     "sunday",
     "monday",
     "tuesday",
@@ -134,22 +142,27 @@ export function StationView() {
     "thursday",
     "friday",
     "saturday",
-  ];
-  const closedDaysArray = dayNamesForCalendar.filter((_dayName, jsDay) => {
-    const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
-    const dayConfig = shiftDays.get(dbDay);
-    return dayConfig && !dayConfig.is_open;
-  });
+  ], []);
 
-  // Get available shifts for the selected date
-  const selectedDateObj = toLocalDate(selectedDate);
-  const selectedJsDay = selectedDateObj.getDay();
-  const selectedDbDay = jsDateToDatabaseDayOfWeek(selectedJsDay);
-  const selectedDayConfig = shiftDays.get(selectedDbDay);
-  const availableShiftIds = selectedDayConfig?.shift_ids ?? [];
-  const availableShifts = kitchenShifts.filter((s) =>
-    availableShiftIds.includes(s.id)
+  // Memoize closed days for calendar
+  const closedDaysArray = useMemo(() =>
+    dayNamesForCalendar.filter((_dayName, jsDay) => {
+      const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
+      const dayConfig = shiftConfig.dayMap.get(dbDay);
+      return dayConfig && !dayConfig.is_open;
+    }),
+    [dayNamesForCalendar, shiftConfig.dayMap]
   );
+
+  // Memoize available shifts for the selected date
+  const availableShifts = useMemo(() => {
+    const selectedDateObj = toLocalDate(selectedDate);
+    const selectedJsDay = selectedDateObj.getDay();
+    const selectedDbDay = jsDateToDatabaseDayOfWeek(selectedJsDay);
+    const selectedDayConfig = shiftConfig.dayMap.get(selectedDbDay);
+    const availableShiftIds = selectedDayConfig?.shift_ids ?? [];
+    return shiftConfig.shifts.filter((s) => availableShiftIds.includes(s.id));
+  }, [selectedDate, shiftConfig.dayMap, shiftConfig.shifts]);
 
   const handleInviteClick = useCallback(() => {
     if (limits?.canInviteAsOwner) {
@@ -178,7 +191,7 @@ export function StationView() {
         <div className="flex items-center gap-2">
           <Logo size="sm" showText={false} />
           <span
-            className={`text-lg font-semibold ${
+            className={`text-lg font-semibold cursor-default ${
               isDark ? "text-white" : "text-stone-900"
             }`}
           >
@@ -208,52 +221,59 @@ export function StationView() {
   }, [currentKitchen?.id, stations.length, loadKitchen]);
 
   // Load kitchen shifts and shift days when kitchen loads
+  // Use Promise.all for parallel fetches and single atomic state update
   useEffect(() => {
     if (!currentKitchen?.id) return;
 
     const loadShiftsAndDays = async () => {
-      // Load shifts
-      const { data: shiftsData } = await supabase
-        .from("kitchen_shifts")
-        .select("id, name")
-        .eq("kitchen_id", currentKitchen.id)
-        .order("display_order");
+      // Fetch both in parallel
+      const [shiftsResult, daysResult] = await Promise.all([
+        supabase
+          .from("kitchen_shifts")
+          .select("id, name")
+          .eq("kitchen_id", currentKitchen.id)
+          .order("display_order"),
+        supabase
+          .from("kitchen_shift_days")
+          .select("day_of_week, is_open, shift_ids")
+          .eq("kitchen_id", currentKitchen.id),
+      ]);
 
-      if (shiftsData) {
-        setKitchenShifts(shiftsData);
-        if (shiftsData.length > 0 && !selectedShiftId) {
-          // Try to find the shift matching the stored shift name from kitchenStore
-          const matchingShift = storedShiftName
-            ? shiftsData.find((s) => s.name === storedShiftName)
-            : null;
-          // Use matching shift if found, otherwise use first shift
-          setSelectedShiftId(matchingShift?.id || shiftsData[0].id);
-        }
+      const shiftsData = shiftsResult.data ?? [];
+      const shiftDaysData = daysResult.data ?? [];
+
+      // Build day map
+      const dayMap = new Map(
+        shiftDaysData.map((day) => [
+          day.day_of_week,
+          { is_open: day.is_open, shift_ids: day.shift_ids || [] },
+        ])
+      );
+
+      // Determine initial shift selection (only on first load)
+      let selectedId: string | null = null;
+      if (shiftsData.length > 0 && !initialShiftLoadRef.current) {
+        const matchingShift = storedShiftName
+          ? shiftsData.find((s) => s.name === storedShiftName)
+          : null;
+        selectedId = matchingShift?.id || shiftsData[0].id;
+        initialShiftLoadRef.current = true;
       }
 
-      // Load shift days configuration
-      const { data: shiftDaysData } = await supabase
-        .from("kitchen_shift_days")
-        .select("day_of_week, is_open, shift_ids")
-        .eq("kitchen_id", currentKitchen.id);
-
-      if (shiftDaysData) {
-        const dayMap = new Map(
-          shiftDaysData.map((day) => [
-            day.day_of_week,
-            { is_open: day.is_open, shift_ids: day.shift_ids || [] },
-          ])
-        );
-        setShiftDays(dayMap);
-      }
+      // Single atomic state update
+      setShiftConfig((prev) => ({
+        shifts: shiftsData,
+        selectedId: selectedId ?? prev.selectedId,
+        dayMap,
+      }));
     };
 
     loadShiftsAndDays();
-  }, [currentKitchen?.id, selectedShiftId, storedShiftName]);
+  }, [currentKitchen?.id, storedShiftName]); // Removed selectedShiftId from deps
 
   // Check if selected date is closed
-  const isSelectedDayClosed = shiftDays.size > 0 && isClosedDay(selectedDate, shiftDays);
-  const nextOpenDay = isSelectedDayClosed ? findNextOpenDay(selectedDate, shiftDays) : null;
+  const isSelectedDayClosed = shiftConfig.dayMap.size > 0 && isClosedDay(selectedDate, shiftConfig.dayMap);
+  const nextOpenDay = isSelectedDayClosed ? findNextOpenDay(selectedDate, shiftConfig.dayMap) : null;
 
   // Reset closed alert dismissed state when date changes
   useEffect(() => {
@@ -266,47 +286,50 @@ export function StationView() {
 
   // Load suggestions and units
   useEffect(() => {
-    if (currentKitchen?.id && stationId && selectedShiftId) {
+    if (currentKitchen?.id && stationId && shiftConfig.selectedId) {
       loadSuggestionsAndUnits(
         currentKitchen.id,
         stationId,
         selectedDate,
-        selectedShiftId
+        shiftConfig.selectedId
       );
     }
   }, [
     currentKitchen?.id,
     stationId,
     selectedDate,
-    selectedShiftId,
+    shiftConfig.selectedId,
     loadSuggestionsAndUnits,
   ]);
 
   // Load prep items
   useEffect(() => {
-    if (!stationId || !selectedShiftId) return;
-    loadPrepItems(stationId, selectedDate, selectedShiftId);
-  }, [stationId, selectedDate, selectedShiftId, loadPrepItems]);
+    if (!stationId || !shiftConfig.selectedId) return;
+    loadPrepItems(stationId, selectedDate, shiftConfig.selectedId);
+  }, [stationId, selectedDate, shiftConfig.selectedId, loadPrepItems]);
 
   // Auto-select first available shift when current shift is not available for selected day
+  // Guarded to prevent loops - only updates when actually needed
   useEffect(() => {
-    if (selectedShiftId && availableShifts.length > 0) {
-      const isCurrentShiftAvailable = availableShifts.some(
-        (s) => s.id === selectedShiftId
-      );
-      if (!isCurrentShiftAvailable) {
-        const fallbackShift = availableShifts[0];
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSelectedShiftId(fallbackShift.id);
-        setStoredShiftName(fallbackShift.name); // Sync to store
-      }
-    } else if (availableShifts.length > 0 && !selectedShiftId) {
-      const fallbackShift = availableShifts[0];
-       
-      setSelectedShiftId(fallbackShift.id);
-      setStoredShiftName(fallbackShift.name); // Sync to store
-    }
-  }, [availableShifts, selectedShiftId, setStoredShiftName]);
+    if (availableShifts.length === 0) return;
+
+    const currentId = shiftConfig.selectedId;
+    const isCurrentShiftAvailable = currentId
+      ? availableShifts.some((s) => s.id === currentId)
+      : false;
+
+    // Already valid, don't update
+    if (isCurrentShiftAvailable) return;
+
+    // Need to select a fallback - this setState is intentional and guarded
+    const fallbackShift = availableShifts[0];
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShiftConfig((prev) => ({
+      ...prev,
+      selectedId: fallbackShift.id,
+    }));
+    setStoredShiftName(fallbackShift.name);
+  }, [availableShifts, shiftConfig.selectedId, setStoredShiftName]);
 
   const handleAddItem = async (
     description: string,
@@ -316,7 +339,7 @@ export function StationView() {
     if (
       !stationId ||
       !currentKitchen?.id ||
-      !selectedShiftId ||
+      !shiftConfig.selectedId ||
       !description.trim()
     )
       return;
@@ -327,7 +350,7 @@ export function StationView() {
       currentKitchen.id,
       stationId,
       selectedDate,
-      selectedShiftId,
+      shiftConfig.selectedId,
       description,
       unitId,
       quantity,
@@ -370,13 +393,13 @@ export function StationView() {
   };
 
   const handleDismissSuggestion = async (suggestionId: string) => {
-    if (!stationId || !selectedShiftId) return;
+    if (!stationId || !shiftConfig.selectedId) return;
     const userId = user?.id || sessionUser?.id || getDeviceToken();
     await dismissSuggestionPersistent(
       suggestionId,
       stationId,
       selectedDate,
-      selectedShiftId,
+      shiftConfig.selectedId,
       userId
     );
   };
@@ -386,7 +409,7 @@ export function StationView() {
     (shiftName: string) => {
       const shift = availableShifts.find((s) => s.name === shiftName);
       if (shift) {
-        setSelectedShiftId(shift.id);
+        setShiftConfig((prev) => ({ ...prev, selectedId: shift.id }));
         setStoredShiftName(shiftName); // Sync to kitchenStore for persistence
       }
     },
@@ -417,10 +440,10 @@ export function StationView() {
       return selectedDate;
     } else if (copyModalMode === "add-to-next-day") {
       // "Add to next day" = find the next open day after the selected date
-      return findNextOpenDay(selectedDate, shiftDays, false) || selectedDate;
+      return findNextOpenDay(selectedDate, shiftConfig.dayMap, false) || selectedDate;
     }
     return selectedDate;
-  }, [copyModalMode, shiftDays, selectedDate]);
+  }, [copyModalMode, shiftConfig.dayMap, selectedDate]);
 
   const getCopyModalTargetLabel = useCallback(() => {
     const targetDate = getCopyModalTargetDate();
@@ -527,7 +550,7 @@ export function StationView() {
   const totalCount = prepItems.length;
 
   return (
-    <div className="flex flex-col h-full">
+    <div data-testid="page-station-view" className="flex flex-col h-full">
       {/* Controls Area */}
       <div className="px-4 pt-2 pb-1 relative z-20">
         <div className="max-w-5xl mx-auto">
@@ -559,7 +582,7 @@ export function StationView() {
                   <ShiftToggle
                     shifts={availableShifts.map((s) => s.name)}
                     currentShift={
-                      availableShifts.find((s) => s.id === selectedShiftId)
+                      availableShifts.find((s) => s.id === shiftConfig.selectedId)
                         ?.name || ""
                     }
                     onShiftChange={handleShiftChange}
@@ -615,7 +638,7 @@ export function StationView() {
                     <ShiftToggle
                       shifts={availableShifts.map((s) => s.name)}
                       currentShift={
-                        availableShifts.find((s) => s.id === selectedShiftId)
+                        availableShifts.find((s) => s.id === shiftConfig.selectedId)
                           ?.name || ""
                       }
                       onShiftChange={handleShiftChange}
@@ -660,7 +683,7 @@ export function StationView() {
               title="Kitchen closed"
               description="No prep items on closed days. Select a different date above."
             />
-          ) : isInitialLoading || !selectedShiftId ? (
+          ) : isInitialLoading || !shiftConfig.selectedId ? (
             <PrepItemSkeleton count={5} isCompact={isCompact} />
           ) : totalCount === 0 && !addingItem ? (
             <EmptyState
@@ -708,7 +731,7 @@ export function StationView() {
                   quickUnits={quickUnits}
                   onAddItem={handleAddItem}
                   onDismissSuggestion={handleDismissSuggestion}
-                  disabled={!selectedShiftId}
+                  disabled={!shiftConfig.selectedId}
                   isLoading={addingItem}
                 />
               </motion.div>
@@ -750,17 +773,17 @@ export function StationView() {
       />
 
       {/* Copy Recent Items Modal */}
-      {copyModalMode && stationId && selectedShiftId && currentKitchen && (
+      {copyModalMode && stationId && shiftConfig.selectedId && currentKitchen && (
         <CopyRecentItemsModal
           isOpen={!!copyModalMode}
           onClose={() => setCopyModalMode(null)}
           mode={copyModalMode}
           stationId={stationId}
-          shiftId={selectedShiftId}
+          shiftId={shiftConfig.selectedId}
           targetDate={getCopyModalTargetDate()}
           targetDateLabel={getCopyModalTargetLabel()}
           kitchenId={currentKitchen.id}
-          shiftDays={shiftDays}
+          shiftDays={shiftConfig.dayMap}
         />
       )}
 

@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 // https://vite.dev/config/
 // Resolve repo root so Vite reads env files from the monorepo root
@@ -21,6 +22,16 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    // Only upload source maps in production build with auth token
+    ...(process.env.SENTRY_AUTH_TOKEN
+      ? [
+          sentryVitePlugin({
+            org: "kniferoll",
+            project: "kniferoll-web",
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+          }),
+        ]
+      : []),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
@@ -66,6 +77,7 @@ export default defineConfig({
     }),
   ],
   build: {
+    sourcemap: true, // Required for Sentry source maps
     rollupOptions: {
       output: {
         manualChunks: {
@@ -80,6 +92,7 @@ export default defineConfig({
             "@vercel/analytics/react",
             "@vercel/speed-insights/react",
           ],
+          "lib-sentry": ["@sentry/react"],
           "lib-qr": ["qrcode"],
         },
       },

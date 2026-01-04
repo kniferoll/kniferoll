@@ -82,7 +82,7 @@ export function Landing() {
     preloadSignup();
   }, []);
   return (
-    <>
+    <div data-testid="page-landing">
       {/* Hero */}
       <section className="max-w-3xl mx-auto px-6 md:px-10 pt-24 pb-28 text-center">
         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4 leading-[1.15]">
@@ -172,8 +172,9 @@ export function Landing() {
               </Button>
             </Link>
           </div>
+
         </div>
       </section>
-    </>
+    </div>
   );
 }

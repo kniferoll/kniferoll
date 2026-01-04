@@ -54,39 +54,41 @@ export function Signup() {
   };
 
   return (
-    <AuthForm
-      title="Create Account"
-      subtitle="Get started with your first prep list"
-      onSubmit={handleSubmit}
-      submitButtonText="Create Account"
-      loading={loading}
-      error={error}
-      footerText="Already have an account?"
-      footerLink={{ text: "Sign in", to: "/login" }}
-    >
-      <FormInput
-        id="name"
-        label="Your Name"
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <FormInput
-        id="email"
-        label="Email"
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <FormInput
-        id="password"
-        label="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        minLength={6}
-        helperText="At least 6 characters"
-      />
-    </AuthForm>
+    <div data-testid="page-signup">
+      <AuthForm
+        title="Create Account"
+        subtitle="Get started with your first prep list"
+        onSubmit={handleSubmit}
+        submitButtonText="Create Account"
+        loading={loading}
+        error={error}
+        footerText="Already have an account?"
+        footerLink={{ text: "Sign in", to: "/login" }}
+      >
+        <FormInput
+          id="name"
+          label="Your Name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <FormInput
+          id="email"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <FormInput
+          id="password"
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          minLength={6}
+          helperText="At least 6 characters"
+        />
+      </AuthForm>
+    </div>
   );
 }

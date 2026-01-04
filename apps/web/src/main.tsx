@@ -2,8 +2,12 @@ import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DarkModeProvider } from "./context/DarkModeContext";
+import { initSentry } from "./lib/sentry";
 import "./index.css";
 import App from "./App.tsx";
+
+// Initialize Sentry before rendering
+initSentry();
 
 // Lazy load monitoring tools
 const SpeedInsights = lazy(() =>

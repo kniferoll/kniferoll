@@ -4,78 +4,66 @@ import type { Database } from "@kniferoll/types";
 
 type KitchenMember = Database["public"]["Tables"]["kitchen_members"]["Row"];
 
+// Extended member type with user info from RPC
+export interface MemberWithUserInfo extends KitchenMember {
+  display_name: string | null;
+  email: string | null;
+  is_anonymous: boolean;
+}
+
 /**
  * Hook to subscribe to realtime updates for kitchen members
+ * Uses RPC to fetch member info with user names
  */
 export function useRealtimeMembers(kitchenId: string | undefined) {
-  const [members, setMembers] = useState<KitchenMember[]>([]);
+  const [members, setMembers] = useState<MemberWithUserInfo[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const fetchMembers = async (id: string) => {
+    const { data, error } = await supabase.rpc("get_kitchen_members_with_names", {
+      p_kitchen_id: id,
+    });
+    if (!error && data) {
+      // Map RPC response to MemberWithUserInfo, adding updated_at
+      const membersWithInfo: MemberWithUserInfo[] = data.map((m) => ({
+        id: m.id,
+        kitchen_id: m.kitchen_id,
+        user_id: m.user_id,
+        role: m.role,
+        can_invite: m.can_invite,
+        joined_at: m.joined_at,
+        updated_at: null, // RPC doesn't return this, but it's nullable
+        display_name: m.display_name,
+        email: m.email,
+        is_anonymous: m.is_anonymous,
+      }));
+      setMembers(membersWithInfo);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (!kitchenId) return;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    // Initial load
-    supabase
-      .from("kitchen_members")
-      .select("*")
-      .eq("kitchen_id", kitchenId)
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setMembers(data);
-        }
-        setLoading(false);
-      });
+    // Initial load using RPC
+    fetchMembers(kitchenId);
 
-    // Subscribe to changes
+    // Subscribe to changes - refetch on any change to get user info
     const channel = supabase
       .channel(`kitchen_members:${kitchenId}`)
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "kitchen_members",
           filter: `kitchen_id=eq.${kitchenId}`,
         },
-        (payload) => {
-          const newMember = payload.new as KitchenMember;
-          setMembers((current) => {
-            const alreadyExists = current.some((m) => m.id === newMember.id);
-            if (alreadyExists) return current;
-            return [...current, newMember];
-          });
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "kitchen_members",
-          filter: `kitchen_id=eq.${kitchenId}`,
-        },
-        (payload) => {
-          const updatedMember = payload.new as KitchenMember;
-          setMembers((current) =>
-            current.map((m) => (m.id === updatedMember.id ? updatedMember : m))
-          );
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "kitchen_members",
-          filter: `kitchen_id=eq.${kitchenId}`,
-        },
-        (payload) => {
-          const deletedMember = payload.old as KitchenMember;
-          setMembers((current) =>
-            current.filter((m) => m.id !== deletedMember.id)
-          );
+        () => {
+          // Refetch to get updated data with user info
+          fetchMembers(kitchenId);
         }
       )
       .subscribe();

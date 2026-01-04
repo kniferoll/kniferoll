@@ -14,19 +14,76 @@ Kniferoll is a kitchen prep management PWA for professional chefs. It allows kit
 - **State:** Zustand stores + React Query for server state
 - **Routing:** React Router DOM (SPA)
 - **Monorepo:** pnpm + Turborepo
+- **Testing:** Vitest + React Testing Library
 
 ## Commands
 
 ```bash
+# Development
 pnpm dev          # Start development server
 pnpm build        # Build all packages
 pnpm lint         # Run ESLint across workspace
+
+# Testing
+pnpm test         # Run all tests
+pnpm test:watch   # Run tests in watch mode
+pnpm test:perf    # Run performance budget tests only
+pnpm test:ci      # Run tests with verbose output (CI)
 
 # Supabase
 supabase start                                              # Start local Supabase
 supabase db reset                                           # Reset database with migrations
 supabase gen types typescript --local > apps/web/src/types/database.ts  # Regenerate types
 ```
+
+## Testing
+
+Uses **Vitest + React Testing Library**. RTL is framework-agnostic and works with Vitest.
+
+### Test File Location Rules
+
+**Component tests are colocated** with source files:
+```
+src/components/ui/Button.tsx
+src/components/ui/Button.test.tsx    ← colocated
+src/hooks/useKitchens.ts
+src/hooks/useKitchens.test.ts        ← colocated
+```
+
+**Non-component tests** go in `src/test/` with structure mirroring source:
+```
+src/test/
+├── utils/                    # Shared test utilities (setup, providers, helpers)
+├── integration/              # Cross-component, page-level, and performance tests
+└── unit/                     # Unit tests for lib/, stores/, and other non-component code
+    ├── lib/                  # Tests for src/lib/*.ts
+    │   ├── auth.test.ts
+    │   ├── dateUtils.test.ts
+    │   └── entitlements.test.ts
+    ├── stores/               # Tests for src/stores/*.ts
+    │   ├── authStore.test.ts
+    │   └── kitchenStore.test.ts
+    └── hooks/                # Tests for hooks that are hard to colocate
+```
+
+**Rules:**
+- Component/hook tests: colocate as `ComponentName.test.tsx` next to source
+- Pure utility functions (`lib/`): place in `test/unit/lib/`
+- Zustand stores: place in `test/unit/stores/`
+- Integration/performance tests: place in `test/integration/`
+- Never put loose test files directly in `test/unit/` - always use subdirectories
+
+### Performance Budget Tests
+
+The project enforces render budgets to prevent performance regressions. Tests are in `apps/web/src/test/integration/`.
+
+**Before submitting frontend changes:**
+
+1. Run `pnpm test:perf` to verify render budgets pass
+2. If adding a new page, add an entry to `src/test/integration/budgets.ts`
+3. If a budget test fails, use React DevTools Profiler to identify unnecessary re-renders
+
+**Budget coverage is enforced** - all pages in `src/pages/` must have a corresponding budget entry (except static pages like PrivacyPolicy/TermsOfService which are excluded).
 
 ## React App Architecture (apps/web/src/)
 
@@ -58,7 +115,7 @@ Components are organized by domain in `components/`:
 All components are barrel-exported from `components/index.ts` for clean imports.
 
 ### State Management
-- `stores/` - Zustand stores for client state (authStore, kitchenStore, prepStore, offlineStore)
+- `stores/` - Zustand stores for client state (authStore, kitchenStore, prepStore, prepEntryStore, offlineStore)
 - `hooks/` - Data-fetching hooks (useKitchens, useStations, usePrepItems, etc.)
 - `context/` - React context for UI state (HeaderContext, DarkModeContext)
 
@@ -66,8 +123,61 @@ Realtime subscriptions: `useRealtimePrepItems`, `useRealtimeStations`, `useRealt
 
 ### Key Files
 - `lib/supabase.ts` - Supabase client
+- `lib/sentry.ts` - Sentry error tracking and performance monitoring
 - `lib/entitlements.ts` - Plan-based feature checks
 - `types/database.ts` - Generated Supabase types (never edit manually)
+
+## Sentry Error Tracking
+
+The app uses Sentry for error tracking and performance monitoring. Key patterns:
+
+### Capturing Errors
+Use `Sentry.captureException(error)` in try-catch blocks:
+```typescript
+import { captureError } from "@/lib";
+
+try {
+  await riskyOperation();
+} catch (error) {
+  captureError(error as Error, { context: "additional info" });
+}
+```
+
+### Performance Spans
+Create spans for meaningful actions (button clicks, API calls, function calls):
+```typescript
+import * as Sentry from "@sentry/react";
+
+// For async operations like Supabase queries
+async function fetchPrepItems(stationId: string) {
+  return Sentry.startSpan(
+    { name: "fetchPrepItems", op: "db.query" },
+    async () => {
+      const { data } = await supabase
+        .from("prep_items")
+        .select("*")
+        .eq("station_id", stationId);
+      return data;
+    }
+  );
+}
+
+// For UI interactions
+function handleClick() {
+  Sentry.startSpan(
+    { op: "ui.click", name: "Save Button Click" },
+    (span) => {
+      span.setAttribute("itemCount", items.length);
+      doSomething();
+    }
+  );
+}
+```
+
+### Environment Variables
+- `VITE_SENTRY_DSN` - Sentry DSN (set in Vercel, not committed)
+- `VITE_SENTRY_ENV` - Environment name (production/staging)
+- `SENTRY_AUTH_TOKEN` - For source map uploads (Vercel env only)
 
 ## Data Model
 
@@ -89,9 +199,12 @@ Realtime subscriptions: `useRealtimePrepItems`, `useRealtimeStations`, `useRealt
 
 - All schema changes MUST go in `supabase/migrations/` as timestamped SQL files
 - NEVER modify schema directly in Supabase dashboard
+- Create new migrations with: `supabase migration new <name>` (generates timestamped file)
 - After schema changes: run `supabase db reset`, then regenerate types
+- Regenerate types: `supabase gen types typescript --local > packages/types/src/database.ts`
 - RLS is mandatory - policies derive from `kitchen_members` membership
 - Use `getUserLimits()` from entitlements.ts, never hardcode plan limits
+- Migrations auto-deploy to prod when merged to main (via GitHub Actions)
 
 ## Code Patterns
 
@@ -99,10 +212,36 @@ Realtime subscriptions: `useRealtimePrepItems`, `useRealtimeStations`, `useRealt
 - Prefer `async/await` over `.then()` chains
 - Import components from barrel exports (`@/components`, `@/hooks`, `@/stores`)
 - New UI primitives go in `components/ui/`, domain components in their subdirectory
+- Memoize derived state with `useMemo` and callbacks with `useCallback` to prevent render cascades
+- Batch related state updates to minimize re-renders
 - Do not reference deprecated tables: `session_users`, `user_kitchens`
 - Do not use `join_code` on kitchens - use invite links only
 
+## Verification Checklist
+
+Before completing frontend work:
+
+1. **Lint:** `pnpm lint` passes
+2. **Build:** `pnpm build` succeeds
+3. **Tests:** `pnpm test` passes (includes perf budgets)
+4. **Manual:** Test the affected user flows in browser
+
 ## Mockups
 
-- When asked, create html/css/js mockups in isolation to validate UI/UX changes before integration.
-- Insert them into the mockups/ directory so they can be opened in a browser directly and reviewed
+When prototyping UI changes, create isolated HTML/CSS/JS mockups in `mockups/` directory. These can be opened directly in a browser for review before integration.
+
+## Creating Pull Requests
+
+Use `gh pr create` to create PRs. The repo has a PR template at `.github/pull_request_template.md` that will be used automatically.
+
+```bash
+gh pr create --title "Brief description of changes"
+```
+
+The PR body should follow the template structure:
+- **What does this PR do?** - Brief description
+- **Type of change** - Check the appropriate box (Bug fix, New feature, Refactor, Documentation, Other)
+- **Checklist** - Verify all items pass before creating PR
+- **Screenshots** - Include if UI changes were made
+
+GitHub will auto-populate the template. Fill in the sections and check the boxes that apply.

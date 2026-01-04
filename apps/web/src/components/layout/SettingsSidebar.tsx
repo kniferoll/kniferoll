@@ -32,23 +32,28 @@ function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-/**
- * Reusable settings sidebar with mobile support
- * Follows Tailwind UI sidebar pattern
- */
-export function SettingsSidebar({
+interface SidebarContentProps {
+  navigation: NavigationItem[];
+  onNavigate: (value: string) => void;
+  kitchens?: Kitchen[];
+  selectedKitchenId?: string;
+  onKitchenSelect?: (kitchenId: string) => void;
+  userSection?: React.ReactNode;
+  onCloseSidebar: () => void;
+  isDark: boolean;
+}
+
+function SidebarContent({
   navigation,
   onNavigate,
-  title,
   kitchens,
   selectedKitchenId,
   onKitchenSelect,
   userSection,
-}: SettingsSidebarProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isDark } = useDarkModeContext();
-
-  const SidebarContent = () => (
+  onCloseSidebar,
+  isDark,
+}: SidebarContentProps) {
+  return (
     <div
       className={classNames(
         "flex h-full flex-col overflow-y-auto border-r",
@@ -64,7 +69,7 @@ export function SettingsSidebar({
                   <button
                     onClick={() => {
                       onNavigate(item.value);
-                      setSidebarOpen(false);
+                      onCloseSidebar();
                     }}
                     className={classNames(
                       item.current
@@ -112,7 +117,7 @@ export function SettingsSidebar({
                     <button
                       onClick={() => {
                         onKitchenSelect?.(kitchen.id);
-                        setSidebarOpen(false);
+                        onCloseSidebar();
                       }}
                       className={classNames(
                         selectedKitchenId === kitchen.id
@@ -158,6 +163,25 @@ export function SettingsSidebar({
       </nav>
     </div>
   );
+}
+
+/**
+ * Reusable settings sidebar with mobile support
+ * Follows Tailwind UI sidebar pattern
+ */
+export function SettingsSidebar({
+  navigation,
+  onNavigate,
+  title,
+  kitchens,
+  selectedKitchenId,
+  onKitchenSelect,
+  userSection,
+}: SettingsSidebarProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isDark } = useDarkModeContext();
+
+  const closeSidebar = () => setSidebarOpen(false);
 
   return (
     <>
@@ -195,14 +219,32 @@ export function SettingsSidebar({
                 </button>
               </div>
             </TransitionChild>
-            <SidebarContent />
+            <SidebarContent
+              navigation={navigation}
+              onNavigate={onNavigate}
+              kitchens={kitchens}
+              selectedKitchenId={selectedKitchenId}
+              onKitchenSelect={onKitchenSelect}
+              userSection={userSection}
+              onCloseSidebar={closeSidebar}
+              isDark={isDark}
+            />
           </DialogPanel>
         </div>
       </Dialog>
 
       {/* Desktop sidebar */}
       <div className="hidden xl:fixed xl:left-0 xl:top-[73px] xl:bottom-0 xl:z-40 xl:flex xl:w-72 xl:flex-col">
-        <SidebarContent />
+        <SidebarContent
+          navigation={navigation}
+          onNavigate={onNavigate}
+          kitchens={kitchens}
+          selectedKitchenId={selectedKitchenId}
+          onKitchenSelect={onKitchenSelect}
+          userSection={userSection}
+          onCloseSidebar={closeSidebar}
+          isDark={isDark}
+        />
       </div>
 
       {/* Mobile menu button */}

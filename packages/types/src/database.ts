@@ -169,6 +169,7 @@ export type Database = {
           created_at: string | null;
           day_of_week: number;
           id: string;
+          is_hidden: boolean;
           is_open: boolean;
           kitchen_id: string;
           shift_ids: string[] | null;
@@ -178,6 +179,7 @@ export type Database = {
           created_at?: string | null;
           day_of_week: number;
           id?: string;
+          is_hidden?: boolean;
           is_open?: boolean;
           kitchen_id: string;
           shift_ids?: string[] | null;
@@ -187,6 +189,7 @@ export type Database = {
           created_at?: string | null;
           day_of_week?: number;
           id?: string;
+          is_hidden?: boolean;
           is_open?: boolean;
           kitchen_id?: string;
           shift_ids?: string[] | null;
@@ -529,6 +532,20 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_kitchen_members_with_names: {
+        Args: { p_kitchen_id: string };
+        Returns: {
+          can_invite: boolean;
+          display_name: string;
+          email: string;
+          id: string;
+          is_anonymous: boolean;
+          joined_at: string;
+          kitchen_id: string;
+          role: Database["public"]["Enums"]["member_role"];
+          user_id: string;
+        }[];
+      };
       is_anonymous_user: { Args: never; Returns: boolean };
       is_kitchen_admin_or_owner: {
         Args: { p_kitchen_id: string };

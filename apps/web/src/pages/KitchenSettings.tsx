@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { useKitchens, useStripeCheckout } from "@/hooks";
@@ -48,25 +48,21 @@ export function KitchenSettings() {
   const isOwner =
     selectedKitchen && user && selectedKitchen.owner_id === user.id;
 
-  // Update active section when kitchenId changes
-  useEffect(() => {
-    if (kitchenId) {
-      setActiveSection("kitchens");
-    }
-  }, [kitchenId]);
+  // Derive effective section - if kitchenId is in URL, show kitchens section
+  const effectiveSection = kitchenId ? "kitchens" : activeSection;
 
   const navigation = [
     {
       name: "Account Settings",
       value: "account",
       icon: UserIcon,
-      current: activeSection === "account",
+      current: effectiveSection === "account",
     },
     {
       name: "Billing",
       value: "billing",
       icon: CreditCardIcon,
-      current: activeSection === "billing",
+      current: effectiveSection === "billing",
     },
   ];
 
@@ -162,14 +158,14 @@ export function KitchenSettings() {
 
       <SettingsLayout
         secondaryNav={
-          activeSection === "kitchens" && selectedKitchen
+          effectiveSection === "kitchens" && selectedKitchen
             ? kitchenSecondaryNav
             : undefined
         }
         onSecondaryNavClick={setActiveKitchenTab}
       >
         {/* Account Settings Section */}
-        {activeSection === "account" && (
+        {effectiveSection === "account" && (
           <div
             className={`divide-y ${
               isDark ? "divide-white/10" : "divide-gray-200"
@@ -188,7 +184,7 @@ export function KitchenSettings() {
         )}
 
         {/* Billing Section - available to any logged-in user */}
-        {activeSection === "billing" && user && (
+        {effectiveSection === "billing" && user && (
           <div
             className={`divide-y ${
               isDark ? "divide-white/10" : "divide-gray-200"
@@ -199,7 +195,7 @@ export function KitchenSettings() {
         )}
 
         {/* Kitchen Settings Section */}
-        {activeSection === "kitchens" && selectedKitchen && (
+        {effectiveSection === "kitchens" && selectedKitchen && (
           <div
             className={`divide-y ${
               isDark ? "divide-white/10" : "divide-gray-200"
@@ -233,6 +229,7 @@ export function KitchenSettings() {
                 kitchenId={selectedKitchen.id}
                 userId={user?.id}
                 isOwner={!!isOwner}
+                canInvite={!!isOwner}
                 onInviteClick={() => setShowInviteModal(true)}
               />
             )}
@@ -240,7 +237,7 @@ export function KitchenSettings() {
         )}
 
         {/* Kitchen selection prompt */}
-        {activeSection === "kitchens" && !selectedKitchen && (
+        {effectiveSection === "kitchens" && !selectedKitchen && (
           <div className="flex items-center justify-center h-[calc(100vh-200px)]">
             <div className="text-center">
               <h2

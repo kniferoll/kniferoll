@@ -33,7 +33,7 @@ export function StepUpgrade({
       description:
         "Your free plan includes 1 kitchen. Upgrade to Pro to manage all your locations from one account.",
       benefits: [
-        "Unlimited kitchens",
+        "Up to 5 kitchens",
         "Unlimited stations per kitchen",
         "Unlimited team members",
       ],

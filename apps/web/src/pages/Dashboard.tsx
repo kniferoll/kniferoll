@@ -21,6 +21,7 @@ import {
 } from "@/components";
 import type { Database } from "@kniferoll/types";
 import { preloadKitchenDashboard } from "@/lib/preload";
+import { safeSetItem } from "@/lib";
 type Kitchen = Database["public"]["Tables"]["kitchens"]["Row"];
 
 /**
@@ -71,7 +72,7 @@ export function Dashboard() {
   }, [settingsMenuOpen]);
 
   const handleSelectKitchen = (kitchen: Kitchen) => {
-    localStorage.setItem("kniferoll_last_kitchen", kitchen.id);
+    safeSetItem("kniferoll_last_kitchen", kitchen.id);
     navigate(`/kitchen/${kitchen.id}`);
   };
 
@@ -86,7 +87,7 @@ export function Dashboard() {
 
   const handleKitchenCreated = (kitchenId: string) => {
     setOnboardingModalOpen(false);
-    localStorage.setItem("kniferoll_last_kitchen", kitchenId);
+    safeSetItem("kniferoll_last_kitchen", kitchenId);
     navigate(`/kitchen/${kitchenId}`);
   };
 
@@ -103,7 +104,7 @@ export function Dashboard() {
   }
 
   return (
-    <>
+    <div data-testid="page-dashboard">
       <div className="max-w-4xl w-full mx-auto px-8 py-10 pb-20">
         <h1
           className={`text-3xl font-semibold tracking-tight mb-2 cursor-default ${
@@ -233,6 +234,6 @@ export function Dashboard() {
         onClose={() => setOnboardingModalOpen(false)}
         onSuccess={handleKitchenCreated}
       />
-    </>
+    </div>
   );
 }
