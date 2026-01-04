@@ -12,7 +12,7 @@ export function Login() {
   const [emailError, setEmailError] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn, loading, user } = useAuthStore();
+  const { signIn, user } = useAuthStore();
   const { isDark } = useDarkModeContext();
   const navigate = useNavigate();
 
@@ -84,7 +84,7 @@ export function Login() {
         subtitle="Sign in to manage your kitchen"
         onSubmit={handleSubmit}
         submitButtonText="Sign In"
-        loading={loading}
+        loading={isSubmitting}
         error={error}
         footerText="Don't have an account?"
         footerLink={{ text: "Sign up", to: "/signup" }}

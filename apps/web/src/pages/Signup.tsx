@@ -16,7 +16,7 @@ export function Signup() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const { signUp, loading, user, session } = useAuthStore();
+  const { signUp, user, session } = useAuthStore();
   const { isDark } = useDarkModeContext();
   const navigate = useNavigate();
 
@@ -142,7 +142,7 @@ export function Signup() {
         subtitle="Get started with your first prep list"
         onSubmit={handleSubmit}
         submitButtonText="Create Account"
-        loading={loading}
+        loading={isSubmitting}
         error={error}
         footerText="Already have an account?"
         footerLink={{ text: "Sign in", to: "/login" }}

@@ -88,7 +88,8 @@ export const useAuthStore = create<AuthState>()(
         });
         setSentryUser(session?.user?.id ?? null);
 
-        supabase.auth.onAuthStateChange((_event, session) => {
+        supabase.auth.onAuthStateChange((event, session) => {
+          console.log("[authStore] onAuthStateChange:", event, session);
           set({ session, user: session?.user ?? null });
           setSentryUser(session?.user?.id ?? null);
         });
@@ -96,7 +97,8 @@ export const useAuthStore = create<AuthState>()(
 
       signIn: async (email, password) => {
         console.log("[authStore] signIn called");
-        set({ loading: true });
+        // Note: Don't set loading here - it causes App.tsx to unmount routes
+        // The Login component has its own isSubmitting state for UI feedback
         try {
           console.log("[authStore] Calling supabase.auth.signInWithPassword...");
           const { data, error } = await supabase.auth.signInWithPassword({
@@ -104,7 +106,6 @@ export const useAuthStore = create<AuthState>()(
             password,
           });
           console.log("[authStore] Supabase response:", { data, error });
-          set({ loading: false });
 
           if (error) {
             // Handle specific error codes from Supabase
@@ -127,13 +128,13 @@ export const useAuthStore = create<AuthState>()(
           return { error: undefined };
         } catch (err) {
           console.error("[authStore] Caught exception:", err);
-          set({ loading: false });
           return { error: "Invalid email or password" };
         }
       },
 
       signUp: async (email, password, name) => {
-        set({ loading: true });
+        // Note: Don't set loading here - it causes App.tsx to unmount routes
+        // The Signup component has its own isSubmitting state for UI feedback
         try {
           const { data, error } = await supabase.auth.signUp({
             email,
@@ -142,7 +143,6 @@ export const useAuthStore = create<AuthState>()(
               data: { name },
             },
           });
-          set({ loading: false });
 
           if (error) {
             return { error: getAuthErrorMessage(error, "signup") };
@@ -156,7 +156,6 @@ export const useAuthStore = create<AuthState>()(
           }
           return { error: undefined };
         } catch {
-          set({ loading: false });
           return { error: "Something went wrong. Please try again." };
         }
       },
