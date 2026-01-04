@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDarkModeContext } from "@/context";
 import { useAuthStore } from "@/stores";
 import { useKitchens, useHeaderConfig } from "@/hooks";
@@ -57,13 +57,26 @@ function SupportSettingsPanel() {
 
 export function Settings() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isDark } = useDarkModeContext();
   const { user } = useAuthStore();
   const { kitchens, loading: kitchensLoading } = useKitchens(user?.id);
 
-  const [activeSection, setActiveSection] = useState<string>("personal");
+  // Get initial section from navigation state (e.g., from UserAvatarMenu)
+  const locationSection = (location.state as { section?: string } | null)
+    ?.section;
+  const [activeSection, setActiveSection] = useState<string>(
+    locationSection || "personal"
+  );
   const [memberships, setMemberships] = useState<KitchenMember[]>([]);
   const [membershipsLoading, setMembershipsLoading] = useState(true);
+
+  // Update section when navigating with state (e.g., from UserAvatarMenu)
+  useEffect(() => {
+    if (locationSection) {
+      setActiveSection(locationSection);
+    }
+  }, [locationSection]);
 
   // Fetch memberships for all kitchens
   useEffect(() => {
