@@ -50,20 +50,24 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
   // Get user initials from name or email
   const getUserInitials = () => {
     if (userDisplayName) {
-      return userDisplayName
-        .split(" ")
-        .map((part) => part[0]?.toUpperCase() || "")
-        .join("")
-        .slice(0, 2) || "U";
+      return (
+        userDisplayName
+          .split(" ")
+          .map((part) => part[0]?.toUpperCase() || "")
+          .join("")
+          .slice(0, 2) || "U"
+      );
     }
     // Fall back to email
     if (user?.email) {
-      return user.email
-        .split("@")[0]
-        .split(".")
-        .map((part) => part[0]?.toUpperCase() || "")
-        .join("")
-        .slice(0, 2) || "U";
+      return (
+        user.email
+          .split("@")[0]
+          .split(".")
+          .map((part) => part[0]?.toUpperCase() || "")
+          .join("")
+          .slice(0, 2) || "U"
+      );
     }
     // Default for users without name or email
     return "U";

@@ -198,7 +198,11 @@ export function StationsSettingsTab({
       >
         <div className="space-y-1.5">
           {activeStations.length === 0 ? (
-            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+            <p
+              className={`text-sm ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
               No stations yet. Add your first station below.
             </p>
           ) : (
@@ -319,7 +323,11 @@ export function StationsSettingsTab({
               />
             </div>
             {isAtLimit ? (
-              <Button variant="primary" onClick={onUpgradeClick} className="text-sm shrink-0">
+              <Button
+                variant="primary"
+                onClick={onUpgradeClick}
+                className="text-sm shrink-0"
+              >
                 Upgrade
               </Button>
             ) : (

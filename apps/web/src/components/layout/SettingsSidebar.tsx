@@ -1,11 +1,6 @@
 import { useState } from "react";
-import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel,
-  TransitionChild,
-} from "@headlessui/react";
-import { MenuIcon, XIcon } from "@/components/icons";
+import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
+import { MenuIcon } from "@/components/icons";
 import { useDarkModeContext } from "@/context";
 import type { Database } from "@kniferoll/types";
 
@@ -204,21 +199,6 @@ export function SettingsSidebar({
             transition
             className="relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-[closed]:-translate-x-full"
           >
-            <TransitionChild>
-              <div className="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out data-[closed]:opacity-0">
-                <button
-                  type="button"
-                  onClick={() => setSidebarOpen(false)}
-                  className="-m-2.5 p-2.5"
-                >
-                  <span className="sr-only">Close sidebar</span>
-                  <XIcon
-                    size={24}
-                    className={isDark ? "text-white" : "text-gray-900"}
-                  />
-                </button>
-              </div>
-            </TransitionChild>
             <SidebarContent
               navigation={navigation}
               onNavigate={onNavigate}

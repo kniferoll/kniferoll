@@ -68,9 +68,7 @@ export function SettingsLayout({
           isDark ? "bg-transparent" : "bg-transparent"
         )}
       >
-        <div className="mx-auto max-w-2xl">
-          {children}
-        </div>
+        <div className="mx-auto max-w-2xl">{children}</div>
       </main>
     </div>
   );

@@ -451,11 +451,19 @@ export function ScheduleSettingsTab({
         >
           <div className="space-y-1.5 mb-3">
             {loading ? (
-              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              <p
+                className={`text-sm ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
                 Loading shifts...
               </p>
             ) : localShifts.length === 0 ? (
-              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              <p
+                className={`text-sm ${
+                  isDark ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
                 No shifts defined yet. Add your first shift below.
               </p>
             ) : (
@@ -700,7 +708,8 @@ export function ScheduleSettingsTab({
                           isDark ? "text-slate-400" : "text-stone-500"
                         }`}
                       >
-                        {activeShiftIds.length} shift{activeShiftIds.length !== 1 ? "s" : ""}
+                        {activeShiftIds.length} shift
+                        {activeShiftIds.length !== 1 ? "s" : ""}
                       </span>
                     )}
                   </div>
@@ -780,9 +789,7 @@ export function ScheduleSettingsTab({
                               </svg>
                             )}
                           </span>
-                          <span className="font-medium">
-                            {shift.name}
-                          </span>
+                          <span className="font-medium">{shift.name}</span>
                         </label>
                       );
                     })}
