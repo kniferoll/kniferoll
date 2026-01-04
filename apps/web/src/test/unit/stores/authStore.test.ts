@@ -51,6 +51,7 @@ describe("authStore", () => {
       session: null,
       loading: true,
       initialized: false,
+      pendingPasswordReset: false,
     });
   });
 

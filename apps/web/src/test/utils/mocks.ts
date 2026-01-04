@@ -314,6 +314,7 @@ export const createMockAuthStore = (overrides = {}) => ({
   session: null,
   loading: false,
   initialized: true,
+  pendingPasswordReset: false,
   initialize: vi.fn(),
   signIn: vi.fn(() => Promise.resolve({ error: undefined })),
   signUp: vi.fn(() => Promise.resolve({ error: undefined })),
@@ -321,6 +322,7 @@ export const createMockAuthStore = (overrides = {}) => ({
   resetPasswordForEmail: vi.fn(() => Promise.resolve({ error: undefined })),
   updatePassword: vi.fn(() => Promise.resolve({ error: undefined })),
   refreshUser: vi.fn(() => Promise.resolve()),
+  clearPendingPasswordReset: vi.fn(),
   ...overrides,
 });
 
