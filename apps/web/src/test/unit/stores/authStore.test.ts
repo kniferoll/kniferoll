@@ -193,7 +193,7 @@ describe("authStore", () => {
     it("returns user-friendly error message on failure", async () => {
       mockSupabase.auth.signUp.mockResolvedValue({
         data: { session: null, user: null },
-        error: { message: "User already registered" },
+        error: { code: "user_already_exists", message: "User already registered" },
       });
 
       const result = await useAuthStore.getState().signUp("test@example.com", "password", "Test");

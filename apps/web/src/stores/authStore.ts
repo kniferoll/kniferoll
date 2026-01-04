@@ -5,39 +5,43 @@ import type { User, Session, AuthError } from "@supabase/supabase-js";
 
 /**
  * Transforms Supabase auth errors into user-friendly messages.
- * Avoids exposing technical details while providing actionable feedback.
+ * Uses error codes from Supabase Auth API for reliable matching.
+ * @see https://supabase.com/docs/guides/auth/debugging/error-codes
  */
 function getAuthErrorMessage(error: AuthError | null, context: "signup" | "password"): string | undefined {
   if (!error) return undefined;
 
-  const message = error.message.toLowerCase();
+  const code = error.code;
+
+  // Rate limiting (applies to all contexts)
+  if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
+    return "Too many attempts. Please wait a moment and try again.";
+  }
 
   // Signup-specific errors
   if (context === "signup") {
-    if (message.includes("user already registered") || message.includes("already registered")) {
+    if (code === "user_already_exists" || code === "email_exists") {
       return "An account with this email already exists. Try signing in instead.";
     }
-    if (message.includes("password") && message.includes("weak")) {
+    if (code === "weak_password") {
       return "Password is too weak. Please use a stronger password.";
     }
-    if (message.includes("email") && message.includes("invalid")) {
+    if (code === "email_address_invalid" || code === "validation_failed") {
       return "Please enter a valid email address.";
+    }
+    if (code === "email_provider_disabled" || code === "signup_disabled") {
+      return "Sign ups are currently disabled.";
     }
   }
 
   // Password update errors
   if (context === "password") {
-    if (message.includes("same password") || message.includes("different from the old password")) {
+    if (code === "same_password") {
       return "New password must be different from your current password.";
     }
-    if (message.includes("weak")) {
+    if (code === "weak_password") {
       return "Password is too weak. Please use a stronger password.";
     }
-  }
-
-  // Rate limiting (applies to all contexts)
-  if (message.includes("rate limit") || message.includes("too many requests")) {
-    return "Too many attempts. Please wait a moment and try again.";
   }
 
   // Generic fallback
@@ -92,42 +96,63 @@ export const useAuthStore = create<AuthState>()(
 
       signIn: async (email, password) => {
         set({ loading: true });
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (data.session) {
-          set({
-            session: data.session,
-            user: data.session.user,
-            loading: false,
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
           });
-        } else {
           set({ loading: false });
+
+          if (error) {
+            // Handle specific error codes from Supabase
+            const code = error.code;
+            if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
+              return { error: "Too many attempts. Please wait a moment and try again." };
+            }
+            // Generic message for security - don't reveal if email exists
+            return { error: "Invalid email or password" };
+          }
+
+          if (data.session) {
+            set({
+              session: data.session,
+              user: data.session.user,
+            });
+          }
+          return { error: undefined };
+        } catch {
+          set({ loading: false });
+          return { error: "Invalid email or password" };
         }
-        // Return generic error message for security - don't reveal if email exists
-        return { error: error ? "Invalid email or password" : undefined };
       },
 
       signUp: async (email, password, name) => {
         set({ loading: true });
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name },
-          },
-        });
-        if (data.session) {
-          set({
-            session: data.session,
-            user: data.session.user,
-            loading: false,
+        try {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { name },
+            },
           });
-        } else {
           set({ loading: false });
+
+          if (error) {
+            return { error: getAuthErrorMessage(error, "signup") };
+          }
+
+          if (data.session) {
+            set({
+              session: data.session,
+              user: data.session.user,
+            });
+          }
+          return { error: undefined };
+        } catch {
+          set({ loading: false });
+          return { error: "Something went wrong. Please try again." };
         }
-        return { error: getAuthErrorMessage(error, "signup") };
       },
 
       signOut: async () => {
