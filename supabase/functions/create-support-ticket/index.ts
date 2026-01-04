@@ -193,12 +193,27 @@ Deno.serve(async (req: Request) => {
 
     // Build description with user's message prominently displayed
     // The user will see replies to this ticket, so keep it clean and professional
-    // Check both .name (signup) and .display_name (join flow) for user's name
-    const userName =
+
+    // Get user's name - try multiple sources since client cache may be stale
+    let userName =
       body.metadata?.userName ||
       user.user_metadata?.name ||
-      user.user_metadata?.display_name ||
-      "User";
+      user.user_metadata?.display_name;
+
+    // If still no name, fetch directly from auth.users using service role
+    if (!userName && supabaseSecretKey) {
+      const supabaseAdmin = createClient(supabaseUrl, supabaseSecretKey);
+      const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(user.id);
+      userName =
+        authUser?.user?.user_metadata?.name ||
+        authUser?.user?.user_metadata?.display_name;
+    }
+
+    // Final fallback
+    if (!userName) {
+      userName = "User";
+    }
+
     const userEmail = user.email || body.metadata?.userEmail || "Unknown";
 
     // Format: User message first (what they'll see in replies), then internal metadata
