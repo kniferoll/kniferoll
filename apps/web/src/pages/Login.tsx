@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { useDarkModeContext } from "@/context";
 import { preloadDashboard } from "@/lib/preload";
+import { validateEmail } from "@/lib";
 import { FormInput, AuthForm } from "@/components";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, loading, user } = useAuthStore();
@@ -38,9 +40,18 @@ export function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setEmailError("");
+
+    const trimmedEmail = email.trim();
+    const emailValidation = validateEmail(trimmedEmail);
+    if (!emailValidation.isValid) {
+      setEmailError(emailValidation.error || "Invalid email");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const result = await signIn(email, password);
+    const result = await signIn(trimmedEmail, password);
     if (result.error) {
       setError(result.error);
       setIsSubmitting(false);
@@ -58,6 +69,7 @@ export function Login() {
         error={error}
         footerText="Don't have an account?"
         footerLink={{ text: "Sign up", to: "/signup" }}
+        secondaryLink={{ text: "Forgot password?", to: "/forgot-password" }}
       >
         <FormInput
           id="email"
@@ -65,6 +77,7 @@ export function Login() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          error={emailError}
         />
         <FormInput
           id="password"
