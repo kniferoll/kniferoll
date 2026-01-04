@@ -195,7 +195,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
             {/* Account items */}
             <button
               onClick={() => {
-                // TODO: navigate to account settings
+                navigate("/settings");
                 setUserMenuOpen(false);
               }}
               className={menuItemStyles}
@@ -219,7 +219,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
             </button>
             <button
               onClick={() => {
-                // TODO: navigate to billing
+                navigate("/settings?section=billing");
                 setUserMenuOpen(false);
               }}
               className={menuItemStyles}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { useKitchens, useStripeCheckout } from "@/hooks";
 import { useDarkModeContext } from "@/context";
@@ -26,16 +26,20 @@ function classNames(...classes: (string | boolean | undefined)[]) {
  */
 export function KitchenSettings() {
   const { kitchenId } = useParams<{ kitchenId?: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { isDark } = useDarkModeContext();
   const { kitchens, loading } = useKitchens(user?.id);
   const { handleCheckout } = useStripeCheckout();
 
-  // Main sidebar navigation (Account, Billing, Kitchens)
-  const [activeSection, setActiveSection] = useState(
-    kitchenId ? "kitchens" : "account"
-  );
+  // Get active section from URL query param or default
+  const sectionParam = searchParams.get("section");
+  const activeSection = kitchenId
+    ? "kitchens"
+    : sectionParam === "billing"
+    ? "billing"
+    : "account";
 
   // Kitchen sub-tabs
   const [activeKitchenTab, setActiveKitchenTab] = useState("general");
@@ -128,9 +132,12 @@ export function KitchenSettings() {
       <SettingsSidebar
         navigation={navigation}
         onNavigate={(value) => {
-          setActiveSection(value);
           if (value !== "kitchens") {
-            navigate("/settings");
+            if (value === "account") {
+              navigate("/settings");
+            } else {
+              navigate(`/settings?section=${value}`);
+            }
           }
         }}
         title="Settings"
