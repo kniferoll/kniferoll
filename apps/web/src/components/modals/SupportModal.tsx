@@ -51,6 +51,8 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
             category,
             message: message.trim(),
             metadata: {
+              userName: user?.user_metadata?.name || user?.email?.split("@")[0],
+              userEmail: user?.email,
               kitchenName: currentKitchen?.name,
               appVersion: "1.0.0",
             },
@@ -128,7 +130,7 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
         </h2>
         <button
           onClick={handleClose}
-          className={`p-2 rounded-lg transition-colors ${
+          className={`p-2 rounded-lg transition-colors cursor-pointer ${
             isDark
               ? "hover:bg-slate-700 text-gray-400"
               : "hover:bg-stone-100 text-gray-500"

@@ -1,3 +1,22 @@
+/**
+ * Create Support Ticket Edge Function
+ *
+ * Creates support tickets in Zoho Desk via OAuth API.
+ *
+ * DEPLOYMENT:
+ * This function must be deployed with --no-verify-jwt flag since we handle
+ * JWT verification manually to extract user info:
+ *
+ *   supabase functions deploy create-support-ticket --no-verify-jwt
+ *
+ * Required environment variables (set in Supabase Dashboard > Edge Functions > Secrets):
+ * - ZOHO_CLIENT_ID
+ * - ZOHO_CLIENT_SECRET
+ * - ZOHO_REFRESH_TOKEN
+ * - ZOHO_ORG_ID
+ * - ZOHO_DEPARTMENT_ID
+ */
+
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
@@ -15,6 +34,8 @@ type RequestBody = {
   category: "Bug" | "Feature Request" | "Billing" | "General";
   message: string;
   metadata?: {
+    userName?: string;
+    userEmail?: string;
     kitchenName?: string;
     appVersion?: string;
   };
@@ -170,18 +191,25 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Build description with metadata
-    let description = body.message;
-    if (body.metadata) {
-      description += "\n\n---\nUser Context:";
-      if (body.metadata.kitchenName) {
-        description += `\nKitchen: ${body.metadata.kitchenName}`;
-      }
-      if (body.metadata.appVersion) {
-        description += `\nApp Version: ${body.metadata.appVersion}`;
-      }
-      description += `\nUser ID: ${user.id}`;
-    }
+    // Build description with user's message prominently displayed
+    // The user will see replies to this ticket, so keep it clean and professional
+    const userName = body.metadata?.userName || user.user_metadata?.name || "User";
+    const userEmail = user.email || body.metadata?.userEmail || "Unknown";
+
+    // Format: User message first (what they'll see in replies), then internal metadata
+    let description = `<p>${body.message.replace(/\n/g, "<br>")}</p>`;
+
+    // Add internal metadata section (visible to support staff)
+    description += `
+<br><hr><br>
+<p><strong>Support Request Details</strong></p>
+<table style="border-collapse: collapse; font-size: 14px;">
+  <tr><td style="padding: 4px 12px 4px 0; color: #666;">Name:</td><td>${userName}</td></tr>
+  <tr><td style="padding: 4px 12px 4px 0; color: #666;">Email:</td><td>${userEmail}</td></tr>
+  <tr><td style="padding: 4px 12px 4px 0; color: #666;">User ID:</td><td style="font-family: monospace; font-size: 12px;">${user.id}</td></tr>
+  ${body.metadata?.kitchenName ? `<tr><td style="padding: 4px 12px 4px 0; color: #666;">Kitchen:</td><td>${body.metadata.kitchenName}</td></tr>` : ""}
+  ${body.metadata?.appVersion ? `<tr><td style="padding: 4px 12px 4px 0; color: #666;">App Version:</td><td>${body.metadata.appVersion}</td></tr>` : ""}
+</table>`;
 
     // Get Zoho access token
     const accessToken = await getZohoAccessToken();
