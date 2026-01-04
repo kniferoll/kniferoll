@@ -1,8 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { supabase } from "@/lib";
-import { signInAnonymously } from "@/lib";
-import { getTodayLocalDate } from "@/lib";
+import { supabase, signInAnonymously, getTodayLocalDate, captureError } from "@/lib";
 import type { DbKitchen, DbStation, DbKitchenMember } from "@kniferoll/types";
 
 interface CurrentUser {
@@ -79,13 +77,9 @@ export const useKitchenStore = create<KitchenState>()(
             .single();
 
           if (kitchenError || !kitchen) {
-            console.error("❌ DEBUG: Kitchen insert failed:", {
-              error: kitchenError,
-              message: kitchenError?.message,
-              code: kitchenError?.code,
-              details: kitchenError?.details,
-              hint: kitchenError?.hint,
-            });
+            if (kitchenError) {
+              captureError(kitchenError, { context: "createKitchen" });
+            }
             set({ loading: false, error: kitchenError?.message });
             return { error: kitchenError?.message };
           }
@@ -103,10 +97,7 @@ export const useKitchenStore = create<KitchenState>()(
             .single();
 
           if (membershipError) {
-            console.error(
-              "❌ DEBUG: Membership insert failed:",
-              membershipError
-            );
+            captureError(membershipError, { context: "createKitchen.membership" });
             set({ loading: false, error: membershipError.message });
             return { error: membershipError.message };
           }
@@ -283,7 +274,7 @@ export const useKitchenStore = create<KitchenState>()(
 
           if (unitsError) {
             // Log but don't fail kitchen creation for unit seeding errors
-            console.error("Failed to seed default units:", unitsError);
+            captureError(unitsError, { context: "createKitchen.seedUnits" });
           }
 
           set({

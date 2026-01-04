@@ -1,5 +1,10 @@
 import { useEffect, Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { Analytics } from "@vercel/analytics/react";
 import { useAuthStore } from "./stores/authStore";
@@ -33,11 +38,6 @@ const KitchenDashboard = lazy(() =>
 const StationView = lazy(() =>
   import("./pages/StationView").then((m) => ({ default: m.StationView }))
 );
-const KitchenSettings = lazy(() =>
-  import("./pages/KitchenSettings").then((m) => ({
-    default: m.KitchenSettings,
-  }))
-);
 const TermsOfService = lazy(() =>
   import("./pages/TermsOfService").then((m) => ({
     default: m.TermsOfService,
@@ -46,6 +46,26 @@ const TermsOfService = lazy(() =>
 const PrivacyPolicy = lazy(() =>
   import("./pages/PrivacyPolicy").then((m) => ({
     default: m.PrivacyPolicy,
+  }))
+);
+const ForgotPassword = lazy(() =>
+  import("./pages/ForgotPassword").then((m) => ({
+    default: m.ForgotPassword,
+  }))
+);
+const ResetPassword = lazy(() =>
+  import("./pages/ResetPassword").then((m) => ({
+    default: m.ResetPassword,
+  }))
+);
+const VerifyEmail = lazy(() =>
+  import("./pages/VerifyEmail").then((m) => ({
+    default: m.VerifyEmail,
+  }))
+);
+const Settings = lazy(() =>
+  import("./pages/Settings").then((m) => ({
+    default: m.Settings,
   }))
 );
 
@@ -118,27 +138,31 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/join" element={<JoinWithCode />} />
               <Route path="/join/:token" element={<InviteJoin />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
             </Route>
 
-          {/* 
-            App routes - require authentication
-            Uses AppLayout which redirects to /login if not authenticated
-            Each page can customize the header via useHeaderConfig
-          */}
-          <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/kitchen/:kitchenId" element={<KitchenDashboard />} />
-            <Route path="/station/:stationId" element={<StationView />} />
-            <Route path="/settings" element={<KitchenSettings />} />
-            <Route
-              path="/settings/kitchen/:kitchenId"
-              element={<KitchenSettings />}
-            />
-          </Route>
+            {/*
+              App routes - require authentication
+              Uses AppLayout which redirects to /login if not authenticated
+              Each page can customize the header via useHeaderConfig
+            */}
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/kitchen/:kitchenId" element={<KitchenDashboard />} />
+              <Route path="/station/:stationId" element={<StationView />} />
+              <Route path="/settings" element={<Settings />} />
+              {/* Redirect old kitchen settings to new unified settings */}
+              <Route
+                path="/kitchen/:kitchenId/settings"
+                element={<Navigate to="/settings" replace />}
+              />
+            </Route>
 
             {/* Catch all - redirect to landing or dashboard */}
             <Route

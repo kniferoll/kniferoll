@@ -13,6 +13,7 @@ export {
 export { EmptyState } from "./EmptyState";
 export { FormInput } from "./FormInput";
 export { IconBox } from "./IconBox";
+export { PasswordRequirements } from "./PasswordRequirements";
 export { Modal } from "./Modal";
 export { SettingsSection } from "./SettingsSection";
 export { SkeletonCard } from "./SkeletonCard";

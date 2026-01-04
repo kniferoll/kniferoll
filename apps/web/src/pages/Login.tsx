@@ -3,14 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { useDarkModeContext } from "@/context";
 import { preloadDashboard } from "@/lib/preload";
+import { validateEmail } from "@/lib";
 import { FormInput, AuthForm } from "@/components";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn, loading, user } = useAuthStore();
+  const { signIn, user } = useAuthStore();
   const { isDark } = useDarkModeContext();
   const navigate = useNavigate();
 
@@ -38,11 +40,25 @@ export function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setEmailError("");
+
+    const trimmedEmail = email.trim();
+    const emailValidation = validateEmail(trimmedEmail);
+    if (!emailValidation.isValid) {
+      setEmailError(emailValidation.error || "Invalid email");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const result = await signIn(email, password);
-    if (result.error) {
-      setError(result.error);
+    try {
+      const result = await signIn(trimmedEmail, password);
+      if (result.error) {
+        setError(result.error);
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -54,10 +70,11 @@ export function Login() {
         subtitle="Sign in to manage your kitchen"
         onSubmit={handleSubmit}
         submitButtonText="Sign In"
-        loading={loading}
+        loading={isSubmitting}
         error={error}
         footerText="Don't have an account?"
         footerLink={{ text: "Sign up", to: "/signup" }}
+        secondaryLink={{ text: "Forgot password?", to: "/forgot-password" }}
       >
         <FormInput
           id="email"
@@ -65,6 +82,7 @@ export function Login() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          error={emailError}
         />
         <FormInput
           id="password"

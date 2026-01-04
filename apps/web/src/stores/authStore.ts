@@ -1,13 +1,59 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { supabase, setSentryUser } from "@/lib";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User, Session, AuthError } from "@supabase/supabase-js";
+
+/**
+ * Transforms Supabase auth errors into user-friendly messages.
+ * Uses error codes from Supabase Auth API for reliable matching.
+ * @see https://supabase.com/docs/guides/auth/debugging/error-codes
+ */
+function getAuthErrorMessage(error: AuthError | null, context: "signup" | "password"): string | undefined {
+  if (!error) return undefined;
+
+  const code = error.code;
+
+  // Rate limiting (applies to all contexts)
+  if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
+    return "Too many attempts. Please wait a moment and try again.";
+  }
+
+  // Signup-specific errors
+  if (context === "signup") {
+    if (code === "user_already_exists" || code === "email_exists") {
+      return "An account with this email already exists. Try signing in instead.";
+    }
+    if (code === "weak_password") {
+      return "Password is too weak. Please use a stronger password.";
+    }
+    if (code === "email_address_invalid" || code === "validation_failed") {
+      return "Please enter a valid email address.";
+    }
+    if (code === "email_provider_disabled" || code === "signup_disabled") {
+      return "Sign ups are currently disabled.";
+    }
+  }
+
+  // Password update errors
+  if (context === "password") {
+    if (code === "same_password") {
+      return "New password must be different from your current password.";
+    }
+    if (code === "weak_password") {
+      return "Password is too weak. Please use a stronger password.";
+    }
+  }
+
+  // Generic fallback
+  return "Something went wrong. Please try again.";
+}
 
 interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
   initialized: boolean;
+  pendingPasswordReset: boolean;
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (
@@ -16,6 +62,10 @@ interface AuthState {
     name: string
   ) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<{ error?: string }>;
+  updatePassword: (newPassword: string) => Promise<{ error?: string }>;
+  refreshUser: () => Promise<void>;
+  clearPendingPasswordReset: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,6 +75,7 @@ export const useAuthStore = create<AuthState>()(
       session: null,
       loading: true,
       initialized: false,
+      pendingPasswordReset: false,
 
       initialize: async () => {
         if (get().initialized) return;
@@ -40,55 +91,114 @@ export const useAuthStore = create<AuthState>()(
         });
         setSentryUser(session?.user?.id ?? null);
 
-        supabase.auth.onAuthStateChange((_event, session) => {
+        supabase.auth.onAuthStateChange((event, session) => {
+          // Handle password recovery - user clicked reset link in email
+          if (event === "PASSWORD_RECOVERY") {
+            set({ session, user: session?.user ?? null, pendingPasswordReset: true });
+            setSentryUser(session?.user?.id ?? null);
+            // Redirect to reset password page
+            window.location.href = "/reset-password";
+            return;
+          }
+
           set({ session, user: session?.user ?? null });
           setSentryUser(session?.user?.id ?? null);
         });
       },
 
       signIn: async (email, password) => {
-        set({ loading: true });
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (data.session) {
-          set({
-            session: data.session,
-            user: data.session.user,
-            loading: false,
+        // Note: Don't set loading here - it causes App.tsx to unmount routes
+        // The Login component has its own isSubmitting state for UI feedback
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
           });
-        } else {
-          set({ loading: false });
+
+          if (error) {
+            // Handle specific error codes from Supabase
+            const code = error.code;
+            if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
+              return { error: "Too many attempts. Please wait a moment and try again." };
+            }
+            // Generic message for security - don't reveal if email exists
+            return { error: "Invalid email or password" };
+          }
+
+          if (data.session) {
+            set({
+              session: data.session,
+              user: data.session.user,
+            });
+          }
+          return { error: undefined };
+        } catch {
+          return { error: "Invalid email or password" };
         }
-        // Return generic error message for security - don't reveal if email exists
-        return { error: error ? "Invalid email or password" : undefined };
       },
 
       signUp: async (email, password, name) => {
-        set({ loading: true });
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name },
-          },
-        });
-        if (data.session) {
-          set({
-            session: data.session,
-            user: data.session.user,
-            loading: false,
+        // Note: Don't set loading here - it causes App.tsx to unmount routes
+        // The Signup component has its own isSubmitting state for UI feedback
+        try {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { name },
+            },
           });
-        } else {
-          set({ loading: false });
+
+          if (error) {
+            return { error: getAuthErrorMessage(error, "signup") };
+          }
+
+          if (data.session) {
+            set({
+              session: data.session,
+              user: data.session.user,
+            });
+          }
+          return { error: undefined };
+        } catch {
+          return { error: "Something went wrong. Please try again." };
         }
-        return { error: error?.message };
       },
 
       signOut: async () => {
         await supabase.auth.signOut();
         set({ user: null, session: null });
+      },
+
+      resetPasswordForEmail: async (email) => {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        return { error: error?.message };
+      },
+
+      updatePassword: async (newPassword) => {
+        const { error } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+        if (!error) {
+          // Clear the pending password reset flag on success
+          set({ pendingPasswordReset: false });
+        }
+        return { error: getAuthErrorMessage(error, "password") };
+      },
+
+      refreshUser: async () => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          set({ user });
+        }
+      },
+
+      clearPendingPasswordReset: () => {
+        set({ pendingPasswordReset: false });
       },
     }),
     {

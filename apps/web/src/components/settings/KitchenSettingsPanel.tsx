@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { captureError } from "@/lib";
 import { useDarkModeContext } from "@/context";
 import { useStripeCheckout, usePlanLimits } from "@/hooks";
 import {
@@ -149,7 +150,7 @@ export function KitchenSettingsPanel({
           try {
             await handleCheckout();
           } catch (error) {
-            console.error("Checkout failed:", error);
+            captureError(error as Error, { context: "KitchenSettingsPanel.checkout" });
           }
         }}
       />

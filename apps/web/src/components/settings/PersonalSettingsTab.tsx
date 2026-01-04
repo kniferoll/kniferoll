@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useDarkModeContext } from "@/context";
-import { supabase } from "@/lib";
+import { supabase, validatePassword, validatePasswordMatch } from "@/lib";
+import { useAuthStore } from "@/stores";
 import { Alert } from "../ui/Alert";
 import { Button } from "../ui/Button";
 import { FormInput } from "../ui/FormInput";
+import { PasswordRequirements } from "../ui/PasswordRequirements";
 import { SettingsSection } from "../ui/SettingsSection";
 import type { User } from "@supabase/supabase-js";
 
@@ -47,11 +49,20 @@ function getUserDisplayName(user: User): string {
 
 export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
   const { isDark, toggle } = useDarkModeContext();
+  const { refreshUser, updatePassword } = useAuthStore();
   const originalName = getUserDisplayName(user);
   const [displayName, setDisplayName] = useState(originalName);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const hasChanges = displayName !== originalName;
 
@@ -75,11 +86,73 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
       });
 
       if (updateError) throw updateError;
+
+      // Refresh the user in the auth store to update UI everywhere
+      await refreshUser();
+
       setSuccess("Settings saved successfully");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    // Validate current password is provided
+    if (!currentPassword) {
+      setPasswordError("Current password is required");
+      return;
+    }
+
+    // Validate new password meets requirements
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.isValid) {
+      setPasswordError(passwordValidation.error || "Invalid password");
+      return;
+    }
+
+    // Validate passwords match
+    const matchValidation = validatePasswordMatch(newPassword, confirmPassword);
+    if (!matchValidation.isValid) {
+      setPasswordError(matchValidation.error || "Passwords do not match");
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      // Verify current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email || "",
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        setPasswordError("Current password is incorrect");
+        return;
+      }
+
+      // Update to new password
+      const result = await updatePassword(newPassword);
+
+      if (result.error) {
+        setPasswordError(result.error);
+        return;
+      }
+
+      // Clear form and show success
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordSuccess("Password updated successfully");
+    } catch {
+      setPasswordError("Failed to update password. Please try again.");
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -183,6 +256,62 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
             >
               {user.id.slice(0, 8)}...{user.id.slice(-4)}
             </span>
+          </div>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection title="Security">
+        <div className="space-y-4">
+          <div
+            className={`p-3 rounded-lg text-sm ${
+              isDark
+                ? "bg-amber-900/30 text-amber-200 border border-amber-700/50"
+                : "bg-amber-50 text-amber-800 border border-amber-200"
+            }`}
+          >
+            Changing your password will sign you out of all other devices.
+          </div>
+
+          {passwordError && <Alert variant="error">{passwordError}</Alert>}
+          {passwordSuccess && <Alert variant="success">{passwordSuccess}</Alert>}
+
+          <FormInput
+            label="Current Password"
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="Enter your current password"
+          />
+
+          <div>
+            <FormInput
+              label="New Password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter your new password"
+            />
+            <div className="mt-2">
+              <PasswordRequirements password={newPassword} />
+            </div>
+          </div>
+
+          <FormInput
+            label="Confirm New Password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm your new password"
+          />
+
+          <div className="pt-2">
+            <Button
+              variant="primary"
+              onClick={handlePasswordChange}
+              disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
+            >
+              {changingPassword ? "Changing..." : "Change Password"}
+            </Button>
           </div>
         </div>
       </SettingsSection>

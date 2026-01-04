@@ -18,6 +18,7 @@ vi.mock("@/lib", () => ({
   supabase: mockSupabase,
   signInAnonymously: vi.fn(),
   getTodayLocalDate: vi.fn(() => "2024-06-15"),
+  captureError: vi.fn(),
 }));
 
 // Import after mocking

@@ -439,7 +439,7 @@ export function ScheduleSettingsTab({
         </div>
       )}
 
-      {/* Shifts */}
+      {/* Shifts with Reordering */}
       <SettingsSection
         title="Kitchen Shifts"
         description="Define your shifts. Drag to reorder."

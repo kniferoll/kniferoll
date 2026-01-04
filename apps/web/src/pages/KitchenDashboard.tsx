@@ -10,7 +10,7 @@ import {
   useStripeCheckout,
 } from "@/hooks";
 import { useDarkModeContext } from "@/context";
-import { supabase } from "@/lib";
+import { supabase, captureError } from "@/lib";
 import { jsDateToDatabaseDayOfWeek, toLocalDate, isClosedDay, findNextOpenDay } from "@/lib";
 import {
   AddCard,
@@ -275,7 +275,7 @@ export function KitchenDashboard() {
           .eq("shift_id", selectedShiftId);
 
         if (error) {
-          console.error("Error fetching items:", error);
+          captureError(error, { context: "KitchenDashboard.fetchItems" });
           return;
         }
 
@@ -308,7 +308,7 @@ export function KitchenDashboard() {
         setProgress(progressData);
         setHasLoadedOnce(true);
       } catch (err) {
-        console.error("Failed to fetch progress:", err);
+        captureError(err as Error, { context: "KitchenDashboard.fetchProgress" });
       } finally {
         setIsProgressLoading(false);
       }
@@ -539,7 +539,7 @@ export function KitchenDashboard() {
           try {
             await handleCheckout();
           } catch (error) {
-            console.error("Checkout failed:", error);
+            captureError(error as Error, { context: "KitchenDashboard.checkout" });
           }
         }}
       />
@@ -560,7 +560,7 @@ export function KitchenDashboard() {
           try {
             await handleCheckout();
           } catch (error) {
-            console.error("Checkout failed:", error);
+            captureError(error as Error, { context: "KitchenDashboard.checkout" });
           }
         }}
       />

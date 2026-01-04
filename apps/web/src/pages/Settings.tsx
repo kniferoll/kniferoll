@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useDarkModeContext } from "@/context";
 import { useAuthStore } from "@/stores";
 import { useKitchens, useHeaderConfig } from "@/hooks";
-import { supabase } from "@/lib";
-import { BackButton } from "@/components";
+import { supabase, captureError } from "@/lib";
+import { BackButton, SupportModal } from "@/components";
 import {
   SimpleSettingsSidebar as SettingsSidebar,
   PersonalSettingsTab,
@@ -15,15 +15,76 @@ import type { Database } from "@kniferoll/types";
 
 type KitchenMember = Database["public"]["Tables"]["kitchen_members"]["Row"];
 
+function SupportSettingsPanel() {
+  const { isDark } = useDarkModeContext();
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+
+  return (
+    <div
+      className={`rounded-xl p-6 ${isDark ? "bg-slate-900" : "bg-white"}`}
+      data-testid="support-panel"
+    >
+      <h2
+        className={`text-xl font-semibold mb-4 ${
+          isDark ? "text-white" : "text-gray-900"
+        }`}
+      >
+        Support
+      </h2>
+      <p className={`mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+        Have a question, found a bug, or want to request a feature? We&apos;re
+        here to help.
+      </p>
+
+      <button
+        onClick={() => setIsSupportModalOpen(true)}
+        className={`px-6 py-3 rounded-xl font-medium transition-colors cursor-pointer ${
+          isDark
+            ? "bg-orange-500 hover:bg-orange-600 text-white"
+            : "bg-orange-500 hover:bg-orange-600 text-white"
+        }`}
+      >
+        Contact Support
+      </button>
+
+      <SupportModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
+      />
+    </div>
+  );
+}
+
 export function Settings() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isDark } = useDarkModeContext();
   const { user } = useAuthStore();
   const { kitchens, loading: kitchensLoading } = useKitchens(user?.id);
 
-  const [activeSection, setActiveSection] = useState<string>("personal");
+  // Get initial section from URL params or navigation state (for backwards compatibility)
+  const urlSection = searchParams.get("section");
+  const locationSection = (location.state as { section?: string } | null)
+    ?.section;
+  const initialSection = urlSection || locationSection || "personal";
+  const [activeSection, setActiveSection] = useState<string>(initialSection);
   const [memberships, setMemberships] = useState<KitchenMember[]>([]);
   const [membershipsLoading, setMembershipsLoading] = useState(true);
+
+  // Update section when URL params or navigation state changes
+  useEffect(() => {
+    const newSection = urlSection || locationSection;
+    if (newSection) {
+      setActiveSection(newSection);
+    }
+  }, [urlSection, locationSection]);
+
+  // Update URL when section changes (keeps URL in sync with state)
+  const handleSectionChange = (newSection: string) => {
+    setActiveSection(newSection);
+    setSearchParams({ section: newSection }, { replace: true });
+  };
 
   // Fetch memberships for all kitchens
   useEffect(() => {
@@ -45,7 +106,7 @@ export function Settings() {
         if (error) throw error;
         setMemberships(data || []);
       } catch (err) {
-        console.error("Failed to fetch memberships:", err);
+        captureError(err as Error, { context: "Settings.fetchMemberships" });
       } finally {
         setMembershipsLoading(false);
       }
@@ -91,7 +152,7 @@ export function Settings() {
   });
 
   const handleKitchenDeleted = () => {
-    setActiveSection("personal");
+    handleSectionChange("personal");
   };
 
   // Mobile nav pill button styles
@@ -121,16 +182,22 @@ export function Settings() {
             <div className="flex gap-2 pb-2">
               {/* Account section pills */}
               <button
-                onClick={() => setActiveSection("personal")}
+                onClick={() => handleSectionChange("personal")}
                 className={getMobilePillClass(activeSection === "personal")}
               >
                 Personal
               </button>
               <button
-                onClick={() => setActiveSection("billing")}
+                onClick={() => handleSectionChange("billing")}
                 className={getMobilePillClass(activeSection === "billing")}
               >
                 Billing
+              </button>
+              <button
+                onClick={() => handleSectionChange("support")}
+                className={getMobilePillClass(activeSection === "support")}
+              >
+                Support
               </button>
 
               {/* Divider */}
@@ -146,7 +213,7 @@ export function Settings() {
               {manageableKitchens.map((kitchen) => (
                 <button
                   key={kitchen.id}
-                  onClick={() => setActiveSection(kitchen.id)}
+                  onClick={() => handleSectionChange(kitchen.id)}
                   className={getMobilePillClass(activeSection === kitchen.id)}
                 >
                   {kitchen.name}
@@ -161,7 +228,7 @@ export function Settings() {
           <div className="hidden md:block">
             <SettingsSidebar
               activeSection={activeSection}
-              onSectionChange={setActiveSection}
+              onSectionChange={handleSectionChange}
               kitchens={kitchens}
               memberships={memberships}
             />
@@ -183,6 +250,10 @@ export function Settings() {
             ) : activeSection === "billing" ? (
               <div data-testid="billing-settings-panel">
                 <BillingSettingsTab userId={user.id} />
+              </div>
+            ) : activeSection === "support" ? (
+              <div data-testid="support-settings-panel">
+                <SupportSettingsPanel />
               </div>
             ) : selectedKitchen && selectedMembership ? (
               <KitchenSettingsPanel

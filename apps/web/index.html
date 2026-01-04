@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en" class="light bg-amber-50 dark:bg-slate-900">
   <head>
     <meta charset="UTF-8" />
     <link
@@ -10,6 +10,14 @@
     <meta name="color-scheme" content="light dark" />
     <meta name="description" content="Kitchen prep management made simple" />
 
+    <!-- iOS PWA: edge-to-edge display with translucent status bar -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- Theme color for status bar - updated dynamically by useDarkMode hook -->
+    <meta name="theme-color" content="#fffbeb" />
+    <meta name="theme-color" content="#fffbeb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+
     <!-- Performance: DNS prefetch and preconnect to critical origins -->
     <link rel="dns-prefetch" href="https://cdn.supabase.co" />
     <link rel="preconnect" href="https://cdn.supabase.co" crossorigin />
@@ -17,7 +25,7 @@
     <title>Kniferoll</title>
   </head>
   <body
-    class="bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-50 transition-colors"
+    class="bg-amber-50 dark:bg-slate-900 text-gray-900 dark:text-slate-50 transition-colors"
   >
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

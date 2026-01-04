@@ -14,6 +14,7 @@ interface FormInputProps {
   minLength?: number;
   helperText?: string;
   autoFocus?: boolean;
+  error?: string;
 }
 
 export function FormInput({
@@ -29,6 +30,7 @@ export function FormInput({
   minLength,
   helperText,
   autoFocus,
+  error,
 }: FormInputProps) {
   const { isDark } = useDarkModeContext();
   const generatedId = useId();
@@ -59,12 +61,19 @@ export function FormInput({
         minLength={minLength}
         autoFocus={autoFocus}
         className={`w-full px-4 py-3 rounded-xl border transition-all ${
-          isDark
-            ? "bg-slate-700/50 border-slate-600 text-white placeholder-gray-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
-            : "bg-white border-stone-300 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+          error
+            ? isDark
+              ? "bg-slate-700/50 border-red-500 text-white placeholder-gray-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+              : "bg-white border-red-500 text-gray-900 placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
+            : isDark
+              ? "bg-slate-700/50 border-slate-600 text-white placeholder-gray-500 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+              : "bg-white border-stone-300 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
         } disabled:opacity-50 disabled:cursor-not-allowed`}
       />
-      {helperText && (
+      {error && (
+        <p className="text-xs mt-1.5 text-red-500">{error}</p>
+      )}
+      {helperText && !error && (
         <p
           className={`text-xs mt-1.5 ${
             isDark ? "text-gray-500" : "text-gray-500"
