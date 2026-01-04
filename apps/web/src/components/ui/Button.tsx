@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, type ReactNode } from "react";
 import { useDarkModeContext } from "@/context";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
   children: ReactNode;
@@ -72,6 +72,15 @@ export function Button({
         text-gray-600 
         hover:text-gray-900 hover:bg-stone-200/50
       `,
+    danger: `
+      bg-gradient-to-r from-red-500 to-red-600 
+      text-white 
+      shadow-lg shadow-red-500/30 
+      hover:shadow-xl hover:shadow-red-500/40 
+      hover:-translate-y-0.5 
+      disabled:hover:translate-y-0 
+      disabled:hover:shadow-lg
+    `,
   };
 
   const widthStyles = fullWidth ? "w-full" : "";

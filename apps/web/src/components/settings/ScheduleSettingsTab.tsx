@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDarkModeContext } from "@/context";
 import {
   useKitchenShifts,
@@ -9,9 +9,8 @@ import { Alert } from "../ui/Alert";
 import { Button } from "../ui/Button";
 import { FormInput } from "../ui/FormInput";
 import { SettingsSection } from "../ui/SettingsSection";
-import type { Database } from "@kniferoll/types";
-
-type KitchenShift = Database["public"]["Tables"]["kitchen_shifts"]["Row"];
+import { ConfirmDeleteShiftModal } from "../modals/ConfirmDeleteShiftModal";
+import { ConfirmHideShiftModal } from "../modals/ConfirmHideShiftModal";
 
 interface ScheduleSettingsTabProps {
   kitchenId: string;
@@ -22,11 +21,13 @@ interface LocalShift {
   id: string;
   name: string;
   display_order: number;
+  is_hidden: boolean;
 }
 
 interface LocalDayConfig {
   dayIndex: number;
   isOpen: boolean;
+  shiftIds: string[];
 }
 
 export function ScheduleSettingsTab({
@@ -34,9 +35,15 @@ export function ScheduleSettingsTab({
   isOwner,
 }: ScheduleSettingsTabProps) {
   const { isDark } = useDarkModeContext();
-  const { shifts, shiftDays, loading } = useKitchenShifts(kitchenId);
-  const { addShift, deleteShift, updateShift, updateShiftDay } =
-    useKitchenShiftActions(kitchenId);
+  const { shifts, shiftDays, loading, refetch } = useKitchenShifts(kitchenId);
+  const {
+    addShift,
+    deleteShift,
+    hideShift,
+    unhideShift,
+    updateShift,
+    updateShiftDay,
+  } = useKitchenShiftActions(kitchenId);
   const [newShiftName, setNewShiftName] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -47,6 +54,20 @@ export function ScheduleSettingsTab({
   const [localDays, setLocalDays] = useState<LocalDayConfig[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [shiftToDelete, setShiftToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  // Hide modal state
+  const [hideModalOpen, setHideModalOpen] = useState(false);
+  const [shiftToHide, setShiftToHide] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
   // Initialize local state from server data
   useEffect(() => {
     if (!loading && shifts) {
@@ -55,24 +76,28 @@ export function ScheduleSettingsTab({
           id: s.id,
           name: s.name,
           display_order: s.display_order ?? 0,
+          is_hidden: s.is_hidden ?? false,
         }))
       );
     }
   }, [shifts, loading]);
 
   useEffect(() => {
-    if (!loading) {
-      // Initialize all 7 days with their current state
+    if (!loading && shifts) {
+      // Initialize all 7 days with their current state, including shift assignments
       const days: LocalDayConfig[] = DAYS_OF_WEEK.map((_, dayIndex) => {
         const existing = shiftDays.find((d) => d.day_of_week === dayIndex);
+        // Default: if no config exists, all shifts are active on this day
+        const defaultShiftIds = shifts.map((s) => s.id);
         return {
           dayIndex,
-          isOpen: existing?.is_open ?? true, // Default to open
+          isOpen: existing?.is_open ?? true,
+          shiftIds: existing?.shift_ids ?? defaultShiftIds,
         };
       });
       setLocalDays(days);
     }
-  }, [shiftDays, loading]);
+  }, [shiftDays, shifts, loading]);
 
   // Check if there are unsaved changes
   const checkForChanges = useCallback(() => {
@@ -82,11 +107,21 @@ export function ScheduleSettingsTab({
       return original && original.display_order !== local.display_order;
     });
 
-    // Check days
+    // Check days - both isOpen and shiftIds
     const daysChanged = localDays.some((local) => {
       const original = shiftDays.find((d) => d.day_of_week === local.dayIndex);
+      const defaultShiftIds = shifts.map((s) => s.id);
       const originalIsOpen = original?.is_open ?? true;
-      return local.isOpen !== originalIsOpen;
+      const originalShiftIds = original?.shift_ids ?? defaultShiftIds;
+
+      // Compare isOpen
+      if (local.isOpen !== originalIsOpen) return true;
+
+      // Compare shiftIds arrays
+      const localSorted = [...local.shiftIds].sort();
+      const originalSorted = [...originalShiftIds].sort();
+      if (localSorted.length !== originalSorted.length) return true;
+      return localSorted.some((id, i) => id !== originalSorted[i]);
     });
 
     setHasChanges(shiftsChanged || daysChanged);
@@ -96,7 +131,93 @@ export function ScheduleSettingsTab({
     checkForChanges();
   }, [checkForChanges]);
 
-  // Move shift up in order
+  // Drag state for reordering
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Handle drag start
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  // Handle drag over
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  // Handle drag end - reorder the shifts
+  const handleDragEnd = () => {
+    if (
+      draggedIndex !== null &&
+      dragOverIndex !== null &&
+      draggedIndex !== dragOverIndex
+    ) {
+      const newShifts = [...localShifts];
+      const [draggedItem] = newShifts.splice(draggedIndex, 1);
+      newShifts.splice(dragOverIndex, 0, draggedItem);
+      // Update display_order values
+      newShifts.forEach((s, i) => {
+        s.display_order = i;
+      });
+      setLocalShifts(newShifts);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // Touch drag state
+  const [touchDragIndex, setTouchDragIndex] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number>(0);
+  const [touchCurrentY, setTouchCurrentY] = useState<number>(0);
+  const shiftRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Handle touch start
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    if (!isOwner || localShifts.length <= 1) return;
+    setTouchDragIndex(index);
+    setTouchStartY(e.touches[0].clientY);
+    setTouchCurrentY(e.touches[0].clientY);
+  };
+
+  // Handle touch move
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchDragIndex === null) return;
+    e.preventDefault();
+    setTouchCurrentY(e.touches[0].clientY);
+  };
+
+  // Handle touch end - calculate new position and reorder
+  const handleTouchEnd = () => {
+    if (touchDragIndex === null) return;
+
+    const dragDistance = touchCurrentY - touchStartY;
+    const itemHeight = 52; // Approximate height of each shift item
+    const indexDelta = Math.round(dragDistance / itemHeight);
+    const newIndex = Math.max(
+      0,
+      Math.min(localShifts.length - 1, touchDragIndex + indexDelta)
+    );
+
+    if (newIndex !== touchDragIndex) {
+      const newShifts = [...localShifts];
+      const [draggedItem] = newShifts.splice(touchDragIndex, 1);
+      newShifts.splice(newIndex, 0, draggedItem);
+      // Update display_order values
+      newShifts.forEach((s, i) => {
+        s.display_order = i;
+      });
+      setLocalShifts(newShifts);
+    }
+
+    setTouchDragIndex(null);
+    setTouchStartY(0);
+    setTouchCurrentY(0);
+  };
+
+  // Move shift up in order (for accessibility)
   const moveShiftUp = (index: number) => {
     if (index === 0) return;
     const newShifts = [...localShifts];
@@ -110,7 +231,7 @@ export function ScheduleSettingsTab({
     setLocalShifts(newShifts);
   };
 
-  // Move shift down in order
+  // Move shift down in order (for accessibility)
   const moveShiftDown = (index: number) => {
     if (index === localShifts.length - 1) return;
     const newShifts = [...localShifts];
@@ -124,22 +245,49 @@ export function ScheduleSettingsTab({
     setLocalShifts(newShifts);
   };
 
-  // Toggle day open/closed
-  const toggleDay = (dayIndex: number) => {
+  // Toggle a shift for a specific day
+  const toggleShiftForDay = (dayIndex: number, shiftId: string) => {
     setLocalDays((prev) =>
-      prev.map((d) =>
-        d.dayIndex === dayIndex ? { ...d, isOpen: !d.isOpen } : d
-      )
+      prev.map((d) => {
+        if (d.dayIndex !== dayIndex) return d;
+        const hasShift = d.shiftIds.includes(shiftId);
+        const newShiftIds = hasShift
+          ? d.shiftIds.filter((id) => id !== shiftId)
+          : [...d.shiftIds, shiftId];
+        // If no shifts selected, mark day as closed
+        const isOpen = newShiftIds.length > 0;
+        return { ...d, shiftIds: newShiftIds, isOpen };
+      })
+    );
+  };
+
+  // Toggle all shifts for a day (select all / deselect all)
+  const toggleAllShiftsForDay = (dayIndex: number) => {
+    setLocalDays((prev) =>
+      prev.map((d) => {
+        if (d.dayIndex !== dayIndex) return d;
+        const allShiftIds = localShifts.map((s) => s.id);
+        const allSelected = allShiftIds.every((id) => d.shiftIds.includes(id));
+        if (allSelected) {
+          // Deselect all - mark day as closed
+          return { ...d, shiftIds: [], isOpen: false };
+        } else {
+          // Select all
+          return { ...d, shiftIds: allShiftIds, isOpen: true };
+        }
+      })
     );
   };
 
   // Cancel changes - reset to server state
   const handleCancel = () => {
+    const defaultShiftIds = shifts.map((s) => s.id);
     setLocalShifts(
       shifts.map((s) => ({
         id: s.id,
         name: s.name,
         display_order: s.display_order ?? 0,
+        is_hidden: s.is_hidden ?? false,
       }))
     );
     setLocalDays(
@@ -148,6 +296,7 @@ export function ScheduleSettingsTab({
         return {
           dayIndex,
           isOpen: existing?.is_open ?? true,
+          shiftIds: existing?.shift_ids ?? defaultShiftIds,
         };
       })
     );
@@ -170,12 +319,24 @@ export function ScheduleSettingsTab({
         }
       }
 
-      // Update operating days
+      // Update operating days with shift assignments
+      const defaultShiftIds = shifts.map((s) => s.id);
       for (const local of localDays) {
-        const original = shiftDays.find((d) => d.day_of_week === local.dayIndex);
+        const original = shiftDays.find(
+          (d) => d.day_of_week === local.dayIndex
+        );
         const originalIsOpen = original?.is_open ?? true;
-        if (local.isOpen !== originalIsOpen) {
-          await updateShiftDay(local.dayIndex, local.isOpen);
+        const originalShiftIds = original?.shift_ids ?? defaultShiftIds;
+
+        // Check if anything changed
+        const localSorted = [...local.shiftIds].sort();
+        const originalSorted = [...originalShiftIds].sort();
+        const shiftIdsChanged =
+          localSorted.length !== originalSorted.length ||
+          localSorted.some((id, i) => id !== originalSorted[i]);
+
+        if (local.isOpen !== originalIsOpen || shiftIdsChanged) {
+          await updateShiftDay(local.dayIndex, local.isOpen, local.shiftIds);
         }
       }
 
@@ -198,20 +359,70 @@ export function ScheduleSettingsTab({
       await addShift(newShiftName);
       setNewShiftName("");
       setSuccess("Shift added");
+      refetch();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add shift");
     }
   };
 
-  const handleDeleteShift = async (shiftId: string) => {
+  const handleDeleteShift = (shiftId: string, shiftName: string) => {
+    setShiftToDelete({ id: shiftId, name: shiftName });
+    setDeleteModalOpen(true);
+  };
+
+  const handleHideShift = (shiftId: string, shiftName: string) => {
+    setShiftToHide({ id: shiftId, name: shiftName });
+    setHideModalOpen(true);
+  };
+
+  const confirmDeleteShift = async () => {
+    if (!shiftToDelete) return;
+
+    setError("");
+    setSuccess("");
+
+    await deleteShift(shiftToDelete.id);
+    setSuccess("Shift deleted");
+    refetch();
+    setShiftToDelete(null);
+  };
+
+  // Called from delete modal's "Hide Instead" option
+  const confirmHideShiftFromDeleteModal = async () => {
+    if (!shiftToDelete) return;
+
+    setError("");
+    setSuccess("");
+
+    await hideShift(shiftToDelete.id);
+    setSuccess("Shift hidden");
+    refetch();
+    setShiftToDelete(null);
+  };
+
+  // Called from dedicated hide modal
+  const confirmHideShift = async () => {
+    if (!shiftToHide) return;
+
+    setError("");
+    setSuccess("");
+
+    await hideShift(shiftToHide.id);
+    setSuccess("Shift hidden");
+    refetch();
+    setShiftToHide(null);
+  };
+
+  const handleUnhideShift = async (shiftId: string) => {
     setError("");
     setSuccess("");
 
     try {
-      await deleteShift(shiftId);
-      setSuccess("Shift deleted");
+      await unhideShift(shiftId);
+      setSuccess("Shift unhidden");
+      refetch();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete shift");
+      setError(err instanceof Error ? err.message : "Failed to unhide shift");
     }
   };
 
@@ -248,91 +459,157 @@ export function ScheduleSettingsTab({
                 No shifts defined yet. Add your first shift below.
               </p>
             ) : (
-              localShifts.map((shift, index) => (
-                <div
-                  key={shift.id}
-                  className={`flex items-center justify-between p-3 rounded-lg border ${
-                    isDark
-                      ? "bg-slate-900 border-slate-700"
-                      : "bg-white border-stone-200"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    {/* Reorder buttons */}
-                    {isOwner && localShifts.length > 1 && (
-                      <div className="flex flex-col gap-0.5">
-                        <button
-                          onClick={() => moveShiftUp(index)}
-                          disabled={index === 0}
-                          className={`p-1 rounded transition-colors ${
-                            index === 0
-                              ? "opacity-30 cursor-not-allowed"
-                              : isDark
-                                ? "hover:bg-slate-700 text-slate-400 hover:text-white"
-                                : "hover:bg-stone-200 text-stone-500 hover:text-stone-800"
-                          }`}
-                          title="Move up"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
+              localShifts.map((shift, index) => {
+                const isDragging = draggedIndex === index;
+                const isDragOver = dragOverIndex === index;
+                const isTouchDragging = touchDragIndex === index;
+                const touchOffset = isTouchDragging
+                  ? touchCurrentY - touchStartY
+                  : 0;
+
+                return (
+                  <div
+                    key={shift.id}
+                    ref={(el) => {
+                      shiftRefs.current[index] = el;
+                    }}
+                    draggable={
+                      isOwner && localShifts.length > 1 && !shift.is_hidden
+                    }
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragEnd={handleDragEnd}
+                    onDragLeave={() => setDragOverIndex(null)}
+                    style={{
+                      transform: isTouchDragging
+                        ? `translateY(${touchOffset}px)`
+                        : undefined,
+                      transition: isTouchDragging
+                        ? "none"
+                        : "transform 0.15s ease",
+                      zIndex: isTouchDragging ? 50 : undefined,
+                    }}
+                    className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                      shift.is_hidden
+                        ? isDark
+                          ? "bg-slate-900/50 border-slate-700/50 opacity-60"
+                          : "bg-stone-100 border-stone-200/50 opacity-60"
+                        : isDark
+                        ? "bg-slate-900 border-slate-700"
+                        : "bg-white border-stone-200"
+                    } ${
+                      isDragging || isTouchDragging
+                        ? "opacity-70 scale-[1.02] shadow-lg"
+                        : ""
+                    } ${
+                      isDragOver
+                        ? isDark
+                          ? "border-orange-500 bg-slate-800"
+                          : "border-orange-400 bg-orange-50"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Drag handle - only show for non-hidden shifts */}
+                      {isOwner &&
+                        localShifts.length > 1 &&
+                        !shift.is_hidden && (
+                          <div
+                            className={`touch-none select-none p-1 rounded cursor-grab active:cursor-grabbing ${
+                              isDark
+                                ? "text-slate-400 hover:text-slate-300 hover:bg-slate-700"
+                                : "text-stone-400 hover:text-stone-600 hover:bg-stone-100"
+                            }`}
+                            onTouchStart={(e) => handleTouchStart(e, index)}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                            title="Drag to reorder"
+                            aria-label={`Reorder ${shift.name}. Use up and down keys.`}
+                            tabIndex={0}
+                            role="button"
+                            onKeyDown={(e) => {
+                              if (e.key === "ArrowUp") {
+                                e.preventDefault();
+                                moveShiftUp(index);
+                              } else if (e.key === "ArrowDown") {
+                                e.preventDefault();
+                                moveShiftDown(index);
+                              }
+                            }}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M5 15l7-7 7 7"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => moveShiftDown(index)}
-                          disabled={index === localShifts.length - 1}
-                          className={`p-1 rounded transition-colors ${
-                            index === localShifts.length - 1
-                              ? "opacity-30 cursor-not-allowed"
-                              : isDark
-                                ? "hover:bg-slate-700 text-slate-400 hover:text-white"
-                                : "hover:bg-stone-200 text-stone-500 hover:text-stone-800"
-                          }`}
-                          title="Move down"
-                        >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
+                            <svg
+                              className="w-5 h-5"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+                            </svg>
+                          </div>
+                        )}
+                      <span
+                        className={`font-semibold ${
+                          shift.is_hidden
+                            ? isDark
+                              ? "text-slate-400"
+                              : "text-gray-500"
+                            : isDark
+                            ? "text-white"
+                            : "text-gray-900"
+                        }`}
+                      >
+                        {shift.name}
+                        {shift.is_hidden && (
+                          <span
+                            className={`ml-2 text-xs font-normal px-2 py-0.5 rounded ${
+                              isDark
+                                ? "bg-slate-700 text-slate-400"
+                                : "bg-stone-200 text-stone-500"
+                            }`}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
+                            Hidden
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    {isOwner &&
+                      (shift.is_hidden ? (
+                        <button
+                          onClick={() => handleUnhideShift(shift.id)}
+                          className={`font-medium cursor-pointer ${
+                            isDark
+                              ? "text-slate-400 hover:text-slate-300"
+                              : "text-stone-500 hover:text-stone-700"
+                          }`}
+                        >
+                          Unhide
                         </button>
-                      </div>
-                    )}
-                    <span
-                      className={`font-semibold ${
-                        isDark ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {shift.name}
-                    </span>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() =>
+                              handleHideShift(shift.id, shift.name)
+                            }
+                            className={`font-medium cursor-pointer ${
+                              isDark
+                                ? "text-slate-400 hover:text-slate-300"
+                                : "text-stone-500 hover:text-stone-700"
+                            }`}
+                          >
+                            Hide
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteShift(shift.id, shift.name)
+                            }
+                            className="text-red-500 hover:text-red-600 font-medium cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      ))}
                   </div>
-                  {isOwner && (
-                    <button
-                      onClick={() => handleDeleteShift(shift.id)}
-                      className="text-red-500 hover:text-red-600 font-medium cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -364,44 +641,154 @@ export function ScheduleSettingsTab({
         </div>
       </SettingsSection>
 
-      {/* Operating Days */}
+      {/* Weekly Schedule - Per-Day Shift Assignment */}
       <SettingsSection
-        title="Operating Days"
-        description="Select which days your kitchen is open"
+        title="Weekly Schedule"
+        description="Configure which shifts run on each day of the week"
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="space-y-3">
           {DAYS_OF_WEEK.map((day, dayIndex) => {
             const dayConfig = localDays.find((d) => d.dayIndex === dayIndex);
+            const activeShiftIds = dayConfig?.shiftIds ?? [];
+            const allSelected =
+              localShifts.length > 0 &&
+              localShifts.every((s) => activeShiftIds.includes(s.id));
             const isOpen = dayConfig?.isOpen ?? true;
 
             return (
-              <label
+              <div
                 key={dayIndex}
-                className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
+                className={`rounded-xl border overflow-hidden ${
                   isDark
                     ? isOpen
-                      ? "border-orange-500/50 bg-orange-500/10"
-                      : "border-slate-600 hover:bg-slate-800"
+                      ? "border-slate-600 bg-slate-800"
+                      : "border-slate-700 bg-slate-800/50"
                     : isOpen
-                      ? "border-orange-300 bg-orange-50"
-                      : "border-stone-300 hover:bg-stone-50"
-                } ${!isOwner ? "opacity-60 cursor-not-allowed" : ""}`}
+                    ? "border-stone-200 bg-white"
+                    : "border-stone-200 bg-stone-50"
+                }`}
               >
-                <input
-                  type="checkbox"
-                  checked={isOpen}
-                  onChange={() => isOwner && toggleDay(dayIndex)}
-                  disabled={!isOwner}
-                  className="w-4 h-4 accent-orange-500"
-                />
-                <span
-                  className={`font-medium ${
-                    isDark ? "text-white" : "text-gray-900"
+                {/* Day header */}
+                <div
+                  className={`flex items-center justify-between p-3 border-b ${
+                    isDark ? "border-slate-700" : "border-stone-100"
                   }`}
                 >
-                  {day}
-                </span>
-              </label>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`font-semibold min-w-[100px] ${
+                        isDark ? "text-white" : "text-gray-900"
+                      } ${!isOpen ? "opacity-50" : ""}`}
+                    >
+                      {day}
+                    </span>
+                    {!isOpen && (
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          isDark
+                            ? "bg-slate-700 text-slate-400"
+                            : "bg-stone-200 text-stone-500"
+                        }`}
+                      >
+                        Closed
+                      </span>
+                    )}
+                    {isOpen && activeShiftIds.length > 0 && (
+                      <span
+                        className={`text-xs ${
+                          isDark ? "text-slate-400" : "text-stone-500"
+                        }`}
+                      >
+                        {activeShiftIds.length} shift
+                        {activeShiftIds.length !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </div>
+                  {isOwner && localShifts.length > 0 && (
+                    <button
+                      onClick={() => toggleAllShiftsForDay(dayIndex)}
+                      className={`text-sm font-medium transition-colors ${
+                        isDark
+                          ? "text-orange-400 hover:text-orange-300"
+                          : "text-orange-600 hover:text-orange-700"
+                      }`}
+                    >
+                      {allSelected ? "Clear all" : "Select all"}
+                    </button>
+                  )}
+                </div>
+
+                {/* Shift checkboxes */}
+                {localShifts.length === 0 ? (
+                  <div className="p-3">
+                    <p
+                      className={`text-sm ${
+                        isDark ? "text-slate-400" : "text-stone-500"
+                      }`}
+                    >
+                      No shifts defined. Add shifts above first.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3 flex flex-wrap gap-2">
+                    {localShifts.map((shift) => {
+                      const isActive = activeShiftIds.includes(shift.id);
+                      return (
+                        <label
+                          key={shift.id}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all ${
+                            isDark
+                              ? isActive
+                                ? "bg-orange-500/20 border border-orange-500/50 text-orange-300"
+                                : "bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600"
+                              : isActive
+                              ? "bg-orange-100 border border-orange-300 text-orange-800"
+                              : "bg-stone-100 border border-stone-200 text-stone-600 hover:bg-stone-200"
+                          } ${!isOwner ? "opacity-60 cursor-not-allowed" : ""}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isActive}
+                            onChange={() =>
+                              isOwner && toggleShiftForDay(dayIndex, shift.id)
+                            }
+                            disabled={!isOwner}
+                            className="sr-only"
+                          />
+                          <span
+                            className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
+                              isActive
+                                ? isDark
+                                  ? "bg-orange-500 border-orange-500"
+                                  : "bg-orange-500 border-orange-500"
+                                : isDark
+                                ? "border-slate-500"
+                                : "border-stone-400"
+                            }`}
+                          >
+                            {isActive && (
+                              <svg
+                                className="w-3 h-3 text-white"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            )}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {shift.name}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -447,6 +834,29 @@ export function ScheduleSettingsTab({
           </div>
         </div>
       )}
+
+      {/* Delete Shift Confirmation Modal */}
+      <ConfirmDeleteShiftModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setShiftToDelete(null);
+        }}
+        onConfirm={confirmDeleteShift}
+        onHide={confirmHideShiftFromDeleteModal}
+        shiftName={shiftToDelete?.name ?? ""}
+      />
+
+      {/* Hide Shift Confirmation Modal */}
+      <ConfirmHideShiftModal
+        isOpen={hideModalOpen}
+        onClose={() => {
+          setHideModalOpen(false);
+          setShiftToHide(null);
+        }}
+        onConfirm={confirmHideShift}
+        shiftName={shiftToHide?.name ?? ""}
+      />
     </>
   );
 }
