@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDarkModeContext } from "@/context";
 import { supabase } from "@/lib";
+import { useAuthStore } from "@/stores";
 import { Alert } from "../ui/Alert";
 import { Button } from "../ui/Button";
 import { FormInput } from "../ui/FormInput";
@@ -24,6 +25,7 @@ function getUserDisplayName(user: User): string {
 
 export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
   const { isDark, toggle } = useDarkModeContext();
+  const { refreshUser } = useAuthStore();
   const originalName = getUserDisplayName(user);
   const [displayName, setDisplayName] = useState(originalName);
   const [saving, setSaving] = useState(false);
@@ -52,6 +54,10 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
       });
 
       if (updateError) throw updateError;
+
+      // Refresh the user in the auth store to update UI everywhere
+      await refreshUser();
+
       setSuccess("Settings saved successfully");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update profile");

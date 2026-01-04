@@ -44,6 +44,9 @@ function getTestAuthStore() {
       signIn: vi.fn(() => Promise.resolve({ error: undefined })),
       signUp: vi.fn(() => Promise.resolve({ error: undefined })),
       signOut: vi.fn(() => Promise.resolve()),
+      resetPasswordForEmail: vi.fn(() => Promise.resolve({ error: undefined })),
+      updatePassword: vi.fn(() => Promise.resolve({ error: undefined })),
+      refreshUser: vi.fn(() => Promise.resolve()),
     };
   }
   return {
@@ -55,6 +58,9 @@ function getTestAuthStore() {
     signIn: vi.fn(() => Promise.resolve({ error: undefined })),
     signUp: vi.fn(() => Promise.resolve({ error: undefined })),
     signOut: vi.fn(() => Promise.resolve()),
+    resetPasswordForEmail: vi.fn(() => Promise.resolve({ error: undefined })),
+    updatePassword: vi.fn(() => Promise.resolve({ error: undefined })),
+    refreshUser: vi.fn(() => Promise.resolve()),
   };
 }
 
