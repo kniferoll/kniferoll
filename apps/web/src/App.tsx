@@ -48,6 +48,21 @@ const PrivacyPolicy = lazy(() =>
     default: m.PrivacyPolicy,
   }))
 );
+const ForgotPassword = lazy(() =>
+  import("./pages/ForgotPassword").then((m) => ({
+    default: m.ForgotPassword,
+  }))
+);
+const ResetPassword = lazy(() =>
+  import("./pages/ResetPassword").then((m) => ({
+    default: m.ResetPassword,
+  }))
+);
+const VerifyEmail = lazy(() =>
+  import("./pages/VerifyEmail").then((m) => ({
+    default: m.VerifyEmail,
+  }))
+);
 
 function LoadingFallback() {
   return (
@@ -118,6 +133,9 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/join" element={<JoinWithCode />} />
               <Route path="/join/:token" element={<InviteJoin />} />
               <Route path="/terms" element={<TermsOfService />} />

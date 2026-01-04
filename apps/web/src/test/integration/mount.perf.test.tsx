@@ -46,7 +46,7 @@ beforeEach(() => {
 describe("Budget Coverage", () => {
   const pagesDir = resolve(__dirname, "../../pages");
   const pageFiles = readdirSync(pagesDir)
-    .filter((f) => f.endsWith(".tsx"))
+    .filter((f) => f.endsWith(".tsx") && !f.includes(".test."))
     .map((f) => f.replace(".tsx", ""))
     .filter((f) => !EXCLUDED_PAGES.includes(f as typeof EXCLUDED_PAGES[number]));
 

@@ -1,5 +1,6 @@
 export { AddStationModal } from "./AddStationModal";
 export { CopyRecentItemsModal } from "./CopyRecentItemsModal";
+export { CreateAccountModal } from "./CreateAccountModal";
 export { EditPrepItemModal } from "./EditPrepItemModal";
 export { InviteLinkModal } from "./InviteLinkModal";
 export { KitchenOnboardingModal } from "./KitchenOnboardingModal";

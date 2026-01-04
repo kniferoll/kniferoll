@@ -313,6 +313,29 @@ vi.mock("@/lib", () => ({
   captureError: vi.fn(),
   initSentry: vi.fn(),
   setSentryUser: vi.fn(),
+
+  // validation
+  validateEmail: vi.fn((email: string) => {
+    const trimmed = email.trim();
+    if (!trimmed) return { isValid: false, error: "Email is required" };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      return { isValid: false, error: "Please enter a valid email address" };
+    }
+    return { isValid: true };
+  }),
+  validatePassword: vi.fn((password: string) => {
+    if (!password) return { isValid: false, error: "Password is required" };
+    if (password.length < 8) {
+      return { isValid: false, error: "Password must be at least 8 characters" };
+    }
+    return { isValid: true };
+  }),
+  validatePasswordMatch: vi.fn((password: string, confirm: string) => {
+    if (password !== confirm) return { isValid: false, error: "Passwords do not match" };
+    return { isValid: true };
+  }),
+  EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  PASSWORD_MIN_LENGTH: 8,
 }));
 
 // ============================================================================

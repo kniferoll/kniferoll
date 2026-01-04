@@ -318,6 +318,9 @@ export const createMockAuthStore = (overrides = {}) => ({
   signIn: vi.fn(() => Promise.resolve({ error: undefined })),
   signUp: vi.fn(() => Promise.resolve({ error: undefined })),
   signOut: vi.fn(() => Promise.resolve()),
+  resetPasswordForEmail: vi.fn(() => Promise.resolve({ error: undefined })),
+  updatePassword: vi.fn(() => Promise.resolve({ error: undefined })),
+  refreshUser: vi.fn(() => Promise.resolve()),
   ...overrides,
 });
 
@@ -482,4 +485,26 @@ export const createLibMocks = () => ({
   toLocalDate: vi.fn((dateStr: string) => new Date(dateStr)),
   isClosedDay: vi.fn(() => false),
   findNextOpenDay: vi.fn(() => null),
+  // Validation utilities
+  validateEmail: vi.fn((email: string) => {
+    const trimmed = email.trim();
+    if (!trimmed) return { isValid: false, error: "Email is required" };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      return { isValid: false, error: "Please enter a valid email address" };
+    }
+    return { isValid: true };
+  }),
+  validatePassword: vi.fn((password: string) => {
+    if (!password) return { isValid: false, error: "Password is required" };
+    if (password.length < 8) {
+      return { isValid: false, error: "Password must be at least 8 characters" };
+    }
+    return { isValid: true };
+  }),
+  validatePasswordMatch: vi.fn((password: string, confirm: string) => {
+    if (password !== confirm) return { isValid: false, error: "Passwords do not match" };
+    return { isValid: true };
+  }),
+  EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  PASSWORD_MIN_LENGTH: 8,
 });

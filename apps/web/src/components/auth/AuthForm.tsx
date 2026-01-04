@@ -17,6 +17,10 @@ interface AuthFormProps {
     text: string;
     to: string;
   };
+  secondaryLink?: {
+    text: string;
+    to: string;
+  };
 }
 
 /**
@@ -35,6 +39,7 @@ export function AuthForm({
   error,
   footerText,
   footerLink,
+  secondaryLink,
 }: AuthFormProps) {
   const { isDark } = useDarkModeContext();
 
@@ -72,6 +77,16 @@ export function AuthForm({
           >
             {loading ? "Loading..." : submitButtonText}
           </Button>
+          {secondaryLink && (
+            <div className="text-center mt-3">
+              <Link
+                to={secondaryLink.to}
+                className="text-sm text-orange-500 hover:text-orange-600 font-medium"
+              >
+                {secondaryLink.text}
+              </Link>
+            </div>
+          )}
         </form>
 
         <div className="mt-6 text-center">

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { useDarkModeContext } from "@/context";
+import { CreateAccountModal } from "@/components/modals/CreateAccountModal";
 
 interface UserAvatarMenuProps {
   kitchenId?: string;
@@ -13,6 +14,9 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
   const { user } = useAuthStore();
   const { isDark } = useDarkModeContext();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
+
+  const isAnonymous = user?.is_anonymous ?? false;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -129,6 +133,41 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
           </div>
 
           <div className="py-2">
+            {/* Create Account for anonymous users */}
+            {isAnonymous && (
+              <>
+                <button
+                  onClick={() => {
+                    setShowCreateAccountModal(true);
+                    setUserMenuOpen(false);
+                  }}
+                  className={`w-full px-4 py-2.5 text-left text-sm font-medium transition-colors cursor-pointer ${
+                    isDark
+                      ? "text-orange-400 hover:bg-orange-500/10"
+                      : "text-orange-600 hover:bg-orange-50"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                      />
+                    </svg>
+                    Create Account
+                  </span>
+                </button>
+                <div className={dividerStyles} style={{ height: "1px" }} />
+              </>
+            )}
+
             {/* Kitchen-specific items (only when in a kitchen) */}
             {kitchenId && (
               <>
@@ -297,6 +336,11 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
           </div>
         </div>
       )}
+
+      <CreateAccountModal
+        isOpen={showCreateAccountModal}
+        onClose={() => setShowCreateAccountModal(false)}
+      />
     </div>
   );
 }
