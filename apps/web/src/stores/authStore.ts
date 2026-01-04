@@ -95,21 +95,26 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signIn: async (email, password) => {
+        console.log("[authStore] signIn called");
         set({ loading: true });
         try {
+          console.log("[authStore] Calling supabase.auth.signInWithPassword...");
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
           });
+          console.log("[authStore] Supabase response:", { data, error });
           set({ loading: false });
 
           if (error) {
             // Handle specific error codes from Supabase
             const code = error.code;
+            console.log("[authStore] Error code:", code);
             if (code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
               return { error: "Too many attempts. Please wait a moment and try again." };
             }
             // Generic message for security - don't reveal if email exists
+            console.log("[authStore] Returning error: Invalid email or password");
             return { error: "Invalid email or password" };
           }
 
@@ -120,7 +125,8 @@ export const useAuthStore = create<AuthState>()(
             });
           }
           return { error: undefined };
-        } catch {
+        } catch (err) {
+          console.error("[authStore] Caught exception:", err);
           set({ loading: false });
           return { error: "Invalid email or password" };
         }

@@ -18,14 +18,23 @@ export function Login() {
 
   // Preload dashboard - user will likely go there after login
   useEffect(() => {
+    console.log("[Login] Component mounted");
     preloadDashboard();
+    return () => console.log("[Login] Component unmounting");
   }, []);
 
   useEffect(() => {
+    console.log("[Login] useEffect - user changed:", user);
     if (user) {
+      console.log("[Login] User is set, navigating to dashboard");
       navigate("/dashboard", { replace: true });
     }
   }, [user, navigate]);
+
+  // Debug: log state changes
+  useEffect(() => {
+    console.log("[Login] State - error:", error, "isSubmitting:", isSubmitting);
+  }, [error, isSubmitting]);
 
   if (user || isSubmitting) {
     return (
@@ -52,13 +61,18 @@ export function Login() {
     setIsSubmitting(true);
 
     try {
+      console.log("[Login] Calling signIn...");
       const result = await signIn(trimmedEmail, password);
+      console.log("[Login] signIn returned:", result);
       if (result.error) {
+        console.log("[Login] Setting error:", result.error);
         setError(result.error);
       }
-    } catch {
+    } catch (err) {
+      console.error("[Login] Caught exception:", err);
       setError("Something went wrong. Please try again.");
     } finally {
+      console.log("[Login] Finally block - setting isSubmitting to false");
       setIsSubmitting(false);
     }
   };
