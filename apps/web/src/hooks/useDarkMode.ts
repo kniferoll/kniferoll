@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { safeGetItem, safeSetItem } from "@/lib";
 
-// Helper function to apply dark mode class to document
+// Theme colors matching Tailwind config
+const THEME_COLORS = {
+  light: "#fffbeb", // amber-50
+  dark: "#0f172a", // slate-900
+};
+
+// Helper function to apply dark mode class and update theme-color meta tag
 const applyDarkMode = (dark: boolean) => {
   const html = document.documentElement;
   if (dark) {
@@ -9,6 +15,18 @@ const applyDarkMode = (dark: boolean) => {
   } else {
     html.classList.remove("dark");
   }
+
+  // Update theme-color meta tag for iOS PWA status bar
+  const themeColor = dark ? THEME_COLORS.dark : THEME_COLORS.light;
+  let metaThemeColor = document.querySelector(
+    'meta[name="theme-color"]:not([media])'
+  );
+  if (!metaThemeColor) {
+    metaThemeColor = document.createElement("meta");
+    metaThemeColor.setAttribute("name", "theme-color");
+    document.head.appendChild(metaThemeColor);
+  }
+  metaThemeColor.setAttribute("content", themeColor);
 };
 
 export function useDarkMode() {

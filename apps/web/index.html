@@ -13,6 +13,10 @@
     <!-- iOS PWA: edge-to-edge display with translucent status bar -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- Theme color for status bar - updated dynamically by useDarkMode hook -->
+    <meta name="theme-color" content="#fffbeb" />
+    <meta name="theme-color" content="#fffbeb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
 
     <!-- Performance: DNS prefetch and preconnect to critical origins -->
     <link rel="dns-prefetch" href="https://cdn.supabase.co" />
