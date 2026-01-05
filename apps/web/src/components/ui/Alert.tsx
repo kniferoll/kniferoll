@@ -16,11 +16,7 @@ interface AlertProps {
  * - warning: Amber, for cautions
  * - info: Blue, for informational messages
  */
-export function Alert({
-  variant = "info",
-  children,
-  className = "",
-}: AlertProps) {
+export function Alert({ variant = "info", children, className = "" }: AlertProps) {
   const { isDark } = useDarkModeContext();
 
   const variantStyles = {
@@ -39,9 +35,7 @@ export function Alert({
   };
 
   return (
-    <div
-      className={`p-3 rounded-lg text-sm ${variantStyles[variant]} ${className}`}
-    >
+    <div className={`p-3 rounded-lg text-sm ${variantStyles[variant]} ${className}`}>
       {children}
     </div>
   );

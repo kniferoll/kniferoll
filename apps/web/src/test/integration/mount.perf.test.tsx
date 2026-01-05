@@ -48,7 +48,7 @@ describe("Budget Coverage", () => {
   const pageFiles = readdirSync(pagesDir)
     .filter((f) => f.endsWith(".tsx") && !f.includes(".test."))
     .map((f) => f.replace(".tsx", ""))
-    .filter((f) => !EXCLUDED_PAGES.includes(f as typeof EXCLUDED_PAGES[number]));
+    .filter((f) => !EXCLUDED_PAGES.includes(f as (typeof EXCLUDED_PAGES)[number]));
 
   it.each(pageFiles)("%s has a defined budget", (page) => {
     expect(PAGE_BUDGETS).toHaveProperty(page);
@@ -142,72 +142,73 @@ describe("Page Mount Performance", () => {
     },
   ];
 
-  describe.each(pageConfigs)("$name", ({ name, Component, waitFor: waitForTestId, initialRoute }) => {
-    beforeEach(() => {
-      // Set auth state based on page type
-      const isPublicPage = PUBLIC_PAGES.includes(name);
-      setTestAuthState(!isPublicPage);
-    });
+  describe.each(pageConfigs)(
+    "$name",
+    ({ name, Component, waitFor: waitForTestId, initialRoute }) => {
+      beforeEach(() => {
+        // Set auth state based on page type
+        const isPublicPage = PUBLIC_PAGES.includes(name);
+        setTestAuthState(!isPublicPage);
+      });
 
-    it(`mounts within render budget`, async () => {
-      const { Tracker, metrics } = createRenderTracker();
-      const budget = getBudget(name as PageBudgetName);
+      it(`mounts within render budget`, async () => {
+        const { Tracker, metrics } = createRenderTracker();
+        const budget = getBudget(name as PageBudgetName);
 
-      render(
-        <TestProviders initialRoute={initialRoute}>
-          <Tracker>
-            <Component />
-          </Tracker>
-        </TestProviders>
-      );
-
-      // Wait for page load indicator
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(waitForTestId)).toBeInTheDocument();
-        },
-        { timeout: 5000 }
-      );
-
-      // Assert within budget
-      expectWithinBudget(metrics, budget);
-    });
-
-    it(`renders without errors`, async () => {
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-      render(
-        <TestProviders initialRoute={initialRoute}>
-          <Component />
-        </TestProviders>
-      );
-
-      // Wait for page load
-      await waitFor(
-        () => {
-          expect(screen.getByTestId(waitForTestId)).toBeInTheDocument();
-        },
-        { timeout: 5000 }
-      );
-
-      // Check no React errors were logged
-      const reactErrors = consoleSpy.mock.calls.filter(
-        (call) =>
-          call.some((arg) =>
-            typeof arg === "string" &&
-            (arg.includes("React") || arg.includes("Warning"))
-          )
-      );
-
-      consoleSpy.mockRestore();
-
-      if (reactErrors.length > 0) {
-        throw new Error(
-          `React errors during render:\n${reactErrors.map((c) => c.join(" ")).join("\n")}`
+        render(
+          <TestProviders initialRoute={initialRoute}>
+            <Tracker>
+              <Component />
+            </Tracker>
+          </TestProviders>
         );
-      }
-    });
-  });
+
+        // Wait for page load indicator
+        await waitFor(
+          () => {
+            expect(screen.getByTestId(waitForTestId)).toBeInTheDocument();
+          },
+          { timeout: 5000 }
+        );
+
+        // Assert within budget
+        expectWithinBudget(metrics, budget);
+      });
+
+      it(`renders without errors`, async () => {
+        const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        render(
+          <TestProviders initialRoute={initialRoute}>
+            <Component />
+          </TestProviders>
+        );
+
+        // Wait for page load
+        await waitFor(
+          () => {
+            expect(screen.getByTestId(waitForTestId)).toBeInTheDocument();
+          },
+          { timeout: 5000 }
+        );
+
+        // Check no React errors were logged
+        const reactErrors = consoleSpy.mock.calls.filter((call) =>
+          call.some(
+            (arg) => typeof arg === "string" && (arg.includes("React") || arg.includes("Warning"))
+          )
+        );
+
+        consoleSpy.mockRestore();
+
+        if (reactErrors.length > 0) {
+          throw new Error(
+            `React errors during render:\n${reactErrors.map((c) => c.join(" ")).join("\n")}`
+          );
+        }
+      });
+    }
+  );
 });
 
 /**

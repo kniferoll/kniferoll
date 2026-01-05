@@ -126,9 +126,7 @@ async function downloadAndEncodeAttachment(attachment: Attachment): Promise<{
   }
 
   const buffer = await response.arrayBuffer();
-  const base64Content = btoa(
-    String.fromCharCode(...new Uint8Array(buffer))
-  );
+  const base64Content = btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
   return {
     filename: attachment.filename,
@@ -250,9 +248,7 @@ Deno.serve(async (req: Request) => {
     ]);
 
     // Download and encode attachments
-    const encodedAttachments = await Promise.all(
-      attachments.map(downloadAndEncodeAttachment)
-    );
+    const encodedAttachments = await Promise.all(attachments.map(downloadAndEncodeAttachment));
 
     // Forward to each destination
     const results: Array<{ to: string; emailId?: string; error?: string }> = [];

@@ -67,9 +67,7 @@ export function AddStationModal({
           placeholder="e.g., Garde Manger, Grill, Prep..."
           autoFocus
         />
-        {error && (
-          <p className="text-sm text-red-500 mt-2">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
 
         <div className="flex gap-3 mt-6">
           <Button

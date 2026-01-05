@@ -28,8 +28,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
 
     if (userMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [userMenuOpen]);
 
@@ -54,20 +53,24 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
   // Get user initials from name or email
   const getUserInitials = () => {
     if (userDisplayName) {
-      return userDisplayName
-        .split(" ")
-        .map((part) => part[0]?.toUpperCase() || "")
-        .join("")
-        .slice(0, 2) || "U";
+      return (
+        userDisplayName
+          .split(" ")
+          .map((part) => part[0]?.toUpperCase() || "")
+          .join("")
+          .slice(0, 2) || "U"
+      );
     }
     // Fall back to email
     if (user?.email) {
-      return user.email
-        .split("@")[0]
-        .split(".")
-        .map((part) => part[0]?.toUpperCase() || "")
-        .join("")
-        .slice(0, 2) || "U";
+      return (
+        user.email
+          .split("@")[0]
+          .split(".")
+          .map((part) => part[0]?.toUpperCase() || "")
+          .join("")
+          .slice(0, 2) || "U"
+      );
     }
     // Default for users without name or email
     return "U";
@@ -91,13 +94,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
           isDark
             ? "bg-linear-to-br from-gray-600 to-gray-700 text-gray-200 hover:from-gray-500 hover:to-gray-600"
             : "bg-linear-to-br from-orange-200 to-orange-300 text-orange-900 hover:from-orange-300 hover:to-orange-400"
-        } ${
-          userMenuOpen
-            ? isDark
-              ? "ring-2 ring-orange-500/50"
-              : "ring-2 ring-orange-400"
-            : ""
-        }`}
+        } ${userMenuOpen ? (isDark ? "ring-2 ring-orange-500/50" : "ring-2 ring-orange-400") : ""}`}
       >
         {userInitials}
       </button>
@@ -105,29 +102,15 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
       {userMenuOpen && (
         <div
           className={`absolute top-12 right-0 w-56 rounded-xl shadow-xl border ${
-            isDark
-              ? "bg-slate-800 border-slate-700"
-              : "bg-white border-stone-200"
+            isDark ? "bg-slate-800 border-slate-700" : "bg-white border-stone-200"
           } overflow-hidden z-50`}
         >
           {/* User info */}
-          <div
-            className={`px-4 py-3 border-b ${
-              isDark ? "border-slate-700" : "border-stone-200"
-            }`}
-          >
-            <div
-              className={`text-sm font-semibold ${
-                isDark ? "text-white" : "text-gray-900"
-              }`}
-            >
+          <div className={`px-4 py-3 border-b ${isDark ? "border-slate-700" : "border-stone-200"}`}>
+            <div className={`text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
               {userDisplayName || user?.email?.split("@")[0] || "Guest"}
             </div>
-            <div
-              className={`text-xs mt-1 ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
+            <div className={`text-xs mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
               {user?.email || "Anonymous user"}
             </div>
           </div>
@@ -148,12 +131,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
                   }`}
                 >
                   <span className="flex items-center gap-3">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -179,12 +157,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
                   className={menuItemStyles}
                 >
                   <span className="flex items-center gap-3">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -240,12 +213,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
               className={menuItemStyles}
             >
               <span className="flex items-center gap-3">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -264,12 +232,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
               className={menuItemStyles}
             >
               <span className="flex items-center gap-3">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -288,12 +251,7 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
               className={menuItemStyles}
             >
               <span className="flex items-center gap-3">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -311,18 +269,11 @@ export function UserAvatarMenu({ kitchenId, onInvite }: UserAvatarMenuProps) {
             <button
               onClick={handleSignOut}
               className={`w-full px-4 py-2.5 text-left text-sm transition-colors cursor-pointer ${
-                isDark
-                  ? "text-red-400 hover:bg-red-500/10"
-                  : "text-red-600 hover:bg-red-50"
+                isDark ? "text-red-400 hover:bg-red-500/10" : "text-red-600 hover:bg-red-50"
               }`}
             >
               <span className="flex items-center gap-3">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

@@ -139,12 +139,36 @@ export const defaultMockData = {
     createMockShift({ id: "shift-3", name: "Dinner", display_order: 2 }),
   ],
   shiftDays: [
-    createMockShiftDay({ day_of_week: 0, is_open: true, shift_ids: ["shift-1", "shift-2", "shift-3"] }),
-    createMockShiftDay({ day_of_week: 1, is_open: true, shift_ids: ["shift-1", "shift-2", "shift-3"] }),
-    createMockShiftDay({ day_of_week: 2, is_open: true, shift_ids: ["shift-1", "shift-2", "shift-3"] }),
-    createMockShiftDay({ day_of_week: 3, is_open: true, shift_ids: ["shift-1", "shift-2", "shift-3"] }),
-    createMockShiftDay({ day_of_week: 4, is_open: true, shift_ids: ["shift-1", "shift-2", "shift-3"] }),
-    createMockShiftDay({ day_of_week: 5, is_open: true, shift_ids: ["shift-1", "shift-2", "shift-3"] }),
+    createMockShiftDay({
+      day_of_week: 0,
+      is_open: true,
+      shift_ids: ["shift-1", "shift-2", "shift-3"],
+    }),
+    createMockShiftDay({
+      day_of_week: 1,
+      is_open: true,
+      shift_ids: ["shift-1", "shift-2", "shift-3"],
+    }),
+    createMockShiftDay({
+      day_of_week: 2,
+      is_open: true,
+      shift_ids: ["shift-1", "shift-2", "shift-3"],
+    }),
+    createMockShiftDay({
+      day_of_week: 3,
+      is_open: true,
+      shift_ids: ["shift-1", "shift-2", "shift-3"],
+    }),
+    createMockShiftDay({
+      day_of_week: 4,
+      is_open: true,
+      shift_ids: ["shift-1", "shift-2", "shift-3"],
+    }),
+    createMockShiftDay({
+      day_of_week: 5,
+      is_open: true,
+      shift_ids: ["shift-1", "shift-2", "shift-3"],
+    }),
     createMockShiftDay({ day_of_week: 6, is_open: false, shift_ids: [] }),
   ],
   units: [
@@ -229,18 +253,19 @@ export function createSupabaseQueryMock(customData: Partial<typeof defaultMockDa
       order: vi.fn(() => chain),
       single: vi.fn(() => {
         const result = getDataForTable(state.table, state);
-        const singleResult = Array.isArray(result) ? result[0] ?? null : result;
+        const singleResult = Array.isArray(result) ? (result[0] ?? null) : result;
         return Promise.resolve({ data: singleResult, error: null });
       }),
       maybeSingle: vi.fn(() => {
         const result = getDataForTable(state.table, state);
-        const singleResult = Array.isArray(result) ? result[0] ?? null : result;
+        const singleResult = Array.isArray(result) ? (result[0] ?? null) : result;
         return Promise.resolve({ data: singleResult, error: null });
       }),
       then: (resolve: (value: { data: unknown; error: null }) => void) => {
         let result = getDataForTable(state.table, state);
         // Handle 'in' filter
-        const inFilter = (state as unknown as Record<string, { column: string; values: unknown[] }>).inFilter;
+        const inFilter = (state as unknown as Record<string, { column: string; values: unknown[] }>)
+          .inFilter;
         if (inFilter && Array.isArray(result)) {
           result = result.filter((item) => {
             const itemVal = (item as Record<string, unknown>)[inFilter.column];
@@ -480,7 +505,9 @@ export const createMockHooks = (overrides: Record<string, unknown> = {}) => ({
 export const createLibMocks = () => ({
   supabase: createSupabaseQueryMock(),
   getDeviceToken: vi.fn(() => "mock-device-token"),
-  signInAnonymously: vi.fn(() => Promise.resolve({ user: createMockUser({ id: "anon-user-id" }), error: null })),
+  signInAnonymously: vi.fn(() =>
+    Promise.resolve({ user: createMockUser({ id: "anon-user-id" }), error: null })
+  ),
   getTodayLocalDate: vi.fn(() => new Date().toISOString().split("T")[0]),
   preloadDashboard: vi.fn(),
   jsDateToDatabaseDayOfWeek: vi.fn((jsDay: number) => (jsDay === 0 ? 6 : jsDay - 1)),

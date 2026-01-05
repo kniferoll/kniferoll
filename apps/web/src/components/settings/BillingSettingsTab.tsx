@@ -47,34 +47,17 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
       {error && <Alert variant="error">{error}</Alert>}
 
       <SettingsSection title="Current Plan">
-        <div
-          className={`rounded-xl p-6 ${
-            isDark ? "bg-slate-800" : "bg-stone-50"
-          }`}
-        >
-          <p
-            className={`text-sm mb-2 ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+        <div className={`rounded-xl p-6 ${isDark ? "bg-slate-800" : "bg-stone-50"}`}>
+          <p className={`text-sm mb-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             Plan Status
           </p>
-          <p
-            className={`text-2xl font-bold mb-4 ${
-              isDark ? "text-white" : "text-gray-900"
-            }`}
-          >
+          <p className={`text-2xl font-bold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
             {isPro ? "Pro" : "Free"}
           </p>
 
           {isPro && profile?.subscription_period_end && (
-            <p
-              className={`text-sm ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              Renews on{" "}
-              {new Date(profile.subscription_period_end).toLocaleDateString()}
+            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              Renews on {new Date(profile.subscription_period_end).toLocaleDateString()}
             </p>
           )}
         </div>
@@ -103,30 +86,17 @@ export function BillingSettingsTab({ userId }: BillingSettingsTabProps) {
                 : "bg-orange-50 border border-orange-100"
             }`}
           >
-            <h4
-              className={`font-semibold mb-3 ${
-                isDark ? "text-orange-400" : "text-orange-600"
-              }`}
-            >
+            <h4 className={`font-semibold mb-3 ${isDark ? "text-orange-400" : "text-orange-600"}`}>
               Pro Features:
             </h4>
-            <ul
-              className={`space-y-2 text-sm ${
-                isDark ? "text-orange-300" : "text-orange-700"
-              }`}
-            >
+            <ul className={`space-y-2 text-sm ${isDark ? "text-orange-300" : "text-orange-700"}`}>
               <li>✓ Up to 5 kitchens</li>
               <li>✓ Unlimited stations per kitchen</li>
               <li>✓ Invite team members</li>
               <li>✓ Real-time collaboration</li>
             </ul>
           </div>
-          <Button
-            variant="primary"
-            onClick={handleUpgrade}
-            disabled={checkoutLoading}
-            fullWidth
-          >
+          <Button variant="primary" onClick={handleUpgrade} disabled={checkoutLoading} fullWidth>
             {checkoutLoading ? "Redirecting..." : "Upgrade to Pro - $29/month"}
           </Button>
         </SettingsSection>

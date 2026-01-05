@@ -5,13 +5,7 @@ interface PendingIconProps {
 
 export function PendingIcon({ size = 24, className = "" }: PendingIconProps) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      className={className}
-    >
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
       <circle cx="12" cy="12" r="10" stroke="#a8a29e" strokeWidth="2" />
     </svg>
   );

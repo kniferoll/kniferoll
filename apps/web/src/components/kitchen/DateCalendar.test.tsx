@@ -166,7 +166,10 @@ describe("DateCalendar", () => {
       const currentDate = new Date();
       const selectedDate = new Date("2024-06-15");
       // Only expect today marker if we're viewing the month that contains today
-      if (currentDate.getMonth() === selectedDate.getMonth() && currentDate.getFullYear() === selectedDate.getFullYear()) {
+      if (
+        currentDate.getMonth() === selectedDate.getMonth() &&
+        currentDate.getFullYear() === selectedDate.getFullYear()
+      ) {
         expect(todayCells.length).toBeGreaterThan(0);
       } else {
         // If viewing a different month, today won't be visible - that's expected
@@ -286,11 +289,7 @@ describe("DateCalendar", () => {
       const onDateSelect = vi.fn();
       render(
         <TestProviders>
-          <DateCalendar
-            {...defaultProps}
-            selectedDate="2024-07-01"
-            onDateSelect={onDateSelect}
-          />
+          <DateCalendar {...defaultProps} selectedDate="2024-07-01" onDateSelect={onDateSelect} />
         </TestProviders>
       );
 
@@ -373,9 +372,7 @@ describe("DateCalendar", () => {
       await user.click(screen.getByRole("button"));
 
       // Check for accessible labels on navigation
-      expect(
-        screen.getByRole("button", { name: /previous/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /previous/i })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
     });
 
@@ -401,11 +398,7 @@ describe("DateCalendar", () => {
       const onDateSelect = vi.fn();
       render(
         <TestProviders>
-          <DateCalendar
-            {...defaultProps}
-            selectedDate="2024-06-30"
-            onDateSelect={onDateSelect}
-          />
+          <DateCalendar {...defaultProps} selectedDate="2024-06-30" onDateSelect={onDateSelect} />
         </TestProviders>
       );
 

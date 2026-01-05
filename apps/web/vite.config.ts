@@ -7,11 +7,7 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 // https://vite.dev/config/
 // Resolve repo root so Vite reads env files from the monorepo root
-const rootDir = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  ".."
-);
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 export default defineConfig({
   envDir: rootDir,
@@ -88,10 +84,7 @@ export default defineConfig({
           "vendor-router": ["react-router-dom"],
           "vendor-zustand": ["zustand"],
           // Library chunks
-          "lib-analytics": [
-            "@vercel/analytics/react",
-            "@vercel/speed-insights/react",
-          ],
+          "lib-analytics": ["@vercel/analytics/react", "@vercel/speed-insights/react"],
           "lib-sentry": ["@sentry/react"],
           "lib-qr": ["qrcode"],
         },

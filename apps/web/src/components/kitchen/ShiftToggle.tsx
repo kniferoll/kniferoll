@@ -27,18 +27,14 @@ export function ShiftToggle({
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
       }
     }
 
     if (dropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [dropdownOpen]);
 
@@ -75,8 +71,8 @@ export function ShiftToggle({
               currentShift === shift
                 ? "bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25"
                 : isDark
-                ? "text-slate-400 hover:text-white hover:bg-slate-700"
-                : "text-stone-600 hover:text-stone-900 hover:bg-stone-50"
+                  ? "text-slate-400 hover:text-white hover:bg-slate-700"
+                  : "text-stone-600 hover:text-stone-900 hover:bg-stone-50"
             }`}
           >
             {shift}
@@ -93,8 +89,8 @@ export function ShiftToggle({
               dropdownOpen || hiddenShifts.includes(currentShift)
                 ? "bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25"
                 : isDark
-                ? "bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"
-                : "bg-white text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-stone-200"
+                  ? "bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700"
+                  : "bg-white text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-stone-200"
             }`}
           >
             +{hiddenShifts.length} more
@@ -119,8 +115,8 @@ export function ShiftToggle({
                     currentShift === shift
                       ? "bg-linear-to-r from-orange-500 to-orange-600 text-white"
                       : isDark
-                      ? "text-slate-300 hover:bg-slate-800"
-                      : "text-stone-700 hover:bg-stone-50"
+                        ? "text-slate-300 hover:bg-slate-800"
+                        : "text-stone-700 hover:bg-stone-50"
                   }`}
                 >
                   {shift}

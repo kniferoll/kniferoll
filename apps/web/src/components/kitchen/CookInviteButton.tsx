@@ -35,14 +35,9 @@ export default function CookInviteButton() {
 
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Invite link system coming soon. This feature will be updated to
-                use magic links.
+                Invite link system coming soon. This feature will be updated to use magic links.
               </p>
-              <Button
-                onClick={handleClose}
-                variant="secondary"
-                className="w-full"
-              >
+              <Button onClick={handleClose} variant="secondary" className="w-full">
                 Close
               </Button>
             </div>

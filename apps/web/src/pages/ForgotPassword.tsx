@@ -43,29 +43,18 @@ export function ForgotPassword() {
           >
             Check your email
           </h1>
-          <p
-            className={`cursor-default ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <p className={`cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             We sent a password reset link to your email
           </p>
         </div>
 
         <Card padding="lg">
-          <p
-            className={`text-center mb-6 ${
-              isDark ? "text-gray-300" : "text-gray-700"
-            }`}
-          >
-            Click the link in the email to reset your password. If you don't
-            see it, check your spam folder.
+          <p className={`text-center mb-6 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+            Click the link in the email to reset your password. If you don't see it, check your spam
+            folder.
           </p>
           <div className="text-center">
-            <Link
-              to="/login"
-              className="text-orange-500 hover:text-orange-600 font-medium"
-            >
+            <Link to="/login" className="text-orange-500 hover:text-orange-600 font-medium">
               Back to login
             </Link>
           </div>

@@ -141,9 +141,7 @@ vi.mock("@/lib/supabase", () => ({
       getSession: vi.fn(() =>
         Promise.resolve({ data: { session: defaultMockData.session }, error: null })
       ),
-      getUser: vi.fn(() =>
-        Promise.resolve({ data: { user: defaultMockData.user }, error: null })
-      ),
+      getUser: vi.fn(() => Promise.resolve({ data: { user: defaultMockData.user }, error: null })),
       onAuthStateChange: vi.fn(() => ({
         data: { subscription: { unsubscribe: vi.fn() } },
       })),
@@ -234,9 +232,7 @@ const createLibSupabaseMock = () => {
       getSession: vi.fn(() =>
         Promise.resolve({ data: { session: defaultMockData.session }, error: null })
       ),
-      getUser: vi.fn(() =>
-        Promise.resolve({ data: { user: defaultMockData.user }, error: null })
-      ),
+      getUser: vi.fn(() => Promise.resolve({ data: { user: defaultMockData.user }, error: null })),
       onAuthStateChange: vi.fn(() => ({
         data: { subscription: { unsubscribe: vi.fn() } },
       })),

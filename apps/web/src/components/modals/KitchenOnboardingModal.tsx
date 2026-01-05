@@ -16,13 +16,7 @@ import {
   PRESET_SHIFTS,
 } from "@/components/kitchen";
 
-type Step =
-  | "name"
-  | "days"
-  | "shifts"
-  | "schedule-mode"
-  | "stations"
-  | "upgrade";
+type Step = "name" | "days" | "shifts" | "schedule-mode" | "stations" | "upgrade";
 
 const WIZARD_STEPS = [
   { id: "name", name: "Kitchen Name" },
@@ -51,10 +45,7 @@ export function KitchenOnboardingModal({
   const [step, setStep] = useState<Step>("name");
   const [kitchenName, setKitchenName] = useState("");
   const [closedDays, setClosedDays] = useState<DayOfWeek[]>([]);
-  const [selectedShifts, setSelectedShifts] = useState<string[]>([
-    "Lunch",
-    "Dinner",
-  ]);
+  const [selectedShifts, setSelectedShifts] = useState<string[]>(["Lunch", "Dinner"]);
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("same");
   const [perDaySchedule, setPerDaySchedule] = useState<Schedule>({
     monday: ["Lunch", "Dinner"],
@@ -91,14 +82,13 @@ export function KitchenOnboardingModal({
 
   // Enforce station limit - using useMemo pattern to avoid setState in effect
   const maxStations = limits?.maxStationsPerKitchen;
-  const stationsToDisplay = maxStations !== undefined && maxStations < Infinity && stations.length > maxStations
-    ? stations.slice(0, maxStations)
-    : stations;
+  const stationsToDisplay =
+    maxStations !== undefined && maxStations < Infinity && stations.length > maxStations
+      ? stations.slice(0, maxStations)
+      : stations;
 
   const toggleDay = (day: DayOfWeek) => {
-    setClosedDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
+    setClosedDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
   };
 
   const toggleShift = (shift: string) => {
@@ -134,9 +124,7 @@ export function KitchenOnboardingModal({
       limits.maxStationsPerKitchen !== Infinity &&
       stations.length >= limits.maxStationsPerKitchen
     ) {
-      setError(
-        `Your plan allows up to ${limits.maxStationsPerKitchen} station(s).`
-      );
+      setError(`Your plan allows up to ${limits.maxStationsPerKitchen} station(s).`);
       return;
     }
     if (!stations.includes(station)) {
@@ -202,18 +190,11 @@ export function KitchenOnboardingModal({
       limits.maxStationsPerKitchen !== Infinity &&
       stations.length > limits.maxStationsPerKitchen
     ) {
-      setError(
-        `Your plan allows up to ${limits.maxStationsPerKitchen} station(s).`
-      );
+      setError(`Your plan allows up to ${limits.maxStationsPerKitchen} station(s).`);
       return;
     }
 
-    const result = await createKitchen(
-      kitchenName,
-      stations,
-      closedDays,
-      perDaySchedule
-    );
+    const result = await createKitchen(kitchenName, stations, closedDays, perDaySchedule);
 
     if (result.error) {
       setError(result.error);
@@ -226,16 +207,10 @@ export function KitchenOnboardingModal({
     switch (step) {
       case "name":
         return (
-          <StepKitchenName
-            value={kitchenName}
-            onChange={setKitchenName}
-            onEnter={handleNext}
-          />
+          <StepKitchenName value={kitchenName} onChange={setKitchenName} onEnter={handleNext} />
         );
       case "days":
-        return (
-          <StepOperatingDays closedDays={closedDays} onToggleDay={toggleDay} />
-        );
+        return <StepOperatingDays closedDays={closedDays} onToggleDay={toggleDay} />;
       case "shifts":
         return (
           <StepShifts
@@ -263,9 +238,7 @@ export function KitchenOnboardingModal({
             onAddStation={addStation}
             onRemoveStation={removeStation}
             maxStations={
-              limits?.maxStationsPerKitchen !== Infinity
-                ? limits?.maxStationsPerKitchen
-                : undefined
+              limits?.maxStationsPerKitchen !== Infinity ? limits?.maxStationsPerKitchen : undefined
             }
             onUpgradeClick={() => setStep("upgrade")}
           />

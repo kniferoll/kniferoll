@@ -15,11 +15,7 @@ interface StatusIconProps {
  * - in_progress: yellow circle with dot
  * - pending: gray empty circle
  */
-export function StatusIcon({
-  status,
-  size = 24,
-  className = "",
-}: StatusIconProps) {
+export function StatusIcon({ status, size = 24, className = "" }: StatusIconProps) {
   switch (status) {
     case "complete":
       return <CheckmarkIcon size={size} className={className} />;

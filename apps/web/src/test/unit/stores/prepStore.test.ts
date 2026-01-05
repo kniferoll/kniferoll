@@ -346,9 +346,7 @@ describe("prepStore", () => {
   describe("updatePrepItem", () => {
     beforeEach(() => {
       usePrepStore.setState({
-        prepItems: [
-          { id: "item-1", quantity: 5, description: "Test" },
-        ] as never,
+        prepItems: [{ id: "item-1", quantity: 5, description: "Test" }] as never,
       });
     });
 
@@ -393,11 +391,9 @@ describe("prepStore", () => {
         })),
       });
 
-      await usePrepStore.getState().updatePrepItem(
-        "item-1",
-        { unit_id: "new-unit" },
-        { unit_name: "kg" }
-      );
+      await usePrepStore
+        .getState()
+        .updatePrepItem("item-1", { unit_id: "new-unit" }, { unit_name: "kg" });
 
       expect(usePrepStore.getState().prepItems[0].unit_name).toBe("kg");
     });

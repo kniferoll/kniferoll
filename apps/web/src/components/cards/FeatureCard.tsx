@@ -30,11 +30,7 @@ export function FeatureCard({ icon, title, description }: FeatureCardProps) {
       {/* Content */}
       <div>
         <h3 className="font-semibold mb-1">{title}</h3>
-        <p
-          className={`text-sm leading-relaxed ${
-            isDark ? "text-gray-400" : "text-gray-600"
-          }`}
-        >
+        <p className={`text-sm leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>
           {description}
         </p>
       </div>

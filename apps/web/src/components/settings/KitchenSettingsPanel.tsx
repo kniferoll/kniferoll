@@ -2,15 +2,7 @@ import { useState } from "react";
 import { captureError } from "@/lib";
 import { useDarkModeContext } from "@/context";
 import { useStripeCheckout, usePlanLimits } from "@/hooks";
-import {
-  Card,
-  Tabs,
-  TabList,
-  Tab,
-  TabPanel,
-  InviteLinkModal,
-  UpgradeModal,
-} from "@/components";
+import { Card, Tabs, TabList, Tab, TabPanel, InviteLinkModal, UpgradeModal } from "@/components";
 import { GeneralSettingsTab } from "./GeneralSettingsTab";
 import { ScheduleSettingsTab } from "./ScheduleSettingsTab";
 import { StationsSettingsTab } from "./StationsSettingsTab";
@@ -40,9 +32,7 @@ export function KitchenSettingsPanel({
   const [activeTab, setActiveTab] = useState("general");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeReason, setUpgradeReason] = useState<"stations" | "invites">(
-    "stations"
-  );
+  const [upgradeReason, setUpgradeReason] = useState<"stations" | "invites">("stations");
 
   const isOwner = membership.role === "owner";
   // Owner can invite if they have a pro plan, non-owners check their can_invite permission
@@ -79,10 +69,7 @@ export function KitchenSettingsPanel({
 
           <TabPanel value="schedule">
             <div data-testid="schedule-tab-content">
-              <ScheduleSettingsTab
-                kitchenId={kitchen.id}
-                isOwner={isOwner}
-              />
+              <ScheduleSettingsTab kitchenId={kitchen.id} isOwner={isOwner} />
             </div>
           </TabPanel>
 
@@ -130,11 +117,7 @@ export function KitchenSettingsPanel({
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
-        title={
-          upgradeReason === "invites"
-            ? "Invite Your Team"
-            : "Unlock Unlimited Stations"
-        }
+        title={upgradeReason === "invites" ? "Invite Your Team" : "Unlock Unlimited Stations"}
         description={
           upgradeReason === "invites"
             ? "Free accounts cannot invite team members. Upgrade to Pro for $29/month to invite your team and collaborate in real-time."

@@ -8,7 +8,11 @@ vi.mock("@/context", () => ({
 }));
 
 vi.mock("@/components/icons", () => ({
-  XIcon: vi.fn(({ size }) => <span data-testid="x-icon" data-size={size}>X</span>),
+  XIcon: vi.fn(({ size }) => (
+    <span data-testid="x-icon" data-size={size}>
+      X
+    </span>
+  )),
 }));
 
 import { useDarkModeContext } from "@/context";

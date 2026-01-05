@@ -71,13 +71,9 @@ export function useItemSuggestions(
         // Rank suggestions
         const ranked: RankedSuggestion[] = transformed.map((suggestion) => {
           const now = new Date();
-          const lastUsedDate = suggestion.last_used
-            ? new Date(suggestion.last_used)
-            : null;
+          const lastUsedDate = suggestion.last_used ? new Date(suggestion.last_used) : null;
           const recencyDays = lastUsedDate
-            ? Math.floor(
-                (now.getTime() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24)
-              )
+            ? Math.floor((now.getTime() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24))
             : 999;
 
           // Calculate score
@@ -96,9 +92,7 @@ export function useItemSuggestions(
         let filtered = ranked;
         if (searchQuery.trim()) {
           const queryLower = searchQuery.toLowerCase();
-          filtered = ranked.filter((s) =>
-            (s.description || "").toLowerCase().includes(queryLower)
-          );
+          filtered = ranked.filter((s) => (s.description || "").toLowerCase().includes(queryLower));
         }
 
         // Sort by score (highest first)
@@ -107,8 +101,7 @@ export function useItemSuggestions(
         // Limit to top 10 results
         setSuggestions(filtered.slice(0, 10));
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to load suggestions";
+        const message = err instanceof Error ? err.message : "Failed to load suggestions";
         setError(message);
       } finally {
         setLoading(false);
@@ -124,8 +117,6 @@ export function useItemSuggestions(
 /**
  * Hook to get the last used quantity for a suggestion
  */
-export function getLastQuantity(
-  suggestion: KitchenItemSuggestion
-): number | null {
+export function getLastQuantity(suggestion: KitchenItemSuggestion): number | null {
   return suggestion.last_quantity || null;
 }

@@ -168,14 +168,8 @@ describe("offlineStore", () => {
     it("sets up online and offline event listeners", () => {
       useOfflineStore.getState().initialize();
 
-      expect(addEventListenerSpy).toHaveBeenCalledWith(
-        "online",
-        expect.any(Function)
-      );
-      expect(addEventListenerSpy).toHaveBeenCalledWith(
-        "offline",
-        expect.any(Function)
-      );
+      expect(addEventListenerSpy).toHaveBeenCalledWith("online", expect.any(Function));
+      expect(addEventListenerSpy).toHaveBeenCalledWith("offline", expect.any(Function));
     });
 
     it("sets isOnline to navigator.onLine value", () => {

@@ -36,11 +36,7 @@ export function StepScheduleMode({
       >
         How does your schedule work?
       </h2>
-      <p
-        className={`mb-6 cursor-default ${
-          isDark ? "text-gray-400" : "text-gray-600"
-        }`}
-      >
+      <p className={`mb-6 cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
         Do you run the same shifts every day?
       </p>
 
@@ -52,28 +48,20 @@ export function StepScheduleMode({
             mode === "same"
               ? "border-orange-500 bg-orange-500/10"
               : isDark
-              ? "border-slate-700 hover:border-slate-600"
-              : "border-stone-200 hover:border-stone-300"
+                ? "border-slate-700 hover:border-slate-600"
+                : "border-stone-200 hover:border-stone-300"
           }`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <div
-                className={`font-semibold text-lg ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
+              <div className={`font-semibold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>
                 Same every day
               </div>
-              <div
-                className={`mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}
-              >
+              <div className={`mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                 All open days run the same shifts
               </div>
             </div>
-            {mode === "same" && (
-              <span className="text-orange-500 text-2xl">✓</span>
-            )}
+            {mode === "same" && <span className="text-orange-500 text-2xl">✓</span>}
           </div>
         </button>
 
@@ -83,28 +71,20 @@ export function StepScheduleMode({
             mode === "varies"
               ? "border-orange-500 bg-orange-500/10"
               : isDark
-              ? "border-slate-700 hover:border-slate-600"
-              : "border-stone-200 hover:border-stone-300"
+                ? "border-slate-700 hover:border-slate-600"
+                : "border-stone-200 hover:border-stone-300"
           }`}
         >
           <div className="flex items-center justify-between">
             <div>
-              <div
-                className={`font-semibold text-lg ${
-                  isDark ? "text-white" : "text-gray-900"
-                }`}
-              >
+              <div className={`font-semibold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>
                 Varies by day
               </div>
-              <div
-                className={`mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}
-              >
+              <div className={`mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                 Configure each day separately
               </div>
             </div>
-            {mode === "varies" && (
-              <span className="text-orange-500 text-2xl">✓</span>
-            )}
+            {mode === "varies" && <span className="text-orange-500 text-2xl">✓</span>}
           </div>
         </button>
       </div>
@@ -112,36 +92,21 @@ export function StepScheduleMode({
       {/* Per-Day Configuration */}
       {mode === "varies" && (
         <div
-          className={`border-t pt-6 space-y-4 ${
-            isDark ? "border-slate-700" : "border-stone-200"
-          }`}
+          className={`border-t pt-6 space-y-4 ${isDark ? "border-slate-700" : "border-stone-200"}`}
         >
-          <h3
-            className={`font-semibold mb-4 ${
-              isDark ? "text-white" : "text-gray-900"
-            }`}
-          >
+          <h3 className={`font-semibold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
             Configure each day:
           </h3>
           {DAYS.map(({ key, label }) => {
             if (closedDays.includes(key)) {
               return (
-                <div
-                  key={key}
-                  className="flex items-center justify-between py-2"
-                >
+                <div key={key} className="flex items-center justify-between py-2">
                   <span
-                    className={`font-medium w-24 ${
-                      isDark ? "text-gray-500" : "text-gray-400"
-                    }`}
+                    className={`font-medium w-24 ${isDark ? "text-gray-500" : "text-gray-400"}`}
                   >
                     {label}
                   </span>
-                  <span
-                    className={`italic ${
-                      isDark ? "text-gray-500" : "text-gray-400"
-                    }`}
-                  >
+                  <span className={`italic ${isDark ? "text-gray-500" : "text-gray-400"}`}>
                     Closed
                   </span>
                 </div>
@@ -151,9 +116,7 @@ export function StepScheduleMode({
             return (
               <div key={key} className="flex items-start gap-3">
                 <span
-                  className={`font-medium w-24 pt-2 ${
-                    isDark ? "text-white" : "text-gray-900"
-                  }`}
+                  className={`font-medium w-24 pt-2 ${isDark ? "text-white" : "text-gray-900"}`}
                 >
                   {label}
                 </span>
@@ -166,8 +129,8 @@ export function StepScheduleMode({
                         perDaySchedule[key]?.includes(shift)
                           ? "bg-orange-500 text-white"
                           : isDark
-                          ? "bg-slate-700 text-gray-300 hover:bg-slate-600"
-                          : "bg-stone-100 text-gray-700 hover:bg-stone-200"
+                            ? "bg-slate-700 text-gray-300 hover:bg-slate-600"
+                            : "bg-stone-100 text-gray-700 hover:bg-stone-200"
                       }`}
                     >
                       {perDaySchedule[key]?.includes(shift) && "✓ "}

@@ -27,12 +27,7 @@ export function KitchenCard({
   const { isDark } = useDarkModeContext();
 
   return (
-    <Card
-      variant="interactive"
-      padding="none"
-      className="relative w-full"
-      onClick={onClick}
-    >
+    <Card variant="interactive" padding="none" className="relative w-full" onClick={onClick}>
       {/* Settings Button */}
       {onMenuToggle && (
         <button
@@ -59,9 +54,7 @@ export function KitchenCard({
       {showMenu && menuContent && (
         <div
           className={`absolute top-14 right-6 w-48 rounded-xl shadow-xl border z-50 ${
-            isDark
-              ? "bg-slate-800 border-slate-700"
-              : "bg-white border-stone-200"
+            isDark ? "bg-slate-800 border-slate-700" : "bg-white border-stone-200"
           }`}
           data-settings-menu
         >
@@ -86,9 +79,7 @@ export function KitchenCard({
         {/* Role Badge */}
         <span
           className={`inline-block px-2.5 py-1 text-xs font-semibold rounded-md mb-4 ${
-            isDark
-              ? "bg-orange-500/20 text-orange-400"
-              : "bg-orange-100 text-orange-600"
+            isDark ? "bg-orange-500/20 text-orange-400" : "bg-orange-100 text-orange-600"
           }`}
         >
           {role}

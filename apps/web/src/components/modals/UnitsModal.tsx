@@ -24,11 +24,7 @@ const CATEGORIES = [
   { key: "other", label: "Other" },
 ];
 
-export function UnitsModal({
-  onClose,
-  onUnitSelected,
-  selectedUnitId,
-}: UnitsModalProps) {
+export function UnitsModal({ onClose, onUnitSelected, selectedUnitId }: UnitsModalProps) {
   const { currentKitchen } = useKitchenStore();
   const { allUnits: storeUnits, addUnit } = usePrepEntryStore();
   const [allUnits, setAllUnits] = useState<KitchenUnit[]>(storeUnits);
@@ -98,8 +94,7 @@ export function UnitsModal({
     const query = searchQuery.toLowerCase();
     return allUnits.filter(
       (unit) =>
-        unit.name.toLowerCase().includes(query) ||
-        unit.display_name?.toLowerCase().includes(query)
+        unit.name.toLowerCase().includes(query) || unit.display_name?.toLowerCase().includes(query)
     );
   }, [allUnits, searchQuery]);
 
@@ -167,9 +162,7 @@ export function UnitsModal({
         >
           {/* Header */}
           <div className="flex justify-between items-center px-5 py-4">
-            <h2 className="text-lg font-semibold text-stone-900 dark:text-slate-50">
-              Select Unit
-            </h2>
+            <h2 className="text-lg font-semibold text-stone-900 dark:text-slate-50">Select Unit</h2>
             <button
               onClick={onClose}
               className="w-8 h-8 flex items-center justify-center rounded-full text-stone-400 hover:text-stone-600 hover:bg-stone-100 dark:text-slate-500 dark:hover:text-slate-300 dark:hover:bg-slate-800 transition-colors"
@@ -195,131 +188,135 @@ export function UnitsModal({
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
             <AnimatePresence mode="wait">
-            {showCreateForm ? (
-              <motion.form
-                key="create-form"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-                onSubmit={handleCreateUnit}
-                className="p-5 space-y-4"
-              >
-                <div>
-                  <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-2">
-                    Unit Name
-                  </label>
-                  <input
-                    ref={newUnitInputRef}
-                    type="text"
-                    value={newUnitName}
-                    onChange={(e) => setNewUnitName(e.target.value)}
-                    placeholder="e.g., Red Cambro"
-                    className="w-full px-4 py-2.5 border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-slate-50 placeholder-stone-400 dark:placeholder-slate-400 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 dark:focus:border-orange-400 outline-none transition-all"
-                  />
-                </div>
-                <Listbox value={selectedCategory} onChange={setSelectedCategory}>
-                  <div className="relative">
+              {showCreateForm ? (
+                <motion.form
+                  key="create-form"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  onSubmit={handleCreateUnit}
+                  className="p-5 space-y-4"
+                >
+                  <div>
                     <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-2">
-                      Category
+                      Unit Name
                     </label>
-                    <ListboxButton className="relative w-full cursor-pointer rounded-xl border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-2.5 pl-4 pr-10 text-left text-stone-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 dark:focus:border-orange-400 transition-all">
-                      <span className="block truncate">{selectedCategory.label}</span>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                        <ChevronDownIcon className="h-4 w-4 text-stone-400 dark:text-slate-500" />
-                      </span>
-                    </ListboxButton>
-
-                    <ListboxOptions
-                      anchor="top"
-                      transition
-                      className="z-60 mb-1 max-h-60 w-(--button-width) overflow-auto rounded-xl bg-white dark:bg-slate-800 py-1 text-sm border border-stone-200 dark:border-slate-600 shadow-lg focus:outline-none data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0"
-                    >
-                      {CATEGORIES.map((category) => (
-                        <ListboxOption
-                          key={category.key}
-                          value={category}
-                          className="group relative cursor-pointer select-none py-2.5 pl-4 pr-9 text-stone-900 dark:text-slate-50 data-focus:bg-orange-500 data-focus:text-white"
-                        >
-                          <span className="block truncate font-normal group-data-selected:font-semibold">
-                            {category.label}
-                          </span>
-                          <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-orange-500 dark:text-orange-400 group-not-data-selected:hidden group-data-focus:text-white">
-                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" />
-                            </svg>
-                          </span>
-                        </ListboxOption>
-                      ))}
-                    </ListboxOptions>
+                    <input
+                      ref={newUnitInputRef}
+                      type="text"
+                      value={newUnitName}
+                      onChange={(e) => setNewUnitName(e.target.value)}
+                      placeholder="e.g., Red Cambro"
+                      className="w-full px-4 py-2.5 border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-slate-50 placeholder-stone-400 dark:placeholder-slate-400 rounded-xl text-sm focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 dark:focus:border-orange-400 outline-none transition-all"
+                    />
                   </div>
-                </Listbox>
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="submit"
-                    disabled={!newUnitName.trim() || isCreating}
-                    className="flex-1 px-4 py-2.5 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl text-sm font-semibold shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
-                  >
-                    {isCreating ? "Creating..." : "Create Unit"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCreateForm(false);
-                      setNewUnitName("");
-                    }}
-                    className="flex-1 px-4 py-2.5 bg-stone-100 dark:bg-slate-700 text-stone-700 dark:text-slate-200 rounded-xl text-sm font-semibold hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </motion.form>
-            ) : (
-              <motion.div
-                key="unit-list"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2 }}
-                className="p-4"
-              >
-                {groupedUnits.map(({ category, label, units }) => (
-                  <div key={category} className="mb-4 last:mb-0">
-                    <div className="text-xs font-semibold text-stone-400 dark:text-slate-500 uppercase tracking-wider mb-2 px-1">
-                      {label}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {units.map((unit) => (
-                        <Pill
-                          key={unit.id}
-                          variant={selectedUnitId === unit.id ? "selected" : "default"}
-                          size="md"
-                          onClick={() => handleUnitClick(unit)}
-                          title={unit.display_name || unit.name}
-                        >
-                          {unit.name}
-                        </Pill>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  <Listbox value={selectedCategory} onChange={setSelectedCategory}>
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-stone-700 dark:text-slate-300 mb-2">
+                        Category
+                      </label>
+                      <ListboxButton className="relative w-full cursor-pointer rounded-xl border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-2.5 pl-4 pr-10 text-left text-stone-900 dark:text-slate-50 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 dark:focus:border-orange-400 transition-all">
+                        <span className="block truncate">{selectedCategory.label}</span>
+                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                          <ChevronDownIcon className="h-4 w-4 text-stone-400 dark:text-slate-500" />
+                        </span>
+                      </ListboxButton>
 
-                {filteredUnits.length === 0 && searchQuery && (
-                  <div className="text-center py-8 text-stone-500 dark:text-slate-400">
-                    <p className="mb-3">No units found for "{searchQuery}"</p>
+                      <ListboxOptions
+                        anchor="top"
+                        transition
+                        className="z-60 mb-1 max-h-60 w-(--button-width) overflow-auto rounded-xl bg-white dark:bg-slate-800 py-1 text-sm border border-stone-200 dark:border-slate-600 shadow-lg focus:outline-none data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0"
+                      >
+                        {CATEGORIES.map((category) => (
+                          <ListboxOption
+                            key={category.key}
+                            value={category}
+                            className="group relative cursor-pointer select-none py-2.5 pl-4 pr-9 text-stone-900 dark:text-slate-50 data-focus:bg-orange-500 data-focus:text-white"
+                          >
+                            <span className="block truncate font-normal group-data-selected:font-semibold">
+                              {category.label}
+                            </span>
+                            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-orange-500 dark:text-orange-400 group-not-data-selected:hidden group-data-focus:text-white">
+                              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </span>
+                          </ListboxOption>
+                        ))}
+                      </ListboxOptions>
+                    </div>
+                  </Listbox>
+                  <div className="flex gap-3 pt-2">
                     <button
-                      onClick={() => {
-                        setShowCreateForm(true);
-                        setNewUnitName(searchQuery);
-                      }}
-                      className="text-orange-600 dark:text-orange-400 font-medium hover:underline"
+                      type="submit"
+                      disabled={!newUnitName.trim() || isCreating}
+                      className="flex-1 px-4 py-2.5 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl text-sm font-semibold shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-lg"
                     >
-                      Create "{searchQuery}" as a new unit
+                      {isCreating ? "Creating..." : "Create Unit"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCreateForm(false);
+                        setNewUnitName("");
+                      }}
+                      className="flex-1 px-4 py-2.5 bg-stone-100 dark:bg-slate-700 text-stone-700 dark:text-slate-200 rounded-xl text-sm font-semibold hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors"
+                    >
+                      Cancel
                     </button>
                   </div>
-                )}
-              </motion.div>
-            )}
+                </motion.form>
+              ) : (
+                <motion.div
+                  key="unit-list"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                  className="p-4"
+                >
+                  {groupedUnits.map(({ category, label, units }) => (
+                    <div key={category} className="mb-4 last:mb-0">
+                      <div className="text-xs font-semibold text-stone-400 dark:text-slate-500 uppercase tracking-wider mb-2 px-1">
+                        {label}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {units.map((unit) => (
+                          <Pill
+                            key={unit.id}
+                            variant={selectedUnitId === unit.id ? "selected" : "default"}
+                            size="md"
+                            onClick={() => handleUnitClick(unit)}
+                            title={unit.display_name || unit.name}
+                          >
+                            {unit.name}
+                          </Pill>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {filteredUnits.length === 0 && searchQuery && (
+                    <div className="text-center py-8 text-stone-500 dark:text-slate-400">
+                      <p className="mb-3">No units found for "{searchQuery}"</p>
+                      <button
+                        onClick={() => {
+                          setShowCreateForm(true);
+                          setNewUnitName(searchQuery);
+                        }}
+                        className="text-orange-600 dark:text-orange-400 font-medium hover:underline"
+                      >
+                        Create "{searchQuery}" as a new unit
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
 

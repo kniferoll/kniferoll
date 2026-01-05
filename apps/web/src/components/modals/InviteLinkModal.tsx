@@ -34,12 +34,7 @@ function getShortCode(token: string): string {
  * - Copy link to clipboard
  * - Revoke existing links
  */
-export function InviteLinkModal({
-  isOpen,
-  kitchenId,
-  kitchenName,
-  onClose,
-}: InviteLinkModalProps) {
+export function InviteLinkModal({ isOpen, kitchenId, kitchenName, onClose }: InviteLinkModalProps) {
   const { isDark } = useDarkModeContext();
   const [inviteLinks, setInviteLinks] = useState<InviteLink[]>([]);
   const [generating, setGenerating] = useState(false);
@@ -51,9 +46,7 @@ export function InviteLinkModal({
   // Get the most recent active link
   const activeLink = inviteLinks.find(
     (link) =>
-      !link.revoked &&
-      new Date(link.expires_at) > new Date() &&
-      link.use_count < link.max_uses
+      !link.revoked && new Date(link.expires_at) > new Date() && link.use_count < link.max_uses
   );
 
   // Load existing invite links
@@ -103,8 +96,7 @@ export function InviteLinkModal({
       if (err) throw err;
       setInviteLinks(data || []);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load links";
+      const message = err instanceof Error ? err.message : "Failed to load links";
       setError(message);
     }
   };
@@ -145,8 +137,7 @@ export function InviteLinkModal({
 
       setInviteLinks([newLink, ...inviteLinks]);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to generate link";
+      const message = err instanceof Error ? err.message : "Failed to generate link";
       setError(message);
     } finally {
       setGenerating(false);
@@ -185,12 +176,9 @@ export function InviteLinkModal({
         .eq("id", linkId);
 
       if (err) throw err;
-      setInviteLinks(
-        inviteLinks.map((l) => (l.id === linkId ? { ...l, revoked: true } : l))
-      );
+      setInviteLinks(inviteLinks.map((l) => (l.id === linkId ? { ...l, revoked: true } : l)));
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to revoke link";
+      const message = err instanceof Error ? err.message : "Failed to revoke link";
       setError(message);
     }
   };
@@ -198,9 +186,7 @@ export function InviteLinkModal({
   const getExpiryText = (link: InviteLink): string => {
     const expiresAt = new Date(link.expires_at);
     const now = new Date();
-    const hoursLeft = Math.ceil(
-      (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60)
-    );
+    const hoursLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60));
     if (hoursLeft <= 0) return "Expired";
     if (hoursLeft === 1) return "1 hour left";
     return `${hoursLeft} hours left`;
@@ -245,9 +231,7 @@ export function InviteLinkModal({
             Invite to {kitchenName}
           </h2>
           <p
-            className={`text-sm mt-1 cursor-default ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
+            className={`text-sm mt-1 cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}
           >
             Share a link or code to invite team members
           </p>
@@ -272,24 +256,15 @@ export function InviteLinkModal({
           {/* QR Code and Code side by side */}
           <div
             className={`p-4 rounded-xl border ${
-              isDark
-                ? "bg-slate-800 border-slate-700"
-                : "bg-stone-50 border-stone-200"
+              isDark ? "bg-slate-800 border-slate-700" : "bg-stone-50 border-stone-200"
             }`}
           >
             <div className="flex items-center gap-4">
               {/* QR Code - smaller */}
               <div className="shrink-0">
-                <canvas
-                  ref={qrCanvasRef}
-                  style={{ width: 100, height: 100 }}
-                />
+                <canvas ref={qrCanvasRef} style={{ width: 100, height: 100 }} />
                 {!qrCanvasRef.current && qrCodeUrl && (
-                  <img
-                    src={qrCodeUrl}
-                    alt="QR Code"
-                    style={{ width: 100, height: 100 }}
-                  />
+                  <img src={qrCodeUrl} alt="QR Code" style={{ width: 100, height: 100 }} />
                 )}
               </div>
 
@@ -309,21 +284,12 @@ export function InviteLinkModal({
                 >
                   {getShortCode(activeLink.token)}
                 </p>
-                <p
-                  className={`text-xs ${
-                    isDark ? "text-gray-500" : "text-gray-500"
-                  }`}
-                >
+                <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-500"}`}>
                   Enter at kniferoll.app/join
                 </p>
               </div>
 
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={copyCode}
-                className="shrink-0"
-              >
+              <Button variant="secondary" size="sm" onClick={copyCode} className="shrink-0">
                 {copiedType === "code" ? "Copied!" : "Copy"}
               </Button>
             </div>
@@ -333,39 +299,26 @@ export function InviteLinkModal({
           <div className="flex items-center gap-2">
             <div
               className={`flex-1 min-w-0 px-3 py-2 rounded-lg text-xs font-mono truncate ${
-                isDark
-                  ? "bg-slate-800 text-gray-400"
-                  : "bg-stone-100 text-gray-600"
+                isDark ? "bg-slate-800 text-gray-400" : "bg-stone-100 text-gray-600"
               }`}
             >
               {`${window.location.origin}/join/${activeLink.token}`}
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={copyLink}
-              className="shrink-0"
-            >
+            <Button variant="secondary" size="sm" onClick={copyLink} className="shrink-0">
               {copiedType === "link" ? "Copied!" : "Copy Link"}
             </Button>
           </div>
 
           {/* Expiry and actions row */}
           <div className="flex items-center justify-between pt-1">
-            <p
-              className={`text-xs ${
-                isDark ? "text-gray-500" : "text-gray-500"
-              }`}
-            >
+            <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-500"}`}>
               {getExpiryText(activeLink)} · Single use
             </p>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => revokeLink(activeLink.id)}
                 className={`text-xs font-medium transition-colors ${
-                  isDark
-                    ? "text-red-400 hover:text-red-300"
-                    : "text-red-600 hover:text-red-700"
+                  isDark ? "text-red-400 hover:text-red-300" : "text-red-600 hover:text-red-700"
                 }`}
               >
                 Revoke
@@ -393,17 +346,10 @@ export function InviteLinkModal({
               : "bg-stone-50 border-stone-200 border-dashed"
           }`}
         >
-          <p
-            className={`mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}
-          >
-            Generate a link to invite team members. Links expire in 24 hours and
-            are single-use.
+          <p className={`mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+            Generate a link to invite team members. Links expire in 24 hours and are single-use.
           </p>
-          <Button
-            variant="primary"
-            onClick={generateInviteLink}
-            disabled={generating}
-          >
+          <Button variant="primary" onClick={generateInviteLink} disabled={generating}>
             {generating ? "Generating..." : "Generate Invite Link"}
           </Button>
         </div>

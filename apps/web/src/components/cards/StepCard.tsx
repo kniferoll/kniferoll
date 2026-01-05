@@ -28,11 +28,7 @@ export function StepCard({ step, title, description }: StepCardProps) {
 
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
 
-      <p
-        className={`text-sm leading-relaxed ${
-          isDark ? "text-gray-400" : "text-gray-600"
-        }`}
-      >
+      <p className={`text-sm leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>
         {description}
       </p>
     </Card>

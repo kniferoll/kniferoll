@@ -24,8 +24,7 @@ const supabaseSecretKey = Deno.env.get("SERVICE_ROLE_KEY") || "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -182,13 +181,10 @@ Deno.serve(async (req: Request) => {
     // Validate category
     const validCategories = ["Bug", "Feature Request", "Billing", "General"];
     if (!validCategories.includes(body.category)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid category" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Invalid category" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Build description with user's message prominently displayed
@@ -196,17 +192,13 @@ Deno.serve(async (req: Request) => {
 
     // Get user's name - try multiple sources since client cache may be stale
     let userName =
-      body.metadata?.userName ||
-      user.user_metadata?.name ||
-      user.user_metadata?.display_name;
+      body.metadata?.userName || user.user_metadata?.name || user.user_metadata?.display_name;
 
     // If still no name, fetch directly from auth.users using service role
     if (!userName && supabaseSecretKey) {
       const supabaseAdmin = createClient(supabaseUrl, supabaseSecretKey);
       const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(user.id);
-      userName =
-        authUser?.user?.user_metadata?.name ||
-        authUser?.user?.user_metadata?.display_name;
+      userName = authUser?.user?.user_metadata?.name || authUser?.user?.user_metadata?.display_name;
     }
 
     // Final fallback

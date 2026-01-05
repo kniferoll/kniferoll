@@ -138,10 +138,7 @@ export function usePrepItemActions() {
     setError(null);
 
     try {
-      const { error: deleteError } = await supabase
-        .from("prep_items")
-        .delete()
-        .eq("id", itemId);
+      const { error: deleteError } = await supabase.from("prep_items").delete().eq("id", itemId);
 
       if (deleteError) {
         throw deleteError;

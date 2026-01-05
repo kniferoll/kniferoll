@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores";
-import {
-  getUserProfile,
-  getOwnedKitchenCount,
-  getStationCount,
-  getUserLimits,
-} from "@/lib";
+import { getUserProfile, getOwnedKitchenCount, getStationCount, getUserLimits } from "@/lib";
 import type { Database } from "@kniferoll/types";
 
 type UserPlan = Database["public"]["Enums"]["user_plan"];
@@ -57,8 +52,7 @@ export function usePlanLimits() {
           canInviteAsOwner: planLimits.canInviteAsOwner,
         });
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to load limits";
+        const message = err instanceof Error ? err.message : "Failed to load limits";
         setError(message);
       } finally {
         setLoading(false);

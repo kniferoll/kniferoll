@@ -134,10 +134,7 @@ export function useDeleteKitchenUnit() {
       setLoading(true);
       setError(null);
 
-      const { error: err } = await supabase
-        .from("kitchen_units")
-        .delete()
-        .eq("id", unitId);
+      const { error: err } = await supabase.from("kitchen_units").delete().eq("id", unitId);
 
       if (err) throw err;
       return true;

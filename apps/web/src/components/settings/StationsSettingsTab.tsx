@@ -65,10 +65,7 @@ export function StationsSettingsTab({
     setSuccess("");
 
     try {
-      const maxOrder = Math.max(
-        ...stations.map((s) => s.display_order || 0),
-        -1
-      );
+      const maxOrder = Math.max(...stations.map((s) => s.display_order || 0), -1);
       const { error: err } = await supabase.from("stations").insert({
         kitchen_id: kitchenId,
         name: newStationName.trim(),
@@ -87,9 +84,7 @@ export function StationsSettingsTab({
   };
 
   const handleDelete = async (stationId: string) => {
-    if (
-      !confirm("Delete this station? Items in this station will be deleted.")
-    ) {
+    if (!confirm("Delete this station? Items in this station will be deleted.")) {
       return;
     }
 
@@ -98,10 +93,7 @@ export function StationsSettingsTab({
     setSuccess("");
 
     try {
-      const { error: err } = await supabase
-        .from("stations")
-        .delete()
-        .eq("id", stationId);
+      const { error: err } = await supabase.from("stations").delete().eq("id", stationId);
 
       if (err) throw err;
       await loadStations();
@@ -135,11 +127,7 @@ export function StationsSettingsTab({
                   isDark ? "bg-slate-800" : "bg-stone-50"
                 }`}
               >
-                <span
-                  className={`font-medium ${
-                    isDark ? "text-white" : "text-gray-900"
-                  }`}
-                >
+                <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>
                   {station.name}
                 </span>
                 {isOwner && (

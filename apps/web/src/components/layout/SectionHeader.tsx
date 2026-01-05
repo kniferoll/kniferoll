@@ -38,9 +38,7 @@ export function SectionHeader({
     <div className={alignStyles[align]}>
       <h2 className={titleSizeStyles[size]}>{title}</h2>
       {subtitle && (
-        <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-          {subtitle}
-        </p>
+        <p className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>{subtitle}</p>
       )}
     </div>
   );

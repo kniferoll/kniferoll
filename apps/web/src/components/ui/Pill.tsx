@@ -41,8 +41,7 @@ export function Pill({
   const variantStyles = {
     default:
       "bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-slate-300 hover:bg-stone-200 dark:hover:bg-slate-600",
-    selected:
-      "bg-stone-800 dark:bg-slate-200 text-white dark:text-slate-900",
+    selected: "bg-stone-800 dark:bg-slate-200 text-white dark:text-slate-900",
     suggestion:
       "bg-stone-100 dark:bg-slate-700 text-stone-700 dark:text-slate-200 hover:bg-stone-200 dark:hover:bg-slate-600 active:scale-[0.97]",
     muted:

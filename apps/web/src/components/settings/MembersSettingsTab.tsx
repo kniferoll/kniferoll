@@ -23,8 +23,7 @@ export function MembersSettingsTab({
 }: MembersSettingsTabProps) {
   const { isDark } = useDarkModeContext();
   const { members } = useRealtimeMembers(kitchenId);
-  const { removeMember, updateMemberRole, updateMemberInvitePermission } =
-    useMemberActions();
+  const { removeMember, updateMemberRole, updateMemberInvitePermission } = useMemberActions();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -64,10 +63,7 @@ export function MembersSettingsTab({
     }
   };
 
-  const handleInvitePermissionChange = async (
-    memberId: string,
-    canInvite: boolean
-  ) => {
+  const handleInvitePermissionChange = async (memberId: string, canInvite: boolean) => {
     setUpdatingId(memberId);
     setError("");
     setSuccess("");
@@ -76,9 +72,7 @@ export function MembersSettingsTab({
       await updateMemberInvitePermission(memberId, canInvite);
       setSuccess(canInvite ? "Can now invite" : "Invite permission revoked");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to update permission"
-      );
+      setError(err instanceof Error ? err.message : "Failed to update permission");
     } finally {
       setUpdatingId(null);
     }
@@ -105,18 +99,14 @@ export function MembersSettingsTab({
             return (
               <div
                 key={member.id}
-                className={`p-4 rounded-xl ${
-                  isDark ? "bg-slate-800" : "bg-stone-50"
-                }`}
+                className={`p-4 rounded-xl ${isDark ? "bg-slate-800" : "bg-stone-50"}`}
               >
                 {/* Mobile: Stack layout, Desktop: Row layout */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   {/* User info */}
                   <div className="min-w-0 flex-1">
                     <p
-                      className={`font-medium truncate ${
-                        isDark ? "text-white" : "text-gray-900"
-                      }`}
+                      className={`font-medium truncate ${isDark ? "text-white" : "text-gray-900"}`}
                     >
                       {displayName}
                       {isCurrentUser && (
@@ -129,18 +119,12 @@ export function MembersSettingsTab({
                         </span>
                       )}
                     </p>
-                    <p
-                      className={`text-sm truncate ${
-                        isDark ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
+                    <p className={`text-sm truncate ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                       <span className="capitalize">{member.role}</span>
                       {member.email && !member.is_anonymous && (
                         <span className="ml-2">• {member.email}</span>
                       )}
-                      {member.is_anonymous && (
-                        <span className="ml-2">• Guest</span>
-                      )}
+                      {member.is_anonymous && <span className="ml-2">• Guest</span>}
                     </p>
                   </div>
 
@@ -162,8 +146,7 @@ export function MembersSettingsTab({
                         onChange={(e) =>
                           handleRoleChange(
                             member.id,
-                            e.target
-                              .value as Database["public"]["Enums"]["member_role"]
+                            e.target.value as Database["public"]["Enums"]["member_role"]
                           )
                         }
                         disabled={updatingId === member.id}
@@ -182,10 +165,7 @@ export function MembersSettingsTab({
                           type="checkbox"
                           checked={member.can_invite || false}
                           onChange={(e) =>
-                            handleInvitePermissionChange(
-                              member.id,
-                              e.target.checked
-                            )
+                            handleInvitePermissionChange(member.id, e.target.checked)
                           }
                           disabled={updatingId === member.id}
                           className="w-4 h-4 accent-orange-500"

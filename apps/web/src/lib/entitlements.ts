@@ -81,10 +81,7 @@ export async function getStationCount(kitchenId: string): Promise<number> {
 /**
  * Check if user can create a new station in a kitchen
  */
-export async function canCreateStation(
-  userId: string,
-  kitchenId: string
-): Promise<boolean> {
+export async function canCreateStation(userId: string, kitchenId: string): Promise<boolean> {
   // Get the kitchen to verify ownership
   const { data: kitchen, error: kitchenError } = await supabase
     .from("kitchens")
@@ -136,10 +133,7 @@ export async function getMembership(userId: string, kitchenId: string) {
 /**
  * Check if user can generate invite links for a kitchen
  */
-export async function canGenerateInvite(
-  userId: string,
-  kitchenId: string
-): Promise<boolean> {
+export async function canGenerateInvite(userId: string, kitchenId: string): Promise<boolean> {
   const membership = await getMembership(userId, kitchenId);
   if (!membership) return false;
 

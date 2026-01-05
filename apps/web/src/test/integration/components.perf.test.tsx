@@ -29,9 +29,27 @@ beforeEach(() => {
 describe("Component Mount Performance", () => {
   describe("PrepItemList", () => {
     const mockItems = [
-      { id: "1", description: "Dice onions", quantity: 5, status: "pending" as const, created_at: "2024-01-01" },
-      { id: "2", description: "Prep tomatoes", quantity: 10, status: "in_progress" as const, created_at: "2024-01-01" },
-      { id: "3", description: "Make stock", quantity: 2, status: "complete" as const, created_at: "2024-01-01" },
+      {
+        id: "1",
+        description: "Dice onions",
+        quantity: 5,
+        status: "pending" as const,
+        created_at: "2024-01-01",
+      },
+      {
+        id: "2",
+        description: "Prep tomatoes",
+        quantity: 10,
+        status: "in_progress" as const,
+        created_at: "2024-01-01",
+      },
+      {
+        id: "3",
+        description: "Make stock",
+        quantity: 2,
+        status: "complete" as const,
+        created_at: "2024-01-01",
+      },
     ];
 
     it("mounts with empty list within budget", async () => {
@@ -41,11 +59,7 @@ describe("Component Mount Performance", () => {
       render(
         <TestProviders>
           <Tracker>
-            <PrepItemList
-              items={[]}
-              onCycleStatus={vi.fn()}
-              onDelete={vi.fn()}
-            />
+            <PrepItemList items={[]} onCycleStatus={vi.fn()} onDelete={vi.fn()} />
           </Tracker>
         </TestProviders>
       );
@@ -60,11 +74,7 @@ describe("Component Mount Performance", () => {
       render(
         <TestProviders>
           <Tracker>
-            <PrepItemList
-              items={mockItems}
-              onCycleStatus={vi.fn()}
-              onDelete={vi.fn()}
-            />
+            <PrepItemList items={mockItems} onCycleStatus={vi.fn()} onDelete={vi.fn()} />
           </Tracker>
         </TestProviders>
       );
@@ -79,18 +89,17 @@ describe("Component Mount Performance", () => {
         id: `item-${i}`,
         description: `Prep item ${i}`,
         quantity: i + 1,
-        status: ["pending", "in_progress", "complete"][i % 3] as "pending" | "in_progress" | "complete",
+        status: ["pending", "in_progress", "complete"][i % 3] as
+          | "pending"
+          | "in_progress"
+          | "complete",
         created_at: "2024-01-01",
       }));
 
       render(
         <TestProviders>
           <Tracker>
-            <PrepItemList
-              items={largeList}
-              onCycleStatus={vi.fn()}
-              onDelete={vi.fn()}
-            />
+            <PrepItemList items={largeList} onCycleStatus={vi.fn()} onDelete={vi.fn()} />
           </Tracker>
         </TestProviders>
       );
@@ -154,11 +163,7 @@ describe("Component Mount Performance", () => {
       render(
         <TestProviders>
           <Tracker>
-            <ShiftToggle
-              shifts={shifts}
-              currentShift="Lunch"
-              onShiftChange={vi.fn()}
-            />
+            <ShiftToggle shifts={shifts} currentShift="Lunch" onShiftChange={vi.fn()} />
           </Tracker>
         </TestProviders>
       );
@@ -174,11 +179,7 @@ describe("Component Mount Performance", () => {
       render(
         <TestProviders>
           <Tracker>
-            <ShiftToggle
-              shifts={shifts}
-              currentShift="Lunch"
-              onShiftChange={onShiftChange}
-            />
+            <ShiftToggle shifts={shifts} currentShift="Lunch" onShiftChange={onShiftChange} />
           </Tracker>
         </TestProviders>
       );
@@ -203,10 +204,7 @@ describe("Component Mount Performance", () => {
       render(
         <TestProviders>
           <Tracker>
-            <DateCalendar
-              selectedDate="2024-01-15"
-              onDateSelect={vi.fn()}
-            />
+            <DateCalendar selectedDate="2024-01-15" onDateSelect={vi.fn()} />
           </Tracker>
         </TestProviders>
       );
@@ -290,12 +288,7 @@ describe("UI Component Performance", () => {
       render(
         <TestProviders>
           <Tracker>
-            <FormInput
-              label="Email"
-              type="email"
-              value=""
-              onChange={vi.fn()}
-            />
+            <FormInput label="Email" type="email" value="" onChange={vi.fn()} />
           </Tracker>
         </TestProviders>
       );
@@ -311,12 +304,7 @@ describe("UI Component Performance", () => {
       render(
         <TestProviders>
           <Tracker>
-            <FormInput
-              label="Email"
-              type="email"
-              value=""
-              onChange={onChange}
-            />
+            <FormInput label="Email" type="email" value="" onChange={onChange} />
           </Tracker>
         </TestProviders>
       );
@@ -463,10 +451,7 @@ describe("UI Component Performance", () => {
       render(
         <TestProviders>
           <Tracker>
-            <EmptyState
-              title="No items"
-              description="Get started by adding your first item"
-            />
+            <EmptyState title="No items" description="Get started by adding your first item" />
           </Tracker>
         </TestProviders>
       );

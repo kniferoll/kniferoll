@@ -24,17 +24,14 @@ export async function redirectToCheckout(options: {
 }): Promise<void> {
   try {
     // Call edge function using supabase.functions.invoke (handles auth automatically)
-    const { data, error } = await supabase.functions.invoke(
-      "create-checkout-session",
-      {
-        body: {
-          userId: options.userId,
-          planTier: options.planTier,
-          successUrl: options.successUrl,
-          cancelUrl: options.cancelUrl,
-        },
-      }
-    );
+    const { data, error } = await supabase.functions.invoke("create-checkout-session", {
+      body: {
+        userId: options.userId,
+        planTier: options.planTier,
+        successUrl: options.successUrl,
+        cancelUrl: options.cancelUrl,
+      },
+    });
 
     if (error) {
       throw new Error(error.message || "Failed to create checkout session");
@@ -63,15 +60,12 @@ export async function getCustomerPortalUrl(options: {
 }): Promise<string> {
   try {
     // Call edge function using supabase.functions.invoke (handles auth automatically)
-    const { data, error } = await supabase.functions.invoke(
-      "create-portal-session",
-      {
-        body: {
-          userId: options.userId,
-          returnUrl: options.returnUrl,
-        },
-      }
-    );
+    const { data, error } = await supabase.functions.invoke("create-portal-session", {
+      body: {
+        userId: options.userId,
+        returnUrl: options.returnUrl,
+      },
+    });
 
     if (error) {
       throw new Error(error.message || "Failed to create portal session");

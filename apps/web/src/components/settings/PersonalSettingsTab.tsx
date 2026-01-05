@@ -156,11 +156,7 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
           />
 
           <div className="pt-2">
-            <Button
-              variant="primary"
-              onClick={handleSave}
-              disabled={saving || !hasChanges}
-            >
+            <Button variant="primary" onClick={handleSave} disabled={saving || !hasChanges}>
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
@@ -174,18 +170,8 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
           }`}
         >
           <div>
-            <p
-              className={`font-medium ${
-                isDark ? "text-white" : "text-gray-900"
-              }`}
-            >
-              Dark Mode
-            </p>
-            <p
-              className={`text-sm ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
+            <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Dark Mode</p>
+            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
               Use dark theme throughout the app
             </p>
           </div>

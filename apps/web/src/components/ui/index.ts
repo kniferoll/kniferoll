@@ -5,12 +5,7 @@ export { Card } from "./Card";
 export { Pill } from "./Pill";
 export { ControlsToggle } from "./ControlsToggle";
 export { DangerZone } from "./DangerZone";
-export {
-  Dropdown,
-  DropdownItem,
-  DropdownDivider,
-  DropdownTriggerButton,
-} from "./Dropdown";
+export { Dropdown, DropdownItem, DropdownDivider, DropdownTriggerButton } from "./Dropdown";
 export { EmptyState } from "./EmptyState";
 export { FormInput } from "./FormInput";
 export { IconBox } from "./IconBox";

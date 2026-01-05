@@ -43,25 +43,22 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
     setError(null);
 
     try {
-      const { error: funcError } = await supabase.functions.invoke(
-        "create-support-ticket",
-        {
-          body: {
-            subject: subject.trim(),
-            category,
-            message: message.trim(),
-            metadata: {
-              userName:
-                user?.user_metadata?.name ||
-                user?.user_metadata?.display_name ||
-                user?.email?.split("@")[0],
-              userEmail: user?.email,
-              kitchenName: currentKitchen?.name,
-              appVersion: "1.0.0",
-            },
+      const { error: funcError } = await supabase.functions.invoke("create-support-ticket", {
+        body: {
+          subject: subject.trim(),
+          category,
+          message: message.trim(),
+          metadata: {
+            userName:
+              user?.user_metadata?.name ||
+              user?.user_metadata?.display_name ||
+              user?.email?.split("@")[0],
+            userEmail: user?.email,
+            kitchenName: currentKitchen?.name,
+            appVersion: "1.0.0",
           },
-        }
-      );
+        },
+      });
 
       if (funcError) {
         throw new Error(funcError.message || "Failed to submit support request");
@@ -70,9 +67,7 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
       setIsSuccess(true);
     } catch (err) {
       captureError(err as Error, { context: "SupportModal.submit" });
-      setError(
-        err instanceof Error ? err.message : "Failed to submit support request"
-      );
+      setError(err instanceof Error ? err.message : "Failed to submit support request");
     } finally {
       setIsSubmitting(false);
     }
@@ -96,22 +91,13 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
               isDark ? "bg-green-500/20" : "bg-green-100"
             }`}
           >
-            <CheckIcon
-              className={`w-8 h-8 ${
-                isDark ? "text-green-400" : "text-green-600"
-              }`}
-            />
+            <CheckIcon className={`w-8 h-8 ${isDark ? "text-green-400" : "text-green-600"}`} />
           </div>
-          <h2
-            className={`text-2xl font-bold mb-2 ${
-              isDark ? "text-white" : "text-gray-900"
-            }`}
-          >
+          <h2 className={`text-2xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
             Request Submitted
           </h2>
           <p className={`mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            We&apos;ll get back to you at{" "}
-            <span className="font-medium">{user?.email}</span>
+            We&apos;ll get back to you at <span className="font-medium">{user?.email}</span>
           </p>
           <Button onClick={handleClose} fullWidth>
             Done
@@ -124,19 +110,13 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="md">
       <div className="flex items-center justify-between mb-6">
-        <h2
-          className={`text-2xl font-bold ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
-        >
+        <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
           Contact Support
         </h2>
         <button
           onClick={handleClose}
           className={`p-2 rounded-lg transition-colors cursor-pointer ${
-            isDark
-              ? "hover:bg-slate-700 text-gray-400"
-              : "hover:bg-stone-100 text-gray-500"
+            isDark ? "hover:bg-slate-700 text-gray-400" : "hover:bg-stone-100 text-gray-500"
           }`}
         >
           <XIcon className="w-5 h-5" />
@@ -201,24 +181,16 @@ export function SupportModal({ isOpen, onClose }: SupportModalProps) {
 
         {user?.email && (
           <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-            We&apos;ll respond to{" "}
-            <span className="font-medium">{user.email}</span>
+            We&apos;ll respond to <span className="font-medium">{user.email}</span>
           </p>
         )}
 
         {error && (
-          <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">
-            {error}
-          </p>
+          <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg">{error}</p>
         )}
 
         <div className="flex gap-3 pt-2">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            className="flex-1"
-          >
+          <Button type="button" variant="secondary" onClick={handleClose} className="flex-1">
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting} className="flex-1">

@@ -65,9 +65,7 @@ export function Tab({ value, children }: TabProps) {
         isActive
           ? "border-orange-500 text-orange-500"
           : `border-transparent ${
-              isDark
-                ? "text-gray-400 hover:text-white"
-                : "text-gray-600 hover:text-gray-900"
+              isDark ? "text-gray-400 hover:text-white" : "text-gray-600 hover:text-gray-900"
             }`
       }`}
     >

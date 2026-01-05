@@ -63,8 +63,7 @@ export function JoinWithCode() {
       // Redirect to the full invite join page
       navigate(`/join/${validInvite.token}`);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Something went wrong";
+      const message = err instanceof Error ? err.message : "Something went wrong";
       setError(message);
       setLoading(false);
     }
@@ -82,11 +81,7 @@ export function JoinWithCode() {
   return (
     <div data-testid="page-join-with-code" className="w-full max-w-md mx-auto px-4 py-16">
       <div className="text-center mb-8">
-        <h1
-          className={`text-3xl font-bold mb-2 ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
-        >
+        <h1 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
           Join a Kitchen
         </h1>
         <p className={isDark ? "text-gray-400" : "text-gray-600"}>
@@ -149,42 +144,19 @@ export function JoinWithCode() {
           </Button>
         </form>
 
-        <div
-          className={`mt-6 pt-6 border-t ${
-            isDark ? "border-slate-700" : "border-stone-200"
-          }`}
-        >
-          <p
-            className={`text-center text-sm mb-4 ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+        <div className={`mt-6 pt-6 border-t ${isDark ? "border-slate-700" : "border-stone-200"}`}>
+          <p className={`text-center text-sm mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             Have a full link instead?
           </p>
-          <p
-            className={`text-center text-sm ${
-              isDark ? "text-gray-500" : "text-gray-500"
-            }`}
-          >
+          <p className={`text-center text-sm ${isDark ? "text-gray-500" : "text-gray-500"}`}>
             Just paste it in your browser's address bar
           </p>
         </div>
 
-        <div
-          className={`mt-6 pt-6 border-t ${
-            isDark ? "border-slate-700" : "border-stone-200"
-          }`}
-        >
-          <p
-            className={`text-center text-sm ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+        <div className={`mt-6 pt-6 border-t ${isDark ? "border-slate-700" : "border-stone-200"}`}>
+          <p className={`text-center text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             Want to create your own kitchen?{" "}
-            <Link
-              to="/signup"
-              className="text-orange-500 hover:text-orange-600 font-semibold"
-            >
+            <Link to="/signup" className="text-orange-500 hover:text-orange-600 font-semibold">
               Sign up
             </Link>
           </p>

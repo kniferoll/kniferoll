@@ -1,8 +1,4 @@
-import type {
-  DbPrepItemSuggestion,
-  RecencyScoredSuggestion,
-  DbPrepItem,
-} from "@kniferoll/types";
+import type { DbPrepItemSuggestion, RecencyScoredSuggestion, DbPrepItem } from "@kniferoll/types";
 
 /**
  * Calculate recency score based on when the item was last used
@@ -15,9 +11,7 @@ export function calculateRecencyScore(lastUsed: string | null): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const daysDiff = Math.floor(
-    (today.getTime() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const daysDiff = Math.floor((today.getTime() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24));
 
   if (daysDiff === 0) return 1.0; // Today
   if (daysDiff === 1) return 0.8; // Yesterday
@@ -49,8 +43,7 @@ function isSuggestionAlreadyInList(
 ): boolean {
   const normalizedSuggestion = suggestionDesc.toLowerCase().trim();
   return currentItems.some(
-    (item) =>
-      (item.description || "").toLowerCase().trim() === normalizedSuggestion
+    (item) => (item.description || "").toLowerCase().trim() === normalizedSuggestion
   );
 }
 
@@ -74,16 +67,10 @@ export function rankSuggestions(
   // Score and filter non-dismissed and non-duplicate suggestions
   const scored = suggestions
     .filter((s) => !dismissedIds.has(s.id))
-    .filter(
-      (s) => !isSuggestionAlreadyInList(s.description || "", currentItems)
-    )
+    .filter((s) => !isSuggestionAlreadyInList(s.description || "", currentItems))
     .map((s) => {
       const recencyScore = calculateRecencyScore(s.last_used);
-      const weightedScore = calculateWeightedScore(
-        s.use_count,
-        recencyScore,
-        maxUseCount
-      );
+      const weightedScore = calculateWeightedScore(s.use_count, recencyScore, maxUseCount);
 
       return {
         ...s,

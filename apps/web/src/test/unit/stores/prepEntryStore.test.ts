@@ -242,8 +242,7 @@ describe("prepEntryStore", () => {
       const prepItemsChain = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        then: (resolve: (value: unknown) => void) =>
-          resolve({ data: [mockPrepItem], error: null }),
+        then: (resolve: (value: unknown) => void) => resolve({ data: [mockPrepItem], error: null }),
       };
 
       mockSupabase.from.mockImplementation((table: string) => {
@@ -437,18 +436,16 @@ describe("prepEntryStore", () => {
         return searchChain;
       });
 
-      const result = await usePrepEntryStore
-        .getState()
-        .addItemWithUpdates(
-          "kitchen-1",
-          "station-1",
-          "2024-01-01",
-          "shift-1",
-          "  Carrots  ", // Test trimming
-          "unit-1",
-          5,
-          "user-1"
-        );
+      const result = await usePrepEntryStore.getState().addItemWithUpdates(
+        "kitchen-1",
+        "station-1",
+        "2024-01-01",
+        "shift-1",
+        "  Carrots  ", // Test trimming
+        "unit-1",
+        5,
+        "user-1"
+      );
 
       expect(result).toEqual({});
       expect(usePrepEntryStore.getState().addingItem).toBe(false);

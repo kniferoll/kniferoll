@@ -1,11 +1,5 @@
 import { useEffect, Suspense } from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-  useParams,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { Analytics } from "@vercel/analytics/react";
 import { useAuthStore } from "./stores/authStore";
@@ -17,12 +11,8 @@ import { lazyWithRetry } from "./lib";
 const Landing = lazyWithRetry(() =>
   import("./pages/Landing").then((m) => ({ default: m.Landing }))
 );
-const Login = lazyWithRetry(() =>
-  import("./pages/Login").then((m) => ({ default: m.Login }))
-);
-const Signup = lazyWithRetry(() =>
-  import("./pages/Signup").then((m) => ({ default: m.Signup }))
-);
+const Login = lazyWithRetry(() => import("./pages/Login").then((m) => ({ default: m.Login })));
+const Signup = lazyWithRetry(() => import("./pages/Signup").then((m) => ({ default: m.Signup })));
 const InviteJoin = lazyWithRetry(() =>
   import("./pages/InviteJoin").then((m) => ({ default: m.InviteJoin }))
 );
@@ -164,10 +154,7 @@ function App() {
               <Route path="/station/:stationId" element={<StationView />} />
               <Route path="/settings" element={<Settings />} />
               {/* Redirect old kitchen settings to new unified settings with section param */}
-              <Route
-                path="/kitchen/:kitchenId/settings"
-                element={<KitchenSettingsRedirect />}
-              />
+              <Route path="/kitchen/:kitchenId/settings" element={<KitchenSettingsRedirect />} />
             </Route>
 
             {/* 404 - Page not found */}

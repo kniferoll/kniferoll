@@ -6,10 +6,7 @@ interface KniferollIconProps {
 /**
  * Kniferoll brand icon - the box/crate symbol
  */
-export function KniferollIcon({
-  size = 20,
-  className = "",
-}: KniferollIconProps) {
+export function KniferollIcon({ size = 20, className = "" }: KniferollIconProps) {
   return (
     <svg
       width={size}

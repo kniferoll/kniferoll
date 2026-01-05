@@ -20,9 +20,7 @@ export function useRealtimeStations(kitchenId: string | undefined) {
         (payload) => {
           const newStation = payload.new as DbStation;
           const currentStations = useKitchenStore.getState().stations;
-          const alreadyExists = currentStations.some(
-            (s) => s.id === newStation.id
-          );
+          const alreadyExists = currentStations.some((s) => s.id === newStation.id);
           if (!alreadyExists) {
             useKitchenStore.setState({
               stations: [...currentStations, newStation].sort(

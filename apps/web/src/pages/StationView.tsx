@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuthStore, useKitchenStore, usePrepEntryStore, usePrepStore } from "@/stores";
 import {
-  useAuthStore,
-  useKitchenStore,
-  usePrepEntryStore,
-  usePrepStore,
-} from "@/stores";
-import { useRealtimePrepItems, useHeaderConfig, usePlanLimits, useStripeCheckout, useVisualViewport } from "@/hooks";
+  useRealtimePrepItems,
+  useHeaderConfig,
+  usePlanLimits,
+  useStripeCheckout,
+  useVisualViewport,
+} from "@/hooks";
 import { supabase, getDeviceToken, safeGetItem, safeSetItem, captureError } from "@/lib";
 import { jsDateToDatabaseDayOfWeek, toLocalDate, isClosedDay, findNextOpenDay } from "@/lib";
 
@@ -45,8 +46,14 @@ export function StationView() {
   const navigate = useNavigate();
 
   // Stores
-  const { prepItems, isInitialLoading, loadPrepItems, cycleStatus, deletePrepItem, updatePrepItem } =
-    usePrepStore();
+  const {
+    prepItems,
+    isInitialLoading,
+    loadPrepItems,
+    cycleStatus,
+    deletePrepItem,
+    updatePrepItem,
+  } = usePrepStore();
   const {
     suggestions,
     masterSuggestions,
@@ -113,7 +120,9 @@ export function StationView() {
     unit_id: string | null;
     unit_name: string | null;
   } | null>(null);
-  const [copyModalMode, setCopyModalMode] = useState<"copy-to-today" | "add-to-next-day" | null>(null);
+  const [copyModalMode, setCopyModalMode] = useState<"copy-to-today" | "add-to-next-day" | null>(
+    null
+  );
 
   // Persist compact view preference
   const handleToggleCompact = useCallback(() => {
@@ -134,23 +143,19 @@ export function StationView() {
   }, []);
 
   // Day names constant (stable reference)
-  const dayNamesForCalendar = useMemo(() => [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-  ], []);
+  const dayNamesForCalendar = useMemo(
+    () => ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+    []
+  );
 
   // Memoize closed days for calendar
-  const closedDaysArray = useMemo(() =>
-    dayNamesForCalendar.filter((_dayName, jsDay) => {
-      const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
-      const dayConfig = shiftConfig.dayMap.get(dbDay);
-      return dayConfig && !dayConfig.is_open;
-    }),
+  const closedDaysArray = useMemo(
+    () =>
+      dayNamesForCalendar.filter((_dayName, jsDay) => {
+        const dbDay = jsDateToDatabaseDayOfWeek(jsDay);
+        const dayConfig = shiftConfig.dayMap.get(dbDay);
+        return dayConfig && !dayConfig.is_open;
+      }),
     [dayNamesForCalendar, shiftConfig.dayMap]
   );
 
@@ -178,11 +183,7 @@ export function StationView() {
       startContent: (
         <BackButton
           onClick={() =>
-            navigate(
-              currentKitchen?.id
-                ? `/kitchen/${currentKitchen.id}`
-                : "/dashboard"
-            )
+            navigate(currentKitchen?.id ? `/kitchen/${currentKitchen.id}` : "/dashboard")
           }
           label="Back"
         />
@@ -201,12 +202,7 @@ export function StationView() {
       ),
       endContent: (
         <NavLinks
-          end={
-            <UserAvatarMenu
-              kitchenId={currentKitchen?.id}
-              onInvite={handleInviteClick}
-            />
-          }
+          end={<UserAvatarMenu kitchenId={currentKitchen?.id} onInvite={handleInviteClick} />}
         />
       ),
     },
@@ -272,8 +268,11 @@ export function StationView() {
   }, [currentKitchen?.id, storedShiftName]); // Removed selectedShiftId from deps
 
   // Check if selected date is closed
-  const isSelectedDayClosed = shiftConfig.dayMap.size > 0 && isClosedDay(selectedDate, shiftConfig.dayMap);
-  const nextOpenDay = isSelectedDayClosed ? findNextOpenDay(selectedDate, shiftConfig.dayMap) : null;
+  const isSelectedDayClosed =
+    shiftConfig.dayMap.size > 0 && isClosedDay(selectedDate, shiftConfig.dayMap);
+  const nextOpenDay = isSelectedDayClosed
+    ? findNextOpenDay(selectedDate, shiftConfig.dayMap)
+    : null;
 
   // Reset closed alert dismissed state when date changes
   useEffect(() => {
@@ -287,12 +286,7 @@ export function StationView() {
   // Load suggestions and units
   useEffect(() => {
     if (currentKitchen?.id && stationId && shiftConfig.selectedId) {
-      loadSuggestionsAndUnits(
-        currentKitchen.id,
-        stationId,
-        selectedDate,
-        shiftConfig.selectedId
-      );
+      loadSuggestionsAndUnits(currentKitchen.id, stationId, selectedDate, shiftConfig.selectedId);
     }
   }, [
     currentKitchen?.id,
@@ -336,13 +330,7 @@ export function StationView() {
     unitId: string | null,
     quantity: number | null
   ) => {
-    if (
-      !stationId ||
-      !currentKitchen?.id ||
-      !shiftConfig.selectedId ||
-      !description.trim()
-    )
-      return;
+    if (!stationId || !currentKitchen?.id || !shiftConfig.selectedId || !description.trim()) return;
 
     const userId = sessionUser?.id || getDeviceToken();
 
@@ -385,11 +373,15 @@ export function StationView() {
   const handleSaveEdit = async (quantity: number | null, unitId: string | null) => {
     if (!editingItem) return;
     // Look up unit name for optimistic update
-    const unitName = unitId ? allUnits.find((u) => u.id === unitId)?.name ?? null : null;
-    await updatePrepItem(editingItem.id, {
-      quantity,
-      unit_id: unitId,
-    }, { unit_name: unitName });
+    const unitName = unitId ? (allUnits.find((u) => u.id === unitId)?.name ?? null) : null;
+    await updatePrepItem(
+      editingItem.id,
+      {
+        quantity,
+        unit_id: unitId,
+      },
+      { unit_name: unitName }
+    );
   };
 
   const handleDismissSuggestion = async (suggestionId: string) => {
@@ -481,19 +473,29 @@ export function StationView() {
           <div className="max-w-5xl mx-auto">
             {/* Skeleton for controls toggle */}
             <div className="flex justify-center py-2">
-              <div className={`h-6 w-24 rounded-full animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`} />
+              <div
+                className={`h-6 w-24 rounded-full animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`}
+              />
             </div>
             {/* Skeleton for controls row */}
             <div className="pt-2 pb-3">
               <div className="flex items-center gap-4">
                 {/* Shift toggle skeleton */}
-                <div className={`h-10 w-48 rounded-full animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`} />
+                <div
+                  className={`h-10 w-48 rounded-full animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`}
+                />
                 {/* Progress bar skeleton */}
-                <div className={`flex-1 h-3 rounded-full animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`} />
+                <div
+                  className={`flex-1 h-3 rounded-full animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`}
+                />
                 {/* Calendar skeleton */}
-                <div className={`h-10 w-32 rounded-xl animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`} />
+                <div
+                  className={`h-10 w-32 rounded-xl animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`}
+                />
                 {/* Tools skeleton */}
-                <div className={`h-10 w-10 rounded-lg animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`} />
+                <div
+                  className={`h-10 w-10 rounded-lg animate-pulse ${isDark ? "bg-slate-700" : "bg-stone-200"}`}
+                />
               </div>
             </div>
           </div>
@@ -513,7 +515,9 @@ export function StationView() {
         >
           <div className="px-4 py-4 pointer-events-auto flex justify-center">
             <div className="w-full max-w-2xl">
-              <div className={`h-16 rounded-2xl animate-pulse ${isDark ? "bg-slate-800" : "bg-stone-100"}`} />
+              <div
+                className={`h-16 rounded-2xl animate-pulse ${isDark ? "bg-slate-800" : "bg-stone-100"}`}
+              />
             </div>
           </div>
         </div>
@@ -538,15 +542,9 @@ export function StationView() {
   }
 
   // Calculate status counts for progress bar
-  const completedCount = prepItems.filter(
-    (item) => item.status === "complete"
-  ).length;
-  const inProgressCount = prepItems.filter(
-    (item) => item.status === "in_progress"
-  ).length;
-  const pendingCount = prepItems.filter(
-    (item) => item.status === "pending" || !item.status
-  ).length;
+  const completedCount = prepItems.filter((item) => item.status === "complete").length;
+  const inProgressCount = prepItems.filter((item) => item.status === "in_progress").length;
+  const pendingCount = prepItems.filter((item) => item.status === "pending" || !item.status).length;
   const totalCount = prepItems.length;
 
   return (
@@ -582,8 +580,7 @@ export function StationView() {
                   <ShiftToggle
                     shifts={availableShifts.map((s) => s.name)}
                     currentShift={
-                      availableShifts.find((s) => s.id === shiftConfig.selectedId)
-                        ?.name || ""
+                      availableShifts.find((s) => s.id === shiftConfig.selectedId)?.name || ""
                     }
                     onShiftChange={handleShiftChange}
                     disabled={isSelectedDayClosed}
@@ -638,8 +635,7 @@ export function StationView() {
                     <ShiftToggle
                       shifts={availableShifts.map((s) => s.name)}
                       currentShift={
-                        availableShifts.find((s) => s.id === shiftConfig.selectedId)
-                          ?.name || ""
+                        availableShifts.find((s) => s.id === shiftConfig.selectedId)?.name || ""
                       }
                       onShiftChange={handleShiftChange}
                       disabled={isSelectedDayClosed}
@@ -668,8 +664,7 @@ export function StationView() {
                   : undefined
               }
             >
-              <span className="font-medium">{currentKitchen?.name}</span> is
-              closed on this day.
+              <span className="font-medium">{currentKitchen?.name}</span> is closed on this day.
             </DismissibleAlert>
           </div>
         </div>
@@ -709,7 +704,8 @@ export function StationView() {
           className="fixed left-0 right-0 bg-transparent pointer-events-none transition-[bottom] duration-200"
           style={{
             bottom: keyboardOffset > 0 ? keyboardOffset : 0,
-            paddingBottom: keyboardOffset > 0 ? "0.5rem" : "calc(1rem + env(safe-area-inset-bottom, 0px))"
+            paddingBottom:
+              keyboardOffset > 0 ? "0.5rem" : "calc(1rem + env(safe-area-inset-bottom, 0px))",
           }}
         >
           <div className="px-4 py-4 pointer-events-auto flex justify-center">

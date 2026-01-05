@@ -16,11 +16,7 @@ interface GeneralSettingsTabProps {
   onDeleted: () => void;
 }
 
-export function GeneralSettingsTab({
-  kitchen,
-  isOwner,
-  onDeleted,
-}: GeneralSettingsTabProps) {
+export function GeneralSettingsTab({ kitchen, isOwner, onDeleted }: GeneralSettingsTabProps) {
   const { isDark } = useDarkModeContext();
   const [kitchenName, setKitchenName] = useState(kitchen.name);
   const [saving, setSaving] = useState(false);
@@ -57,11 +53,7 @@ export function GeneralSettingsTab({
   };
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        "Are you sure? This will permanently delete this kitchen and all prep data."
-      )
-    ) {
+    if (!confirm("Are you sure? This will permanently delete this kitchen and all prep data.")) {
       return;
     }
 
@@ -73,10 +65,7 @@ export function GeneralSettingsTab({
     setError("");
 
     try {
-      const { error: err } = await supabase
-        .from("kitchens")
-        .delete()
-        .eq("id", kitchen.id);
+      const { error: err } = await supabase.from("kitchens").delete().eq("id", kitchen.id);
 
       if (err) throw err;
       onDeleted();
@@ -115,13 +104,8 @@ export function GeneralSettingsTab({
 
       {isOwner && (
         <DangerZone>
-          <p
-            className={`text-sm mb-4 ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
-            Permanently delete this kitchen and all its data. This cannot be
-            undone.
+          <p className={`text-sm mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+            Permanently delete this kitchen and all its data. This cannot be undone.
           </p>
           <Button
             variant="secondary"

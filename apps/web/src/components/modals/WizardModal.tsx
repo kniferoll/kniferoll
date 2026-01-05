@@ -79,9 +79,7 @@ export function WizardModal({
           <nav
             aria-label="Progress"
             className={`hidden md:flex flex-col justify-center p-8 border-r ${
-              isDark
-                ? "border-slate-700 bg-slate-800/50"
-                : "border-stone-200 bg-stone-50"
+              isDark ? "border-slate-700 bg-slate-800/50" : "border-stone-200 bg-stone-50"
             }`}
           >
             <ol role="list" className="space-y-6">

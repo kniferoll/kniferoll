@@ -15,8 +15,6 @@ test.describe("Smoke Tests", () => {
   test("signup page accessible", async ({ page }) => {
     await page.goto("/signup");
     await expect(page.locator('[data-testid="page-signup"]')).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /create account/i })
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /create account/i })).toBeVisible();
   });
 });

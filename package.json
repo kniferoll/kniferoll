@@ -12,11 +12,15 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
     "turbo": "^2.0.0",
     "typescript": "^5.3.0"
   },
   "packageManager": "pnpm@8.15.0",
   "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,css,md}": [
+      "prettier --write"
+    ],
     "apps/web/**/*.{ts,tsx}": [
       "pnpm --filter web lint --fix"
     ]

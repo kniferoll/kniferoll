@@ -1,9 +1,4 @@
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownDivider,
-  DropdownTriggerButton,
-} from "./Dropdown";
+import { Dropdown, DropdownItem, DropdownDivider, DropdownTriggerButton } from "./Dropdown";
 import { SlidersIcon, SortIcon, CompactIcon, CopyIcon, ForwardIcon } from "@/components/icons";
 
 interface ToolsMenuProps {
@@ -40,9 +35,7 @@ export function ToolsMenu({
   return (
     <Dropdown
       trigger={
-        <DropdownTriggerButton icon={<SlidersIcon size={16} />}>
-          {label}
-        </DropdownTriggerButton>
+        <DropdownTriggerButton icon={<SlidersIcon size={16} />}>{label}</DropdownTriggerButton>
       }
       align="right"
     >
@@ -56,7 +49,9 @@ export function ToolsMenu({
           Add to next day
         </DropdownItem>
       )}
-      {(onCopyRecentToToday || onAddToNextDay) && (onSort || onToggleCompact) && <DropdownDivider />}
+      {(onCopyRecentToToday || onAddToNextDay) && (onSort || onToggleCompact) && (
+        <DropdownDivider />
+      )}
       {onSort && (
         <DropdownItem onClick={onSort} icon={<SortIcon size={16} />}>
           Sort list

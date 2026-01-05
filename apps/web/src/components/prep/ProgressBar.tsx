@@ -6,16 +6,11 @@ interface ProgressBarProps {
   pending: number;
 }
 
-const ProgressBarInner = ({
-  completed,
-  partial,
-  pending,
-}: ProgressBarProps) => {
+const ProgressBarInner = ({ completed, partial, pending }: ProgressBarProps) => {
   const total = completed + partial + pending;
   const completedPercent = total > 0 ? (completed / total) * 100 : 0;
   const partialPercent = total > 0 ? (partial / total) * 100 : 0;
   const displayPercent = Math.round(completedPercent);
-
 
   return (
     <div className="space-y-2">
@@ -38,19 +33,11 @@ const ProgressBarInner = ({
       {/* Status text - matching StationCard style */}
       <div className="flex items-center justify-between text-sm">
         <div className="flex items-center gap-4">
-          <span className="text-emerald-600 dark:text-emerald-400">
-            ✓ {completed}
-          </span>
-          <span className="text-amber-600 dark:text-amber-400">
-            ◐ {partial}
-          </span>
-          <span className="text-stone-400 dark:text-slate-500">
-            ○ {pending}
-          </span>
+          <span className="text-emerald-600 dark:text-emerald-400">✓ {completed}</span>
+          <span className="text-amber-600 dark:text-amber-400">◐ {partial}</span>
+          <span className="text-stone-400 dark:text-slate-500">○ {pending}</span>
         </div>
-        <span className="font-bold text-emerald-600 dark:text-emerald-400">
-          {displayPercent}%
-        </span>
+        <span className="font-bold text-emerald-600 dark:text-emerald-400">{displayPercent}%</span>
       </div>
     </div>
   );

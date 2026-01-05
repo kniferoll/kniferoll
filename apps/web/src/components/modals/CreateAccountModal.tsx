@@ -17,10 +17,7 @@ interface CreateAccountModalProps {
  * CreateAccountModal - allows anonymous users to convert to registered users.
  * This preserves all their existing data since they keep the same user ID.
  */
-export function CreateAccountModal({
-  isOpen,
-  onClose,
-}: CreateAccountModalProps) {
+export function CreateAccountModal({ isOpen, onClose }: CreateAccountModalProps) {
   const { isDark } = useDarkModeContext();
   const { refreshUser } = useAuthStore();
   const [email, setEmail] = useState("");
@@ -62,7 +59,9 @@ export function CreateAccountModal({
     if (updateError) {
       // Handle "email already exists" gracefully
       if (updateError.message.includes("already registered")) {
-        setError("This email is already registered. Please use a different email or sign in to your existing account.");
+        setError(
+          "This email is already registered. Please use a different email or sign in to your existing account."
+        );
       } else {
         setError(updateError.message);
       }
@@ -96,20 +95,11 @@ export function CreateAccountModal({
         >
           Check your email
         </h2>
-        <p
-          className={`mb-6 ${
-            isDark ? "text-gray-300" : "text-gray-700"
-          }`}
-        >
-          We sent a confirmation link to your email. Click the link to verify
-          your account and complete the conversion.
+        <p className={`mb-6 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+          We sent a confirmation link to your email. Click the link to verify your account and
+          complete the conversion.
         </p>
-        <Button
-          type="button"
-          variant="primary"
-          fullWidth
-          onClick={handleClose}
-        >
+        <Button type="button" variant="primary" fullWidth onClick={handleClose}>
           Got it
         </Button>
       </Modal>
@@ -125,13 +115,8 @@ export function CreateAccountModal({
       >
         Create Account
       </h2>
-      <p
-        className={`text-sm mb-4 ${
-          isDark ? "text-gray-400" : "text-gray-600"
-        }`}
-      >
-        Save your data by creating an account. All your existing prep lists
-        will be preserved.
+      <p className={`text-sm mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+        Save your data by creating an account. All your existing prep lists will be preserved.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -167,12 +152,7 @@ export function CreateAccountModal({
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            className="flex-1"
-            disabled={isLoading}
-          >
+          <Button type="submit" variant="primary" className="flex-1" disabled={isLoading}>
             {isLoading ? "Creating..." : "Create Account"}
           </Button>
         </div>

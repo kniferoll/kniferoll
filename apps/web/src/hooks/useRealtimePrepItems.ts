@@ -3,10 +3,7 @@ import { supabase, captureError } from "@/lib";
 import { usePrepStore, type PrepItemWithDescription } from "@/stores";
 import type { DbPrepItem } from "@kniferoll/types";
 
-export function useRealtimePrepItems(
-  stationId: string | undefined,
-  shiftDate: string | undefined
-) {
+export function useRealtimePrepItems(stationId: string | undefined, shiftDate: string | undefined) {
   useEffect(() => {
     if (!stationId || !shiftDate) return;
 
@@ -58,9 +55,7 @@ export function useRealtimePrepItems(
           if (newItem.shift_date !== shiftDate) return;
 
           const currentItems = usePrepStore.getState().prepItems;
-          const alreadyExists = currentItems.some(
-            (item) => item.id === newItem.id
-          );
+          const alreadyExists = currentItems.some((item) => item.id === newItem.id);
           if (!alreadyExists) {
             const itemWithDetails = await fetchWithDescription(newItem);
             usePrepStore.setState({
@@ -122,9 +117,7 @@ export function useRealtimePrepItems(
 
           const currentItems = usePrepStore.getState().prepItems;
           usePrepStore.setState({
-            prepItems: currentItems.filter(
-              (item) => item.id !== deletedItem.id
-            ),
+            prepItems: currentItems.filter((item) => item.id !== deletedItem.id),
           });
         }
       )

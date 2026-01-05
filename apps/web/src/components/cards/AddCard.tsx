@@ -12,12 +12,7 @@ interface AddCardProps {
 /**
  * AddCard - dashed card for "add new" actions.
  */
-export function AddCard({
-  label,
-  onClick,
-  disabled = false,
-  disabledLabel,
-}: AddCardProps) {
+export function AddCard({ label, onClick, disabled = false, disabledLabel }: AddCardProps) {
   const { isDark } = useDarkModeContext();
 
   return (
@@ -33,18 +28,14 @@ export function AddCard({
               ? "hover:border-orange-500 hover:bg-orange-500/5"
               : "hover:border-orange-400 hover:bg-orange-100/20"
             : isDark
-            ? "opacity-60 hover:opacity-80 hover:border-slate-600"
-            : "opacity-60 hover:opacity-80 hover:border-stone-400"
+              ? "opacity-60 hover:opacity-80 hover:border-slate-600"
+              : "opacity-60 hover:opacity-80 hover:border-stone-400"
         }
       `}
     >
       {/* Lock icon for disabled state */}
       {disabled && (
-        <div
-          className={`absolute top-4 right-4 ${
-            isDark ? "text-gray-500" : "text-gray-400"
-          }`}
-        >
+        <div className={`absolute top-4 right-4 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
           <svg
             width="18"
             height="18"
@@ -61,11 +52,7 @@ export function AddCard({
         </div>
       )}
 
-      <IconBox
-        size="lg"
-        variant={disabled ? "muted" : "default"}
-        className="mb-3"
-      >
+      <IconBox size="lg" variant={disabled ? "muted" : "default"} className="mb-3">
         <svg
           width="24"
           height="24"
@@ -88,8 +75,8 @@ export function AddCard({
               ? "text-gray-500"
               : "text-gray-600"
             : isDark
-            ? "text-white"
-            : "text-gray-900"
+              ? "text-white"
+              : "text-gray-900"
         }`}
       >
         {label}
