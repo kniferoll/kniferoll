@@ -8,6 +8,7 @@ import {
   Logo,
   NavLinks,
   PublicFooter,
+  PublicMobileMenu,
   UserAvatarMenu,
 } from "@/components";
 import { LayoutShell } from "./LayoutShell";
@@ -40,15 +41,25 @@ function PublicLayoutInner() {
     {
       startContent: <Logo onClick={() => navigate("/")} />,
       endContent: (
-        <NavLinks
-          start={
-            <>
-              <PricingLink />
-              {user ? <DashboardLink /> : null}
-            </>
-          }
-          end={user ? <UserAvatarMenu /> : <AuthButtons />}
-        />
+        <>
+          {/* Desktop navigation */}
+          <div className="hidden md:block">
+            <NavLinks
+              start={
+                <>
+                  <PricingLink />
+                  {user ? <DashboardLink /> : null}
+                </>
+              }
+              end={user ? <UserAvatarMenu /> : <AuthButtons />}
+            />
+          </div>
+          {/* Mobile navigation */}
+          <div className="flex items-center gap-2 md:hidden">
+            <PublicMobileMenu />
+            {user && <UserAvatarMenu />}
+          </div>
+        </>
       ),
     },
     [user, navigate]
