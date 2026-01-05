@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib";
+import { supabase, captureError } from "@/lib";
 import type { Database } from "@kniferoll/types";
 
 type KitchenMember = Database["public"]["Tables"]["kitchen_members"]["Row"];
@@ -66,7 +66,15 @@ export function useRealtimeMembers(kitchenId: string | undefined) {
           fetchMembers(kitchenId);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          captureError(new Error("Realtime subscription error for kitchen_members"), {
+            context: "useRealtimeMembers",
+            kitchenId,
+            level: "warning",
+          });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

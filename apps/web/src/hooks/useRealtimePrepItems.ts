@@ -130,9 +130,11 @@ export function useRealtimePrepItems(
       )
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR") {
+          // Log as warning - expected when device sleeps or network changes
           captureError(new Error("Realtime subscription error for prep_items"), {
             context: "useRealtimePrepItems",
             stationId,
+            level: "warning",
           });
         }
       });

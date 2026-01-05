@@ -50,7 +50,10 @@ describe("sentry", () => {
 
       captureError(error);
 
-      expect(Sentry.captureException).toHaveBeenCalledWith(error, { extra: undefined });
+      expect(Sentry.captureException).toHaveBeenCalledWith(error, {
+        extra: {},
+        level: "error",
+      });
     });
 
     it("captures error with additional context", () => {
@@ -59,7 +62,21 @@ describe("sentry", () => {
 
       captureError(error, context);
 
-      expect(Sentry.captureException).toHaveBeenCalledWith(error, { extra: context });
+      expect(Sentry.captureException).toHaveBeenCalledWith(error, {
+        extra: context,
+        level: "error",
+      });
+    });
+
+    it("captures error with custom level", () => {
+      const error = new Error("Test warning");
+
+      captureError(error, { level: "warning" });
+
+      expect(Sentry.captureException).toHaveBeenCalledWith(error, {
+        extra: {},
+        level: "warning",
+      });
     });
   });
 });
