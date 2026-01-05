@@ -24,6 +24,14 @@ export function PublicFooter() {
           }`}
         >
           <a
+            href="https://discord.gg/e3MhhGDx"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-orange-500 transition-colors"
+          >
+            Discord
+          </a>
+          <a
             href="mailto:support@kniferoll.io"
             className="hover:text-orange-500 transition-colors"
           >
