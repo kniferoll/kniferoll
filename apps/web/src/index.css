@@ -139,3 +139,58 @@ html.dark {
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
+
+/* Markdown content styling for help center */
+/* Note: Heading styles (h1-h6) are defined in HelpContent.tsx for linkable headers */
+
+.markdown-content p {
+  @apply mb-4 leading-relaxed cursor-default;
+}
+
+.markdown-content ul {
+  @apply list-disc pl-6 mb-4 space-y-1 cursor-default;
+}
+
+.markdown-content ol {
+  @apply list-decimal pl-6 mb-4 space-y-1 cursor-default;
+}
+
+.markdown-content li {
+  @apply leading-relaxed cursor-default;
+}
+
+.markdown-content a {
+  @apply text-orange-500 hover:text-orange-400 underline;
+}
+
+.markdown-content strong {
+  @apply font-semibold cursor-default;
+}
+
+.markdown-content code {
+  @apply bg-slate-800 px-1.5 py-0.5 rounded text-sm font-mono cursor-default;
+}
+
+.markdown-content pre {
+  @apply bg-slate-800 p-4 rounded-lg overflow-x-auto mb-4 cursor-default;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-orange-500 pl-4 italic my-4 cursor-default;
+}
+
+.markdown-content table {
+  @apply w-full border-collapse mb-4 cursor-default;
+}
+
+.markdown-content th {
+  @apply text-left p-2 border-b-2 font-semibold cursor-default;
+}
+
+.markdown-content td {
+  @apply p-2 border-b cursor-default;
+}
+
+.markdown-content hr {
+  @apply my-8 border-t cursor-default;
+}
