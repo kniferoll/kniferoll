@@ -13,6 +13,9 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
+// Mock scrollTo since it's not available in jsdom
+Element.prototype.scrollTo = vi.fn();
+
 describe("HelpCenter", () => {
   beforeEach(() => {
     vi.clearAllMocks();
