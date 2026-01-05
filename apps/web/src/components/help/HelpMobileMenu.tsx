@@ -12,7 +12,7 @@ interface HelpMobileMenuProps {
 
 /**
  * Mobile slide-out menu for help navigation.
- * Slides in from the left with backdrop overlay.
+ * Slides in from the right with backdrop overlay.
  * Shows nested categories with expand/collapse.
  */
 export function HelpMobileMenu({
@@ -140,11 +140,11 @@ export function HelpMobileMenu({
         aria-hidden="true"
       />
 
-      {/* Slide-out panel */}
+      {/* Slide-out panel - from right */}
       <div
-        className={`fixed inset-y-0 left-0 w-72 z-50 transform transition-transform duration-300 ease-out lg:hidden ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } ${isDark ? "bg-slate-900" : "bg-white"}`}
+        className={`fixed inset-y-0 right-0 w-72 z-50 transform transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] lg:hidden ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        } ${isDark ? "bg-slate-900" : "bg-white"} shadow-2xl`}
       >
         {/* Header */}
         <div
@@ -152,12 +152,9 @@ export function HelpMobileMenu({
             isDark ? "border-slate-700" : "border-gray-200"
           }`}
         >
-          <h2 className={`font-semibold cursor-default ${isDark ? "text-white" : "text-gray-900"}`}>
-            Documentation
-          </h2>
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg cursor-pointer ${
+            className={`p-2 -ml-2 rounded-lg cursor-pointer ${
               isDark ? "hover:bg-slate-800 text-gray-400" : "hover:bg-gray-100 text-gray-500"
             }`}
             aria-label="Close menu"
@@ -171,6 +168,9 @@ export function HelpMobileMenu({
               />
             </svg>
           </button>
+          <h2 className={`font-semibold cursor-default ${isDark ? "text-white" : "text-gray-900"}`}>
+            Documentation
+          </h2>
         </div>
 
         {/* Navigation items */}

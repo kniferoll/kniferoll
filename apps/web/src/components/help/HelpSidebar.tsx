@@ -40,7 +40,7 @@ export function HelpSidebar({ activeTopic, onTopicChange }: HelpSidebarProps) {
         key={guide.slug}
         onClick={() => onTopicChange(guide.slug)}
         className={`w-full text-left py-1.5 rounded text-sm transition-colors cursor-pointer ${
-          indent ? "pl-6 pr-2" : "px-2"
+          indent ? "pl-5" : ""
         } ${
           isActive
             ? isDark
@@ -68,10 +68,10 @@ export function HelpSidebar({ activeTopic, onTopicChange }: HelpSidebarProps) {
     const hasActiveChild = guides.some((g) => g.slug === activeTopic);
 
     return (
-      <div key={category.id} className="mt-2">
+      <div key={category.id} className="mt-3">
         <button
           onClick={() => toggleCategory(category.id)}
-          className={`w-full flex items-center gap-1 py-1.5 px-2 text-sm cursor-pointer rounded transition-colors ${
+          className={`w-full flex items-center gap-1 py-1.5 text-sm cursor-pointer rounded transition-colors ${
             hasActiveChild && !isExpanded
               ? isDark
                 ? "text-orange-400"
@@ -103,7 +103,7 @@ export function HelpSidebar({ activeTopic, onTopicChange }: HelpSidebarProps) {
     <nav data-testid="help-sidebar" className="w-52 flex-shrink-0">
       <div className="sticky top-8">
         <h3
-          className={`text-xs font-semibold uppercase tracking-wider mb-3 px-2 cursor-default ${
+          className={`text-xs font-semibold uppercase tracking-wider mb-3 cursor-default ${
             isDark ? "text-gray-500" : "text-gray-400"
           }`}
         >

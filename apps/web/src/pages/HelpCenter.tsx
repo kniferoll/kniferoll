@@ -38,11 +38,22 @@ export function HelpCenter() {
     <div className="flex flex-col h-[calc(100dvh-64px)]">
       {/* Header area - fixed */}
       <div className="flex-shrink-0 px-6 lg:px-12 pt-8 pb-4">
-        <div className="max-w-7xl mx-auto flex items-center gap-4">
-          {/* Mobile menu button */}
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight cursor-default">
+              Help Center
+            </h1>
+            <p
+              className={`text-sm cursor-default mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}
+            >
+              Guides and documentation for Kniferoll
+            </p>
+          </div>
+
+          {/* Mobile menu button - right side */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className={`lg:hidden p-2 -ml-2 rounded-lg cursor-pointer ${
+            className={`lg:hidden p-2 -mr-2 rounded-lg cursor-pointer ${
               isDark ? "hover:bg-slate-800" : "hover:bg-stone-200"
             }`}
             aria-label="Open navigation menu"
@@ -61,17 +72,6 @@ export function HelpCenter() {
               />
             </svg>
           </button>
-
-          <div>
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight cursor-default">
-              Help Center
-            </h1>
-            <p
-              className={`text-sm cursor-default mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}
-            >
-              Guides and documentation for Kniferoll
-            </p>
-          </div>
         </div>
       </div>
 
