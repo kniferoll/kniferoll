@@ -2,10 +2,17 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { TestProviders, setTestAuthState } from "@/test/utils/providers";
 import { KitchenSettingsPanel } from "./KitchenSettingsPanel";
-import { createMockKitchen, createMockMember, createMockUser } from "@/test/utils/mocks";
+import {
+  createMockKitchen,
+  createMockMember,
+  createMockUser,
+} from "@/test/utils/mocks";
 
 describe("KitchenSettingsPanel", () => {
-  const mockKitchen = createMockKitchen({ id: "kitchen-1", name: "Test Kitchen" });
+  const mockKitchen = createMockKitchen({
+    id: "kitchen-1",
+    name: "Test Kitchen",
+  });
   const mockUser = createMockUser();
   const mockMembership = createMockMember({
     kitchen_id: "kitchen-1",
@@ -52,10 +59,18 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      expect(screen.getByRole("button", { name: /general/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /schedule/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /stations/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /members/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /general/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /schedule/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /stations/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /members/i })
+      ).toBeInTheDocument();
     });
 
     it("renders tabs for admin (same as owner)", () => {
@@ -70,10 +85,18 @@ describe("KitchenSettingsPanel", () => {
         </TestProviders>
       );
 
-      expect(screen.getByRole("button", { name: /general/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /schedule/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /stations/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /members/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /general/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /schedule/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /stations/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /members/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -277,7 +300,9 @@ describe("KitchenSettingsPanel", () => {
 
       await waitFor(() => {
         // Has a placeholder for station name input
-        expect(screen.getByPlaceholderText(/station name/i)).toBeInTheDocument();
+        expect(
+          screen.getByPlaceholderText(/station name/i)
+        ).toBeInTheDocument();
       });
     });
   });
@@ -307,7 +332,9 @@ describe("KitchenSettingsPanel", () => {
       fireEvent.click(screen.getByRole("button", { name: /members/i }));
 
       await waitFor(() => {
-        expect(screen.getByRole("button", { name: /invite/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole("button", { name: /invite/i })
+        ).toBeInTheDocument();
       });
     });
   });

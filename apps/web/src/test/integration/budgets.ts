@@ -84,7 +84,10 @@ export const EXCLUDED_PAGES = ["PrivacyPolicy", "TermsOfService"] as const;
  * Get budget for a specific page or interaction.
  * Throws if budget is not defined.
  */
-export function getBudget(name: BudgetName): { renders: number; duration: number } {
+export function getBudget(name: BudgetName): {
+  renders: number;
+  duration: number;
+} {
   const budget = RENDER_BUDGETS[name];
   if (!budget) {
     throw new Error(`No budget defined for: ${name}`);

@@ -15,6 +15,7 @@ import { Signup } from "@/pages/Signup";
 import { InviteJoin } from "@/pages/InviteJoin";
 import { JoinWithCode } from "@/pages/JoinWithCode";
 import { KitchenDashboard } from "@/pages/KitchenDashboard";
+import { KitchenSettings } from "@/pages/KitchenSettings";
 import { Settings } from "@/pages/Settings";
 import { StationView } from "@/pages/StationView";
 
@@ -127,6 +128,12 @@ describe("Page Mount Performance", () => {
       Component: KitchenDashboard,
       waitFor: "page-kitchen-dashboard",
       initialRoute: "/kitchen/mock-kitchen-id",
+    },
+    {
+      name: "KitchenSettings",
+      Component: KitchenSettings,
+      waitFor: "page-kitchen-settings",
+      initialRoute: "/settings/kitchen/mock-kitchen-id",
     },
     {
       name: "Settings",

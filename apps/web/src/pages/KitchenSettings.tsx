@@ -128,7 +128,7 @@ export function KitchenSettings() {
   }
 
   return (
-    <>
+    <div data-testid="page-kitchen-settings">
       <SettingsSidebar
         navigation={navigation}
         onNavigate={(value) => {
@@ -277,6 +277,6 @@ export function KitchenSettings() {
           }
         }}
       />
-    </>
+    </div>
   );
 }
