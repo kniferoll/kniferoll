@@ -16,6 +16,7 @@ import type { Database } from "@kniferoll/types";
 type KitchenMember = Database["public"]["Tables"]["kitchen_members"]["Row"];
 
 function SupportSettingsPanel() {
+  const navigate = useNavigate();
   const { isDark } = useDarkModeContext();
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
@@ -27,20 +28,46 @@ function SupportSettingsPanel() {
       <h2 className={`text-xl font-semibold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
         Support
       </h2>
-      <p className={`mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-        Have a question, found a bug, or want to request a feature? We&apos;re here to help.
-      </p>
 
-      <button
-        onClick={() => setIsSupportModalOpen(true)}
-        className={`px-6 py-3 rounded-xl font-medium transition-colors cursor-pointer ${
-          isDark
-            ? "bg-orange-500 hover:bg-orange-600 text-white"
-            : "bg-orange-500 hover:bg-orange-600 text-white"
-        }`}
-      >
-        Contact Support
-      </button>
+      {/* Help Center */}
+      <div className="mb-6">
+        <h3 className={`text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+          Help Center
+        </h3>
+        <p className={`text-sm mb-3 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          Browse guides and documentation to learn how to use Kniferoll.
+        </p>
+        <button
+          onClick={() => navigate("/help")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+            isDark
+              ? "bg-slate-800 hover:bg-slate-700 text-gray-300"
+              : "bg-stone-100 hover:bg-stone-200 text-gray-700"
+          }`}
+        >
+          Visit Help Center
+        </button>
+      </div>
+
+      {/* Contact Support */}
+      <div className={`pt-6 border-t ${isDark ? "border-slate-700" : "border-gray-200"}`}>
+        <h3 className={`text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+          Contact Us
+        </h3>
+        <p className={`text-sm mb-3 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          Have a question, found a bug, or want to request a feature?
+        </p>
+        <button
+          onClick={() => setIsSupportModalOpen(true)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+            isDark
+              ? "bg-orange-500 hover:bg-orange-600 text-white"
+              : "bg-orange-500 hover:bg-orange-600 text-white"
+          }`}
+        >
+          Contact Support
+        </button>
+      </div>
 
       <SupportModal isOpen={isSupportModalOpen} onClose={() => setIsSupportModalOpen(false)} />
     </div>
