@@ -1,6 +1,7 @@
 export * from "./auth";
 export * from "./dateUtils";
 export * from "./entitlements";
+export * from "./lazyWithRetry";
 export * from "./sentry";
 export * from "./storage";
 export * from "./stripe";

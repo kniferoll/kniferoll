@@ -1,4 +1,4 @@
-import { useEffect, Suspense, lazy } from "react";
+import { useEffect, Suspense } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -11,60 +11,61 @@ import { Analytics } from "@vercel/analytics/react";
 import { useAuthStore } from "./stores/authStore";
 import { PublicLayout, AppLayout } from "./layouts";
 import { ScrollToTop } from "./components";
+import { lazyWithRetry } from "./lib";
 
-// Lazy load pages
-const Landing = lazy(() =>
+// Lazy load pages with retry on chunk load failure
+const Landing = lazyWithRetry(() =>
   import("./pages/Landing").then((m) => ({ default: m.Landing }))
 );
-const Login = lazy(() =>
+const Login = lazyWithRetry(() =>
   import("./pages/Login").then((m) => ({ default: m.Login }))
 );
-const Signup = lazy(() =>
+const Signup = lazyWithRetry(() =>
   import("./pages/Signup").then((m) => ({ default: m.Signup }))
 );
-const InviteJoin = lazy(() =>
+const InviteJoin = lazyWithRetry(() =>
   import("./pages/InviteJoin").then((m) => ({ default: m.InviteJoin }))
 );
-const JoinWithCode = lazy(() =>
+const JoinWithCode = lazyWithRetry(() =>
   import("./pages/JoinWithCode").then((m) => ({ default: m.JoinWithCode }))
 );
-const Dashboard = lazy(() =>
+const Dashboard = lazyWithRetry(() =>
   import("./pages/Dashboard").then((m) => ({ default: m.Dashboard }))
 );
-const KitchenDashboard = lazy(() =>
+const KitchenDashboard = lazyWithRetry(() =>
   import("./pages/KitchenDashboard").then((m) => ({
     default: m.KitchenDashboard,
   }))
 );
-const StationView = lazy(() =>
+const StationView = lazyWithRetry(() =>
   import("./pages/StationView").then((m) => ({ default: m.StationView }))
 );
-const Settings = lazy(() =>
+const Settings = lazyWithRetry(() =>
   import("./pages/Settings").then((m) => ({
     default: m.Settings,
   }))
 );
-const TermsOfService = lazy(() =>
+const TermsOfService = lazyWithRetry(() =>
   import("./pages/TermsOfService").then((m) => ({
     default: m.TermsOfService,
   }))
 );
-const PrivacyPolicy = lazy(() =>
+const PrivacyPolicy = lazyWithRetry(() =>
   import("./pages/PrivacyPolicy").then((m) => ({
     default: m.PrivacyPolicy,
   }))
 );
-const ForgotPassword = lazy(() =>
+const ForgotPassword = lazyWithRetry(() =>
   import("./pages/ForgotPassword").then((m) => ({
     default: m.ForgotPassword,
   }))
 );
-const ResetPassword = lazy(() =>
+const ResetPassword = lazyWithRetry(() =>
   import("./pages/ResetPassword").then((m) => ({
     default: m.ResetPassword,
   }))
 );
-const VerifyEmail = lazy(() =>
+const VerifyEmail = lazyWithRetry(() =>
   import("./pages/VerifyEmail").then((m) => ({
     default: m.VerifyEmail,
   }))
