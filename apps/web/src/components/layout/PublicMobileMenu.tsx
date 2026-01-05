@@ -108,7 +108,7 @@ export function PublicMobileMenu() {
             <Link
               to="/pricing"
               onClick={() => setIsOpen(false)}
-              className={`block px-4 py-2.5 text-sm font-medium transition-colors ${
+              className={`block px-4 py-2.5 text-sm font-medium text-center transition-colors ${
                 isDark ? "text-gray-300 hover:bg-slate-700/50" : "text-gray-700 hover:bg-stone-100"
               }`}
             >
@@ -119,7 +119,7 @@ export function PublicMobileMenu() {
               <Link
                 to="/dashboard"
                 onClick={() => setIsOpen(false)}
-                className={`block px-4 py-2.5 text-sm font-medium transition-colors ${
+                className={`block px-4 py-2.5 text-sm font-medium text-center transition-colors ${
                   isDark
                     ? "text-gray-300 hover:bg-slate-700/50"
                     : "text-gray-700 hover:bg-stone-100"
