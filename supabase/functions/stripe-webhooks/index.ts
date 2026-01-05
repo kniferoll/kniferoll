@@ -1,3 +1,15 @@
+/**
+ * Stripe Webhooks Edge Function
+ *
+ * Handles Stripe webhook events for subscription management.
+ *
+ * DEPLOYMENT:
+ * This function must be deployed with --no-verify-jwt flag since Stripe
+ * uses its own signature verification (not JWTs):
+ *
+ *   supabase functions deploy stripe-webhooks --no-verify-jwt
+ */
+
 import Stripe from "stripe";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string);
@@ -58,6 +70,12 @@ Deno.serve(async (req: Request) => {
 
     // Handle specific event types
     switch (event.type) {
+      case "customer.subscription.created": {
+        const subscription = event.data.object as Stripe.Subscription;
+        await handleSubscriptionUpdate(subscription);
+        break;
+      }
+
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         await handleSubscriptionUpdate(subscription);
