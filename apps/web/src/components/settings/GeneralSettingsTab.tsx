@@ -14,12 +14,14 @@ interface GeneralSettingsTabProps {
   kitchen: Kitchen;
   isOwner: boolean;
   onDeleted: () => void;
+  onUpdated?: () => void;
 }
 
 export function GeneralSettingsTab({
   kitchen,
   isOwner,
   onDeleted,
+  onUpdated,
 }: GeneralSettingsTabProps) {
   const { isDark } = useDarkModeContext();
   const [kitchenName, setKitchenName] = useState(kitchen.name);
@@ -49,6 +51,7 @@ export function GeneralSettingsTab({
 
       if (err) throw err;
       setSuccess("Kitchen name updated");
+      onUpdated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update");
     } finally {

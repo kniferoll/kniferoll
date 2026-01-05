@@ -11,6 +11,7 @@ import { FormInput } from "../ui/FormInput";
 import { SettingsSection } from "../ui/SettingsSection";
 import { ConfirmDeleteShiftModal } from "../modals/ConfirmDeleteShiftModal";
 import { ConfirmHideShiftModal } from "../modals/ConfirmHideShiftModal";
+import { NewShiftModal } from "../modals/NewShiftModal";
 
 interface ScheduleSettingsTabProps {
   kitchenId: string;
@@ -64,6 +65,13 @@ export function ScheduleSettingsTab({
   // Hide modal state
   const [hideModalOpen, setHideModalOpen] = useState(false);
   const [shiftToHide, setShiftToHide] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  // New shift modal state
+  const [newShiftModalOpen, setNewShiftModalOpen] = useState(false);
+  const [pendingNewShift, setPendingNewShift] = useState<{
     id: string;
     name: string;
   } | null>(null);
@@ -356,12 +364,45 @@ export function ScheduleSettingsTab({
     setSuccess("");
 
     try {
-      await addShift(newShiftName);
+      const shiftId = await addShift(newShiftName);
+      const shiftName = newShiftName;
       setNewShiftName("");
-      setSuccess("Shift added");
-      refetch();
+
+      // Show modal to ask about applying to days
+      setPendingNewShift({ id: shiftId, name: shiftName });
+      setNewShiftModalOpen(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add shift");
+    }
+  };
+
+  const handleNewShiftDaysChoice = async (applyToAllDays: boolean) => {
+    if (!pendingNewShift) return;
+
+    try {
+      if (applyToAllDays) {
+        // Add the new shift to all days
+        for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+          const existingDay = shiftDays.find((d) => d.day_of_week === dayIndex);
+          const existingShiftIds =
+            existingDay?.shift_ids ?? shifts.map((s) => s.id);
+          // Add the new shift ID if not already present
+          const newShiftIds = existingShiftIds.includes(pendingNewShift.id)
+            ? existingShiftIds
+            : [...existingShiftIds, pendingNewShift.id];
+          await updateShiftDay(dayIndex, true, newShiftIds);
+        }
+      }
+      // If not applying to all days, the shift exists but isn't assigned to any days
+
+      setSuccess(`Shift "${pendingNewShift.name}" added`);
+      refetch();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to update schedule"
+      );
+    } finally {
+      setPendingNewShift(null);
     }
   };
 
@@ -446,7 +487,9 @@ export function ScheduleSettingsTab({
       >
         <div
           className={`rounded-xl border ${
-            isDark ? "bg-slate-800/50 border-slate-700/50" : "bg-stone-50 border-stone-200"
+            isDark
+              ? "bg-slate-800/50 border-slate-700/50"
+              : "bg-stone-50 border-stone-200"
           }`}
         >
           <div className="p-2.5 space-y-1.5">
@@ -857,6 +900,18 @@ export function ScheduleSettingsTab({
         }}
         onConfirm={confirmHideShift}
         shiftName={shiftToHide?.name ?? ""}
+      />
+
+      {/* New Shift Days Modal */}
+      <NewShiftModal
+        isOpen={newShiftModalOpen}
+        onClose={() => {
+          setNewShiftModalOpen(false);
+          setPendingNewShift(null);
+          refetch();
+        }}
+        onConfirm={handleNewShiftDaysChoice}
+        shiftName={pendingNewShift?.name ?? ""}
       />
     </>
   );

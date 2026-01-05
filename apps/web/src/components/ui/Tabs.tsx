@@ -63,7 +63,9 @@ export function Tab({ value, children }: TabProps) {
       onClick={() => setActiveTab(value)}
       className={`px-3 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
         isActive
-          ? `border-orange-500 ${isDark ? "text-orange-400" : "text-orange-600"}`
+          ? `border-orange-500 ${
+              isDark ? "text-orange-400" : "text-orange-600"
+            }`
           : `border-transparent ${
               isDark
                 ? "text-slate-400 hover:text-slate-200"

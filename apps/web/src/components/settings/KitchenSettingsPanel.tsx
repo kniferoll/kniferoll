@@ -25,6 +25,7 @@ interface KitchenSettingsPanelProps {
   membership: KitchenMember;
   userId: string;
   onKitchenDeleted?: () => void;
+  onKitchenUpdated?: () => void;
 }
 
 export function KitchenSettingsPanel({
@@ -32,6 +33,7 @@ export function KitchenSettingsPanel({
   membership,
   userId,
   onKitchenDeleted,
+  onKitchenUpdated,
 }: KitchenSettingsPanelProps) {
   const { isDark } = useDarkModeContext();
   const { handleCheckout } = useStripeCheckout();
@@ -73,16 +75,14 @@ export function KitchenSettingsPanel({
                 kitchen={kitchen}
                 isOwner={isOwner}
                 onDeleted={onKitchenDeleted || (() => {})}
+                onUpdated={onKitchenUpdated}
               />
             </div>
           </TabPanel>
 
           <TabPanel value="schedule">
             <div data-testid="schedule-tab-content">
-              <ScheduleSettingsTab
-                kitchenId={kitchen.id}
-                isOwner={isOwner}
-              />
+              <ScheduleSettingsTab kitchenId={kitchen.id} isOwner={isOwner} />
             </div>
           </TabPanel>
 
@@ -150,7 +150,9 @@ export function KitchenSettingsPanel({
           try {
             await handleCheckout();
           } catch (error) {
-            captureError(error as Error, { context: "KitchenSettingsPanel.checkout" });
+            captureError(error as Error, {
+              context: "KitchenSettingsPanel.checkout",
+            });
           }
         }}
       />

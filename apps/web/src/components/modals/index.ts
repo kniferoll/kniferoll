@@ -8,6 +8,7 @@ export { CreateAccountModal } from "./CreateAccountModal";
 export { EditPrepItemModal } from "./EditPrepItemModal";
 export { InviteLinkModal } from "./InviteLinkModal";
 export { KitchenOnboardingModal } from "./KitchenOnboardingModal";
+export { NewShiftModal } from "./NewShiftModal";
 export { default as ShareModal } from "./ShareModal";
 export { SupportModal } from "./SupportModal";
 export { UnitsModal } from "./UnitsModal";

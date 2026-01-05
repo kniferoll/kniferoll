@@ -61,7 +61,11 @@ export function Settings() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isDark } = useDarkModeContext();
   const { user } = useAuthStore();
-  const { kitchens, loading: kitchensLoading } = useKitchens(user?.id);
+  const {
+    kitchens,
+    loading: kitchensLoading,
+    refetch: refetchKitchens,
+  } = useKitchens(user?.id);
 
   // Get initial section from URL params or navigation state (for backwards compatibility)
   const urlSection = searchParams.get("section");
@@ -261,6 +265,7 @@ export function Settings() {
                 membership={selectedMembership}
                 userId={user.id}
                 onKitchenDeleted={handleKitchenDeleted}
+                onKitchenUpdated={refetchKitchens}
               />
             ) : (
               <div className="flex items-center justify-center h-64">
