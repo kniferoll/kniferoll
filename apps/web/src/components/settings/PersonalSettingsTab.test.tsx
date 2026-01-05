@@ -56,7 +56,7 @@ describe("PersonalSettingsTab", () => {
         </TestProviders>
       );
 
-      expect(screen.getByText(/dark mode/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/toggle dark mode/i)).toBeInTheDocument();
       expect(screen.getByRole("switch")).toBeInTheDocument();
     });
   });

@@ -180,7 +180,7 @@ describe("KitchenSettingsPanel", () => {
       fireEvent.click(screen.getByRole("button", { name: /schedule/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/operating days/i)).toBeInTheDocument();
+        expect(screen.getByText(/kitchen shifts/i)).toBeInTheDocument();
       });
     });
 

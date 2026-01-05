@@ -16,6 +16,7 @@ export const PAGE_BUDGETS = {
   InviteJoin: { renders: 8, duration: 80 },
   JoinWithCode: { renders: 8, duration: 80 },
   KitchenDashboard: { renders: 15, duration: 150 },
+  KitchenSettings: { renders: 15, duration: 150 },
   Landing: { renders: 8, duration: 80 },
   Login: { renders: 6, duration: 60 },
   ResetPassword: { renders: 6, duration: 60 },
