@@ -36,13 +36,7 @@ export function HelpContent({ content }: HelpContentProps) {
   }, [location.hash, content]);
 
   return (
-    <div
-      className={`prose max-w-none ${
-        isDark
-          ? "prose-invert prose-headings:text-white prose-p:text-gray-300 prose-li:text-gray-300 prose-strong:text-white prose-a:text-orange-400 hover:prose-a:text-orange-300"
-          : "prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-strong:text-gray-900 prose-a:text-orange-600 hover:prose-a:text-orange-500"
-      }`}
-    >
+    <div className={`markdown-content ${isDark ? "text-gray-300" : "text-gray-700"}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSlug]}
@@ -59,7 +53,7 @@ export function HelpContent({ content }: HelpContentProps) {
                     e.preventDefault();
                     navigate(href);
                   }}
-                  className="cursor-pointer"
+                  className="text-orange-500 hover:text-orange-400 underline cursor-pointer"
                 >
                   {children}
                 </a>
@@ -67,7 +61,13 @@ export function HelpContent({ content }: HelpContentProps) {
             }
             // External links open in new tab
             return (
-              <a {...props} href={href} target="_blank" rel="noopener noreferrer">
+              <a
+                {...props}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange-500 hover:text-orange-400 underline"
+              >
                 {children}
               </a>
             );

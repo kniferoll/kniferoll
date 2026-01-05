@@ -28,7 +28,7 @@ export function HelpCenter() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-6 md:px-10 py-16">
+    <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16">
       <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-2 cursor-default">
         Help Center
       </h1>
@@ -37,7 +37,7 @@ export function HelpCenter() {
       </p>
 
       {/* Mobile navigation pills */}
-      <div className="mt-8 md:hidden">
+      <div className="mt-8 lg:hidden">
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
           {guides.map((guide) => (
             <button
@@ -60,9 +60,9 @@ export function HelpCenter() {
       </div>
 
       {/* Desktop layout with sidebar */}
-      <div className="mt-8 flex gap-8">
-        {/* Sidebar - hidden on mobile */}
-        <div className="hidden md:block">
+      <div className="mt-12 flex gap-16">
+        {/* Sidebar - hidden on mobile/tablet */}
+        <div className="hidden lg:block">
           <HelpSidebar
             guides={guides}
             activeTopic={activeTopic}
@@ -71,7 +71,7 @@ export function HelpCenter() {
         </div>
 
         {/* Content area */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 max-w-3xl">
           {activeGuide ? (
             <HelpContent content={activeGuide.content} />
           ) : (
