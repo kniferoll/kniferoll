@@ -19,14 +19,14 @@ export function SettingsSection({
   const { isDark } = useDarkModeContext();
 
   return (
-    <div className={`py-5 sm:py-6 ${className}`}>
+    <div className={`py-4 sm:py-5 first:pt-0 ${className}`}>
       <div
-        className={`flex items-center justify-between gap-4 ${
-          description ? "mb-0.5" : "mb-4"
+        className={`flex items-center justify-between gap-3 ${
+          description ? "mb-0.5" : "mb-3"
         }`}
       >
         <h3
-          className={`text-base font-semibold ${
+          className={`text-sm sm:text-base font-semibold ${
             isDark ? "text-white" : "text-gray-900"
           }`}
         >
@@ -36,8 +36,8 @@ export function SettingsSection({
       </div>
       {description && (
         <p
-          className={`text-xs sm:text-sm mb-4 ${
-            isDark ? "text-slate-400" : "text-gray-600"
+          className={`text-xs sm:text-sm mb-3 ${
+            isDark ? "text-slate-400" : "text-gray-500"
           }`}
         >
           {description}

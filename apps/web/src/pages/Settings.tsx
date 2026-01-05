@@ -158,28 +158,28 @@ export function Settings() {
   // Mobile nav pill button styles
   const getMobilePillClass = (isActive: boolean) => {
     const base =
-      "flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap";
+      "flex-shrink-0 px-3.5 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap";
     if (isActive) {
       return `${base} ${
         isDark
-          ? "bg-orange-500/20 text-orange-400"
-          : "bg-orange-100 text-orange-600"
+          ? "bg-orange-500/15 text-orange-400 ring-1 ring-orange-500/30"
+          : "bg-orange-50 text-orange-600 ring-1 ring-orange-200"
       }`;
     }
     return `${base} ${
       isDark
-        ? "bg-slate-800 text-gray-400 hover:text-white"
-        : "bg-stone-100 text-gray-600 hover:text-gray-900"
+        ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+        : "text-gray-500 hover:text-gray-700 hover:bg-stone-100"
     }`;
   };
 
   return (
     <div data-testid="page-settings">
-      <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
+      <div className="max-w-6xl mx-auto px-4 py-4 md:py-8">
         {/* Mobile Navigation */}
-        <div className="md:hidden mb-6">
-          <div className="overflow-x-auto -mx-4 px-4">
-            <div className="flex gap-2 pb-2">
+        <div className="md:hidden mb-4">
+          <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
+            <div className="flex gap-1.5 pb-2">
               {/* Account section pills */}
               <button
                 onClick={() => handleSectionChange("personal")}

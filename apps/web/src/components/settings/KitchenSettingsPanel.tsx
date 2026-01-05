@@ -51,14 +51,14 @@ export function KitchenSettingsPanel({
   return (
     <div data-testid="kitchen-settings-panel">
       <h2
-        className={`text-lg md:text-xl font-bold mb-4 md:mb-6 truncate ${
+        className={`text-xl sm:text-2xl font-bold mb-3 sm:mb-4 truncate ${
           isDark ? "text-white" : "text-gray-900"
         }`}
       >
         {kitchen.name}
       </h2>
 
-      <Card padding="none">
+      <Card padding="none" className="overflow-hidden">
         <Tabs value={activeTab} onChange={setActiveTab}>
           <TabList>
             <Tab value="general">General</Tab>

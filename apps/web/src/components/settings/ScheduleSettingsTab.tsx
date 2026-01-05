@@ -445,11 +445,11 @@ export function ScheduleSettingsTab({
         description="Define your shifts. Drag to reorder."
       >
         <div
-          className={`rounded-lg p-3 ${
-            isDark ? "bg-slate-800" : "bg-stone-50"
+          className={`rounded-xl border ${
+            isDark ? "bg-slate-800/50 border-slate-700/50" : "bg-stone-50 border-stone-200"
           }`}
         >
-          <div className="space-y-1.5 mb-3">
+          <div className="p-2.5 space-y-1.5">
             {loading ? (
               <p
                 className={`text-sm ${
@@ -623,8 +623,8 @@ export function ScheduleSettingsTab({
 
           {isOwner && (
             <div
-              className={`border-t pt-3 ${
-                isDark ? "border-slate-700" : "border-stone-200"
+              className={`border-t p-2.5 ${
+                isDark ? "border-slate-700/50" : "border-stone-200"
               }`}
             >
               <div className="flex gap-2">
@@ -640,7 +640,7 @@ export function ScheduleSettingsTab({
                   variant="primary"
                   onClick={handleAddShift}
                   disabled={!newShiftName.trim()}
-                  className="text-sm"
+                  className="text-sm px-4"
                 >
                   Add
                 </Button>
@@ -655,7 +655,7 @@ export function ScheduleSettingsTab({
         title="Weekly Schedule"
         description="Configure which shifts run each day"
       >
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {DAYS_OF_WEEK.map((day, dayIndex) => {
             const dayConfig = localDays.find((d) => d.dayIndex === dayIndex);
             const activeShiftIds = dayConfig?.shiftIds ?? [];
@@ -667,20 +667,20 @@ export function ScheduleSettingsTab({
             return (
               <div
                 key={dayIndex}
-                className={`rounded-lg border overflow-hidden ${
+                className={`rounded-xl border overflow-hidden ${
                   isDark
                     ? isOpen
-                      ? "border-slate-600 bg-slate-800"
-                      : "border-slate-700 bg-slate-800/50"
+                      ? "border-slate-700/50 bg-slate-800/50"
+                      : "border-slate-700/30 bg-slate-800/30"
                     : isOpen
                     ? "border-stone-200 bg-white"
-                    : "border-stone-200 bg-stone-50"
+                    : "border-stone-200/50 bg-stone-50"
                 }`}
               >
                 {/* Day header */}
                 <div
-                  className={`flex items-center justify-between px-3 py-2 border-b ${
-                    isDark ? "border-slate-700" : "border-stone-100"
+                  className={`flex items-center justify-between px-3 py-2.5 ${
+                    isDark ? "" : ""
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -739,20 +739,20 @@ export function ScheduleSettingsTab({
                     </p>
                   </div>
                 ) : (
-                  <div className="px-2.5 py-2 flex flex-wrap gap-1.5">
+                  <div className="px-3 py-2.5 flex flex-wrap gap-2">
                     {localShifts.map((shift) => {
                       const isActive = activeShiftIds.includes(shift.id);
                       return (
                         <label
                           key={shift.id}
-                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md cursor-pointer transition-all text-xs ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg cursor-pointer transition-all text-xs font-medium ${
                             isDark
                               ? isActive
-                                ? "bg-orange-500/20 border border-orange-500/50 text-orange-300"
-                                : "bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600"
+                                ? "bg-orange-500/20 ring-1 ring-orange-500/40 text-orange-300"
+                                : "bg-slate-700/50 ring-1 ring-slate-600/50 text-slate-300 hover:bg-slate-700"
                               : isActive
-                              ? "bg-orange-100 border border-orange-300 text-orange-800"
-                              : "bg-stone-100 border border-stone-200 text-stone-600 hover:bg-stone-200"
+                              ? "bg-orange-50 ring-1 ring-orange-200 text-orange-700"
+                              : "bg-white ring-1 ring-stone-200 text-stone-600 hover:bg-stone-50"
                           } ${!isOwner ? "opacity-60 cursor-not-allowed" : ""}`}
                         >
                           <input
@@ -765,14 +765,12 @@ export function ScheduleSettingsTab({
                             className="sr-only"
                           />
                           <span
-                            className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition-colors ${
+                            className={`w-3.5 h-3.5 rounded flex items-center justify-center transition-colors ${
                               isActive
-                                ? isDark
-                                  ? "bg-orange-500 border-orange-500"
-                                  : "bg-orange-500 border-orange-500"
+                                ? "bg-orange-500"
                                 : isDark
-                                ? "border-slate-500"
-                                : "border-stone-400"
+                                ? "bg-slate-600 ring-1 ring-slate-500"
+                                : "bg-stone-200 ring-1 ring-stone-300"
                             }`}
                           >
                             {isActive && (
@@ -802,44 +800,38 @@ export function ScheduleSettingsTab({
       </SettingsSection>
 
       {/* Save/Cancel Buttons */}
-      {isOwner && (
+      {isOwner && hasChanges && (
         <div
-          className={`sticky bottom-0 py-3 border-t ${
+          className={`sticky bottom-0 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 border-t ${
             isDark
-              ? "bg-slate-900/95 border-slate-700 backdrop-blur-sm"
+              ? "bg-slate-900/95 border-slate-700/50 backdrop-blur-sm"
               : "bg-white/95 border-stone-200 backdrop-blur-sm"
           }`}
         >
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              {hasChanges && (
-                <span
-                  className={`text-xs sm:text-sm ${
-                    isDark ? "text-amber-400" : "text-amber-600"
-                  }`}
-                >
-                  Unsaved changes
-                </span>
-              )}
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <Button
-                variant="ghost"
-                onClick={handleCancel}
-                disabled={!hasChanges || saving}
-                className="text-sm"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSave}
-                disabled={!hasChanges || saving}
-                className="text-sm"
-              >
-                {saving ? "Saving..." : "Save"}
-              </Button>
-            </div>
+          <div className="flex items-center justify-end gap-2">
+            <span
+              className={`text-xs mr-auto ${
+                isDark ? "text-amber-400/80" : "text-amber-600"
+              }`}
+            >
+              Unsaved changes
+            </span>
+            <Button
+              variant="ghost"
+              onClick={handleCancel}
+              disabled={saving}
+              className="text-sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSave}
+              disabled={saving}
+              className="text-sm"
+            >
+              {saving ? "Saving..." : "Save"}
+            </Button>
           </div>
         </div>
       )}
