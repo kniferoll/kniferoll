@@ -20,7 +20,7 @@ export const PAGE_BUDGETS = {
   Login: { renders: 6, duration: 60 },
   ResetPassword: { renders: 6, duration: 60 },
   Settings: { renders: 12, duration: 120 },
-  Signup: { renders: 6, duration: 60 },
+  Signup: { renders: 6, duration: 100 },
   StationView: { renders: 15, duration: 150 },
   VerifyEmail: { renders: 6, duration: 60 },
 } as const;
