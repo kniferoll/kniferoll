@@ -91,9 +91,7 @@ Deno.serve(async (req: Request) => {
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         if (invoice.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(
-            invoice.subscription as string
-          );
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
           await handleSubscriptionUpdate(subscription);
         }
         break;
@@ -102,9 +100,7 @@ Deno.serve(async (req: Request) => {
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         if (invoice.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(
-            invoice.subscription as string
-          );
+          const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
           await handleSubscriptionUpdate(subscription);
         }
         break;
@@ -161,9 +157,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     }
 
     // Get subscription period end
-    const subscriptionPeriodEnd = new Date(
-      subscription.current_period_end * 1000
-    ).toISOString();
+    const subscriptionPeriodEnd = new Date(subscription.current_period_end * 1000).toISOString();
 
     // Update user profile
     await fetch(`${supabaseUrl}/rest/v1/user_profiles?id=eq.${userId}`, {

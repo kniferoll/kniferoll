@@ -30,9 +30,7 @@ export function Login() {
   if (user || isSubmitting) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-          Signing in...
-        </p>
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Signing in...</p>
       </div>
     );
   }

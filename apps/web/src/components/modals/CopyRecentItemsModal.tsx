@@ -62,12 +62,8 @@ export function CopyRecentItemsModal({
   const { allUnits } = usePrepEntryStore();
 
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
-  const [targetDateItems, setTargetDateItems] = useState<Set<string>>(
-    new Set()
-  );
-  const [selectedItems, setSelectedItems] = useState<Map<string, SelectedItem>>(
-    new Map()
-  );
+  const [targetDateItems, setTargetDateItems] = useState<Set<string>>(new Set());
+  const [selectedItems, setSelectedItems] = useState<Map<string, SelectedItem>>(new Map());
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -191,16 +187,12 @@ export function CopyRecentItemsModal({
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return recentItems;
     const query = searchQuery.toLowerCase();
-    return recentItems.filter((item) =>
-      item.description.toLowerCase().includes(query)
-    );
+    return recentItems.filter((item) => item.description.toLowerCase().includes(query));
   }, [recentItems, searchQuery]);
 
   // Filter out items that are already on the target date
   const availableItems = useMemo(() => {
-    return filteredItems.filter(
-      (item) => !targetDateItems.has(item.kitchen_item_id)
-    );
+    return filteredItems.filter((item) => !targetDateItems.has(item.kitchen_item_id));
   }, [filteredItems, targetDateItems]);
 
   const handleToggleItem = useCallback((item: RecentItem) => {
@@ -219,39 +211,33 @@ export function CopyRecentItemsModal({
     });
   }, []);
 
-  const handleUpdateQuantity = useCallback(
-    (kitchenItemId: string, quantity: string) => {
-      setSelectedItems((prev) => {
-        const next = new Map(prev);
-        const item = next.get(kitchenItemId);
-        if (item) {
-          next.set(kitchenItemId, {
-            ...item,
-            quantity: quantity.trim() ? parseFloat(quantity) : null,
-          });
-        }
-        return next;
-      });
-    },
-    []
-  );
+  const handleUpdateQuantity = useCallback((kitchenItemId: string, quantity: string) => {
+    setSelectedItems((prev) => {
+      const next = new Map(prev);
+      const item = next.get(kitchenItemId);
+      if (item) {
+        next.set(kitchenItemId, {
+          ...item,
+          quantity: quantity.trim() ? parseFloat(quantity) : null,
+        });
+      }
+      return next;
+    });
+  }, []);
 
-  const handleUpdateUnit = useCallback(
-    (kitchenItemId: string, unitId: string | null) => {
-      setSelectedItems((prev) => {
-        const next = new Map(prev);
-        const item = next.get(kitchenItemId);
-        if (item) {
-          next.set(kitchenItemId, {
-            ...item,
-            unit_id: unitId,
-          });
-        }
-        return next;
-      });
-    },
-    []
-  );
+  const handleUpdateUnit = useCallback((kitchenItemId: string, unitId: string | null) => {
+    setSelectedItems((prev) => {
+      const next = new Map(prev);
+      const item = next.get(kitchenItemId);
+      if (item) {
+        next.set(kitchenItemId, {
+          ...item,
+          unit_id: unitId,
+        });
+      }
+      return next;
+    });
+  }, []);
 
   const handleSave = async () => {
     if (selectedItems.size === 0) return;
@@ -260,9 +246,7 @@ export function CopyRecentItemsModal({
     try {
       // Build all items to insert as a batch
       const itemsToAdd = Array.from(selectedItems.values()).map((item) => {
-        const unitName = item.unit_id
-          ? allUnits.find((u) => u.id === item.unit_id)?.name
-          : null;
+        const unitName = item.unit_id ? allUnits.find((u) => u.id === item.unit_id)?.name : null;
         let quantityRaw = "";
         if (item.quantity && unitName) {
           quantityRaw = `${item.quantity} ${unitName}`;
@@ -292,9 +276,7 @@ export function CopyRecentItemsModal({
       }
 
       // Reload prep items to show the new items
-      await usePrepStore
-        .getState()
-        .loadPrepItems(stationId, targetDate, shiftId);
+      await usePrepStore.getState().loadPrepItems(stationId, targetDate, shiftId);
 
       onClose();
     } finally {
@@ -339,9 +321,7 @@ export function CopyRecentItemsModal({
           {/* Header */}
           <div className="flex justify-between items-center px-5 py-4 border-b border-stone-200 dark:border-slate-700">
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-semibold text-stone-900 dark:text-slate-50">
-                {title}
-              </h2>
+              <h2 className="text-lg font-semibold text-stone-900 dark:text-slate-50">{title}</h2>
               <p className="text-sm text-stone-500 dark:text-slate-400">
                 Select items to add ({selectedItems.size} selected)
               </p>
@@ -377,8 +357,8 @@ export function CopyRecentItemsModal({
                   {searchQuery
                     ? `No items found for "${searchQuery}"`
                     : recentItems.length === 0
-                    ? "No recent items found for this station"
-                    : "All recent items are already in the list"}
+                      ? "No recent items found for this station"
+                      : "All recent items are already in the list"}
                 </p>
               </div>
             ) : (
@@ -418,9 +398,7 @@ export function CopyRecentItemsModal({
                             Last:{" "}
                             {item.last_quantity
                               ? `${item.last_quantity}${
-                                  item.last_unit_name
-                                    ? ` ${item.last_unit_name}`
-                                    : ""
+                                  item.last_unit_name ? ` ${item.last_unit_name}` : ""
                                 }`
                               : item.last_unit_name || "no quantity"}
                           </p>
@@ -431,9 +409,7 @@ export function CopyRecentItemsModal({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setEditingItem(
-                                isEditing ? null : item.kitchen_item_id
-                              );
+                              setEditingItem(isEditing ? null : item.kitchen_item_id);
                             }}
                             className="px-3 py-1.5 text-sm text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
                           >
@@ -461,10 +437,7 @@ export function CopyRecentItemsModal({
                                 placeholder="Amount"
                                 value={selectedData.quantity?.toString() ?? ""}
                                 onChange={(e) =>
-                                  handleUpdateQuantity(
-                                    item.kitchen_item_id,
-                                    e.target.value
-                                  )
+                                  handleUpdateQuantity(item.kitchen_item_id, e.target.value)
                                 }
                                 className="flex-1 px-3 py-2 border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-stone-900 dark:text-slate-50 placeholder-stone-400 dark:placeholder-slate-400 rounded-lg text-sm focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 dark:focus:border-orange-400 outline-none transition-all"
                               />
@@ -484,9 +457,7 @@ export function CopyRecentItemsModal({
                             <div className="max-h-40 overflow-y-auto rounded-lg border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2">
                               {/* Clear unit option */}
                               <button
-                                onClick={() =>
-                                  handleUpdateUnit(item.kitchen_item_id, null)
-                                }
+                                onClick={() => handleUpdateUnit(item.kitchen_item_id, null)}
                                 className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${
                                   !selectedData.unit_id
                                     ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300"
@@ -496,36 +467,29 @@ export function CopyRecentItemsModal({
                                 No unit
                               </button>
 
-                              {groupedUnits.map(
-                                ({ category, label, units }) => (
-                                  <div key={category} className="mt-2">
-                                    <div className="text-xs font-medium text-stone-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-1">
-                                      {label}
-                                    </div>
-                                    <div className="flex flex-wrap gap-1">
-                                      {units.map((unit) => (
-                                        <Pill
-                                          key={unit.id}
-                                          variant={
-                                            selectedData.unit_id === unit.id
-                                              ? "selected"
-                                              : "default"
-                                          }
-                                          size="sm"
-                                          onClick={() =>
-                                            handleUpdateUnit(
-                                              item.kitchen_item_id,
-                                              unit.id
-                                            )
-                                          }
-                                        >
-                                          {unit.name}
-                                        </Pill>
-                                      ))}
-                                    </div>
+                              {groupedUnits.map(({ category, label, units }) => (
+                                <div key={category} className="mt-2">
+                                  <div className="text-xs font-medium text-stone-400 dark:text-slate-500 uppercase tracking-wider px-2 mb-1">
+                                    {label}
                                   </div>
-                                )
-                              )}
+                                  <div className="flex flex-wrap gap-1">
+                                    {units.map((unit) => (
+                                      <Pill
+                                        key={unit.id}
+                                        variant={
+                                          selectedData.unit_id === unit.id ? "selected" : "default"
+                                        }
+                                        size="sm"
+                                        onClick={() =>
+                                          handleUpdateUnit(item.kitchen_item_id, unit.id)
+                                        }
+                                      >
+                                        {unit.name}
+                                      </Pill>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -555,9 +519,7 @@ export function CopyRecentItemsModal({
             >
               {isSaving
                 ? "Adding..."
-                : `Add ${selectedItems.size} item${
-                    selectedItems.size !== 1 ? "s" : ""
-                  }`}
+                : `Add ${selectedItems.size} item${selectedItems.size !== 1 ? "s" : ""}`}
             </button>
           </div>
         </motion.div>

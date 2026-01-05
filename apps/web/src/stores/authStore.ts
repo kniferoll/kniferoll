@@ -8,7 +8,10 @@ import type { User, Session, AuthError } from "@supabase/supabase-js";
  * Uses error codes from Supabase Auth API for reliable matching.
  * @see https://supabase.com/docs/guides/auth/debugging/error-codes
  */
-function getAuthErrorMessage(error: AuthError | null, context: "signup" | "password"): string | undefined {
+function getAuthErrorMessage(
+  error: AuthError | null,
+  context: "signup" | "password"
+): string | undefined {
   if (!error) return undefined;
 
   const code = error.code;
@@ -56,11 +59,7 @@ interface AuthState {
   pendingPasswordReset: boolean;
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (
-    email: string,
-    password: string,
-    name: string
-  ) => Promise<{ error?: string }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<{ error?: string }>;
   updatePassword: (newPassword: string) => Promise<{ error?: string }>;

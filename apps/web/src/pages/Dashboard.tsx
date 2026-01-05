@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
-import {
-  useKitchens,
-  usePlanLimits,
-  useStripeCheckout,
-  useHeaderConfig,
-} from "@/hooks";
+import { useKitchens, usePlanLimits, useStripeCheckout, useHeaderConfig } from "@/hooks";
 import { useDarkModeContext } from "@/context";
 import {
   AddCard,
@@ -66,8 +61,7 @@ export function Dashboard() {
 
     if (settingsMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [settingsMenuOpen]);
 
@@ -113,11 +107,7 @@ export function Dashboard() {
         >
           Your Kitchens
         </h1>
-        <p
-          className={`text-sm mb-10 cursor-default ${
-            isDark ? "text-gray-400" : "text-gray-600"
-          }`}
-        >
+        <p className={`text-sm mb-10 cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
           Select a kitchen to manage prep lists and team
         </p>
 
@@ -131,11 +121,7 @@ export function Dashboard() {
             >
               No kitchens yet
             </h2>
-            <p
-              className={`mb-8 cursor-default ${
-                isDark ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
+            <p className={`mb-8 cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
               Create your first kitchen to get started
             </p>
             <Button
@@ -157,42 +143,36 @@ export function Dashboard() {
                 onClick={() => handleSelectKitchen(kitchen)}
                 showMenu={settingsMenuOpen === kitchen.id}
                 onMenuToggle={() =>
-                  setSettingsMenuOpen(
-                    settingsMenuOpen === kitchen.id ? null : kitchen.id
-                  )
+                  setSettingsMenuOpen(settingsMenuOpen === kitchen.id ? null : kitchen.id)
                 }
                 menuContent={
                   <>
-                    {["Kitchen Settings", "Manage Shifts", "Team Members"].map(
-                      (item) => (
-                        <button
-                          key={item}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSettingsMenuOpen(null);
-                            if (item === "Kitchen Settings") {
-                              navigate(`/settings?section=${kitchen.id}`);
-                            }
-                          }}
-                          className={`w-full px-4 py-3 text-left text-sm transition-colors cursor-pointer ${
-                            isDark
-                              ? "text-gray-300 hover:bg-slate-700"
-                              : "text-gray-700 hover:bg-stone-100"
-                          }`}
-                        >
-                          {item}
-                        </button>
-                      )
-                    )}
+                    {["Kitchen Settings", "Manage Shifts", "Team Members"].map((item) => (
+                      <button
+                        key={item}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSettingsMenuOpen(null);
+                          if (item === "Kitchen Settings") {
+                            navigate(`/settings?section=${kitchen.id}`);
+                          }
+                        }}
+                        className={`w-full px-4 py-3 text-left text-sm transition-colors cursor-pointer ${
+                          isDark
+                            ? "text-gray-300 hover:bg-slate-700"
+                            : "text-gray-700 hover:bg-stone-100"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ))}
                   </>
                 }
               />
             ))}
 
             <AddCard
-              label={
-                canAddKitchen ? "Create New Kitchen" : "Add Another Kitchen"
-              }
+              label={canAddKitchen ? "Create New Kitchen" : "Add Another Kitchen"}
               onClick={() => {
                 if (canAddKitchen) {
                   handleCreateKitchen();

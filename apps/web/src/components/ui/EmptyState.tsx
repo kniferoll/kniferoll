@@ -32,36 +32,19 @@ interface EmptyStateProps {
  *   action={{ label: "Add Station", onClick: handleAdd }}
  * />
  */
-export function EmptyState({
-  icon,
-  title,
-  description,
-  action,
-}: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   const { isDark } = useDarkModeContext();
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-      {icon && (
-        <div className={`mb-4 ${isDark ? "text-slate-500" : "text-stone-400"}`}>
-          {icon}
-        </div>
-      )}
+      {icon && <div className={`mb-4 ${isDark ? "text-slate-500" : "text-stone-400"}`}>{icon}</div>}
 
-      <h3
-        className={`text-lg font-semibold mb-1 ${
-          isDark ? "text-slate-200" : "text-stone-700"
-        }`}
-      >
+      <h3 className={`text-lg font-semibold mb-1 ${isDark ? "text-slate-200" : "text-stone-700"}`}>
         {title}
       </h3>
 
       {description && (
-        <p
-          className={`text-sm max-w-sm ${
-            isDark ? "text-slate-400" : "text-stone-500"
-          }`}
-        >
+        <p className={`text-sm max-w-sm ${isDark ? "text-slate-400" : "text-stone-500"}`}>
           {description}
         </p>
       )}

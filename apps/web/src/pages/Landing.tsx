@@ -24,14 +24,12 @@ const steps = [
   {
     step: "2",
     title: "Team joins with a code",
-    description:
-      "Your cooks scan a QR or enter a code. No app download, no account needed.",
+    description: "Your cooks scan a QR or enter a code. No app download, no account needed.",
   },
   {
     step: "3",
     title: "Track prep together",
-    description:
-      "See progress across every station in real-time. Updates sync instantly.",
+    description: "See progress across every station in real-time. Updates sync instantly.",
   },
 ];
 
@@ -49,8 +47,7 @@ const features = [
   {
     icon: <TeamIcon />,
     title: "Station assignments",
-    description:
-      "Assign cooks to stations so they see what's relevant to them.",
+    description: "Assign cooks to stations so they see what's relevant to them.",
   },
   {
     icon: <UnitsIcon />,
@@ -61,14 +58,12 @@ const features = [
   {
     icon: <ShieldIcon />,
     title: "No account needed to join",
-    description:
-      "Your team enters a code and they're in. No email, no password.",
+    description: "Your team enters a code and they're in. No email, no password.",
   },
   {
     icon: <CalendarIcon />,
     title: "Shift management",
-    description:
-      "Set up AM/PM or custom shifts. Prep lists adjust automatically.",
+    description: "Set up AM/PM or custom shifts. Prep lists adjust automatically.",
   },
 ];
 
@@ -89,11 +84,7 @@ export function Landing() {
           Kniferoll
         </h1>
 
-        <p
-          className={`text-lg md:text-xl mb-3 ${
-            isDark ? "text-gray-300" : "text-gray-700"
-          }`}
-        >
+        <p className={`text-lg md:text-xl mb-3 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
           A prep list app built by a chef.
         </p>
 
@@ -102,8 +93,8 @@ export function Landing() {
             isDark ? "text-gray-400" : "text-gray-600"
           }`}
         >
-          Real-time prep tracking for your team. Everyone sees what needs to be
-          done, what's in progress, and what's finished—across every station.
+          Real-time prep tracking for your team. Everyone sees what needs to be done, what's in
+          progress, and what's finished—across every station.
         </p>
 
         {/* CTAs */}
@@ -122,10 +113,7 @@ export function Landing() {
 
         <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-500"}`}>
           Have a join code?{" "}
-          <Link
-            to="/join"
-            className="text-orange-500 hover:text-orange-600 font-medium"
-          >
+          <Link to="/join" className="text-orange-500 hover:text-orange-600 font-medium">
             Enter it here →
           </Link>
         </p>
@@ -172,7 +160,6 @@ export function Landing() {
               </Button>
             </Link>
           </div>
-
         </div>
       </section>
     </div>

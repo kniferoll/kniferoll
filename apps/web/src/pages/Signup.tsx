@@ -34,9 +34,7 @@ export function Signup() {
   if (user && session) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-          Creating account...
-        </p>
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Creating account...</p>
       </div>
     );
   }
@@ -52,29 +50,18 @@ export function Signup() {
           >
             Check your email
           </h1>
-          <p
-            className={`cursor-default ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <p className={`cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             We sent a confirmation link to your email
           </p>
         </div>
 
         <Card padding="lg">
-          <p
-            className={`text-center mb-6 ${
-              isDark ? "text-gray-300" : "text-gray-700"
-            }`}
-          >
-            Click the link in the email to verify your account. If you don't
-            see it, check your spam folder.
+          <p className={`text-center mb-6 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+            Click the link in the email to verify your account. If you don't see it, check your spam
+            folder.
           </p>
           <div className="text-center">
-            <Link
-              to="/login"
-              className="text-orange-500 hover:text-orange-600 font-medium"
-            >
+            <Link to="/login" className="text-orange-500 hover:text-orange-600 font-medium">
               Back to login
             </Link>
           </div>
@@ -86,9 +73,7 @@ export function Signup() {
   if (isSubmitting) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-          Creating account...
-        </p>
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Creating account...</p>
       </div>
     );
   }

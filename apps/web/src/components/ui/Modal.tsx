@@ -54,7 +54,7 @@ export function Modal({ isOpen, onClose, children, size = "md" }: ModalProps) {
 
   return (
     <div
-className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div

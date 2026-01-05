@@ -119,10 +119,7 @@ export function useCreateKitchen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const createKitchen = async (
-    userId: string,
-    name: string
-  ): Promise<Kitchen | null> => {
+  const createKitchen = async (userId: string, name: string): Promise<Kitchen | null> => {
     try {
       setLoading(true);
       setError(null);
@@ -140,14 +137,12 @@ export function useCreateKitchen() {
       if (kitchenError) throw kitchenError;
 
       // Add owner as member
-      const { error: memberError } = await supabase
-        .from("kitchen_members")
-        .insert({
-          kitchen_id: kitchen.id,
-          user_id: userId,
-          role: "owner",
-          can_invite: true,
-        });
+      const { error: memberError } = await supabase.from("kitchen_members").insert({
+        kitchen_id: kitchen.id,
+        user_id: userId,
+        role: "owner",
+        can_invite: true,
+      });
 
       if (memberError) throw memberError;
 

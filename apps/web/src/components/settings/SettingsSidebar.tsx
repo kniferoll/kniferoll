@@ -47,9 +47,7 @@ export function SettingsSidebar({
   return (
     <nav
       data-testid="settings-sidebar"
-      className={`w-64 flex-shrink-0 p-4 rounded-xl ${
-        isDark ? "bg-slate-900" : "bg-white"
-      }`}
+      className={`w-64 flex-shrink-0 p-4 rounded-xl ${isDark ? "bg-slate-900" : "bg-white"}`}
     >
       <div className="space-y-6">
         {/* Account Section */}
@@ -100,11 +98,7 @@ export function SettingsSidebar({
           </h3>
           <div className="space-y-1">
             {manageableKitchens.length === 0 ? (
-              <p
-                className={`px-4 py-2 text-sm ${
-                  isDark ? "text-gray-500" : "text-gray-400"
-                }`}
-              >
+              <p className={`px-4 py-2 text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
                 No kitchens to manage
               </p>
             ) : (

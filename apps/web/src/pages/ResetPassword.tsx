@@ -72,9 +72,7 @@ export function ResetPassword() {
   if (isValid === null) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-          Verifying reset link...
-        </p>
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Verifying reset link...</p>
       </div>
     );
   }
@@ -91,23 +89,14 @@ export function ResetPassword() {
           >
             Invalid or expired link
           </h1>
-          <p
-            className={`cursor-default ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <p className={`cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             This password reset link is no longer valid
           </p>
         </div>
 
         <Card padding="lg">
-          <p
-            className={`text-center mb-6 ${
-              isDark ? "text-gray-300" : "text-gray-700"
-            }`}
-          >
-            Password reset links expire after a short time for security. Please
-            request a new one.
+          <p className={`text-center mb-6 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+            Password reset links expire after a short time for security. Please request a new one.
           </p>
           <div className="text-center">
             <Link
@@ -132,11 +121,7 @@ export function ResetPassword() {
         >
           Set new password
         </h1>
-        <p
-          className={`cursor-default ${
-            isDark ? "text-gray-400" : "text-gray-600"
-          }`}
-        >
+        <p className={`cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
           Enter your new password below
         </p>
       </div>
@@ -165,13 +150,7 @@ export function ResetPassword() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             error={confirmError}
           />
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            fullWidth
-            disabled={isSubmitting}
-          >
+          <Button type="submit" variant="primary" size="lg" fullWidth disabled={isSubmitting}>
             {isSubmitting ? "Updating..." : "Update password"}
           </Button>
         </form>

@@ -36,12 +36,7 @@ interface DropdownDividerProps {
  *   <DropdownItem onClick={handleOther}>Other Action</DropdownItem>
  * </Dropdown>
  */
-export function Dropdown({
-  trigger,
-  children,
-  align = "right",
-  className = "",
-}: DropdownProps) {
+export function Dropdown({ trigger, children, align = "right", className = "" }: DropdownProps) {
   const { isDark } = useDarkModeContext();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,10 +44,7 @@ export function Dropdown({
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
@@ -93,14 +85,12 @@ export function Dropdown({
             border shadow-lg
             animate-slideDown
             ${align === "right" ? "right-0" : "left-0"}
-            ${
-              isDark
-                ? "bg-slate-900 border-slate-700"
-                : "bg-white border-gray-200"
-            }
+            ${isDark ? "bg-slate-900 border-slate-700" : "bg-white border-gray-200"}
           `}
         >
-          <DropdownContext.Provider value={{ close: () => setIsOpen(false), isDark: isDark ?? false }}>
+          <DropdownContext.Provider
+            value={{ close: () => setIsOpen(false), isDark: isDark ?? false }}
+          >
             {children}
           </DropdownContext.Provider>
         </div>
@@ -145,11 +135,7 @@ export function DropdownItem({
       className={`
         w-full flex items-center gap-3 px-4 py-2.5
         text-sm text-left transition-colors cursor-pointer
-        ${
-          isDark
-            ? "text-slate-200 hover:bg-slate-800"
-            : "text-gray-700 hover:bg-gray-50"
-        }
+        ${isDark ? "text-slate-200 hover:bg-slate-800" : "text-gray-700 hover:bg-gray-50"}
         ${className}
       `}
     >
@@ -161,8 +147,8 @@ export function DropdownItem({
                 ? "text-blue-400"
                 : "text-blue-600"
               : isDark
-              ? "text-slate-400"
-              : "text-gray-500"
+                ? "text-slate-400"
+                : "text-gray-500"
           }
         >
           {icon}

@@ -7,11 +7,7 @@ interface StepKitchenNameProps {
   onEnter: () => void;
 }
 
-export function StepKitchenName({
-  value,
-  onChange,
-  onEnter,
-}: StepKitchenNameProps) {
+export function StepKitchenName({ value, onChange, onEnter }: StepKitchenNameProps) {
   const { isDark } = useDarkModeContext();
 
   return (
@@ -23,11 +19,7 @@ export function StepKitchenName({
       >
         Name your kitchen
       </h2>
-      <p
-        className={`mb-6 cursor-default ${
-          isDark ? "text-gray-400" : "text-gray-600"
-        }`}
-      >
+      <p className={`mb-6 cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
         What should we call this kitchen?
       </p>
       <FormInput

@@ -71,11 +71,7 @@ export function StepShifts({
 
     if (movement !== 0) {
       const newIndex = touchDragIndex + movement;
-      if (
-        newIndex >= 0 &&
-        newIndex < selectedShifts.length &&
-        newIndex !== touchDragIndex
-      ) {
+      if (newIndex >= 0 && newIndex < selectedShifts.length && newIndex !== touchDragIndex) {
         const newShifts = [...selectedShifts];
         const [item] = newShifts.splice(touchDragIndex, 1);
         newShifts.splice(newIndex, 0, item);
@@ -99,11 +95,7 @@ export function StepShifts({
       >
         What shifts do you run?
       </h2>
-      <p
-        className={`mb-6 cursor-default ${
-          isDark ? "text-gray-400" : "text-gray-600"
-        }`}
-      >
+      <p className={`mb-6 cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
         Select your shifts and drag to reorder
       </p>
 
@@ -119,8 +111,8 @@ export function StepShifts({
                 isSelected
                   ? "bg-orange-500 text-white"
                   : isDark
-                  ? "bg-slate-700 text-gray-300 hover:bg-slate-600"
-                  : "bg-stone-100 text-gray-700 hover:bg-stone-200"
+                    ? "bg-slate-700 text-gray-300 hover:bg-slate-600"
+                    : "bg-stone-100 text-gray-700 hover:bg-stone-200"
               }`}
             >
               {isSelected && "✓ "}
@@ -136,9 +128,7 @@ export function StepShifts({
           <FormInput
             value={customShift}
             onChange={(e) => setCustomShift(e.target.value)}
-            onKeyDown={(e) =>
-              e.key === "Enter" && (e.preventDefault(), handleAddCustom())
-            }
+            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddCustom())}
             placeholder="Add custom shift..."
           />
         </div>
@@ -151,9 +141,7 @@ export function StepShifts({
       {selectedShifts.length > 0 && (
         <div>
           <p
-            className={`text-sm mb-3 cursor-default ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
+            className={`text-sm mb-3 cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}
           >
             Shift order (drag to reorder):
           </p>
@@ -173,24 +161,14 @@ export function StepShifts({
                     ? "bg-slate-800 border-slate-700 hover:border-slate-600"
                     : "bg-white border-stone-200 hover:border-stone-300"
                 } ${
-                  draggedIndex === index || touchDragIndex === index
-                    ? "opacity-50 scale-95"
-                    : ""
+                  draggedIndex === index || touchDragIndex === index ? "opacity-50 scale-95" : ""
                 } ${touchDragIndex !== null ? "" : "cursor-move"}`}
               >
                 <div className="flex items-center gap-3">
-                  <span
-                    className={`text-sm ${
-                      isDark ? "text-gray-500" : "text-gray-400"
-                    }`}
-                  >
+                  <span className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
                     ⋮⋮
                   </span>
-                  <span
-                    className={`font-medium ${
-                      isDark ? "text-white" : "text-gray-900"
-                    }`}
-                  >
+                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>
                     {shift}
                   </span>
                 </div>

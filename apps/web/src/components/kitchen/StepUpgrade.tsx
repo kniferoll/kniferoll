@@ -9,12 +9,7 @@ interface StepUpgradeProps {
   isLoading?: boolean;
 }
 
-export function StepUpgrade({
-  feature,
-  onUpgrade,
-  onSkip,
-  isLoading,
-}: StepUpgradeProps) {
+export function StepUpgrade({ feature, onUpgrade, onSkip, isLoading }: StepUpgradeProps) {
   const { isDark } = useDarkModeContext();
 
   const content = {
@@ -22,21 +17,13 @@ export function StepUpgrade({
       title: "Unlock Unlimited Stations",
       description:
         "Your free plan includes 1 station per kitchen. Upgrade to Pro to add as many stations as your kitchen needs.",
-      benefits: [
-        "Unlimited stations per kitchen",
-        "Unlimited team members",
-        "Priority support",
-      ],
+      benefits: ["Unlimited stations per kitchen", "Unlimited team members", "Priority support"],
     },
     kitchens: {
       title: "Manage Multiple Kitchens",
       description:
         "Your free plan includes 1 kitchen. Upgrade to Pro to manage all your locations from one account.",
-      benefits: [
-        "Up to 5 kitchens",
-        "Unlimited stations per kitchen",
-        "Unlimited team members",
-      ],
+      benefits: ["Up to 5 kitchens", "Unlimited stations per kitchen", "Unlimited team members"],
     },
   }[feature];
 
@@ -96,21 +83,13 @@ export function StepUpgrade({
 
       {/* Actions */}
       <div className="space-y-3">
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          onClick={onUpgrade}
-          disabled={isLoading}
-        >
+        <Button variant="primary" size="lg" fullWidth onClick={onUpgrade} disabled={isLoading}>
           {isLoading ? "Loading..." : "Upgrade to Pro"}
         </Button>
         <button
           onClick={onSkip}
           className={`text-sm font-medium cursor-pointer ${
-            isDark
-              ? "text-gray-400 hover:text-gray-300"
-              : "text-gray-500 hover:text-gray-700"
+            isDark ? "text-gray-400 hover:text-gray-300" : "text-gray-500 hover:text-gray-700"
           }`}
         >
           Continue with free plan

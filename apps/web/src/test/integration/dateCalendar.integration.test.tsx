@@ -17,10 +17,7 @@ describe("DateCalendar Integration", () => {
 
       render(
         <TestProviders>
-          <DateCalendar
-            selectedDate="2024-06-15"
-            onDateSelect={onDateSelect}
-          />
+          <DateCalendar selectedDate="2024-06-15" onDateSelect={onDateSelect} />
         </TestProviders>
       );
 
@@ -42,11 +39,7 @@ describe("DateCalendar Integration", () => {
 
       render(
         <TestProviders>
-          <DateCalendar
-            selectedDate="2024-06-15"
-            onDateSelect={vi.fn()}
-            closedDays={closedDays}
-          />
+          <DateCalendar selectedDate="2024-06-15" onDateSelect={vi.fn()} closedDays={closedDays} />
         </TestProviders>
       );
 
@@ -80,10 +73,7 @@ describe("DateCalendar Integration", () => {
 
       const { rerender } = render(
         <TestProviders>
-          <DateCalendar
-            selectedDate={selectedDate}
-            onDateSelect={onDateSelect}
-          />
+          <DateCalendar selectedDate={selectedDate} onDateSelect={onDateSelect} />
         </TestProviders>
       );
 
@@ -177,10 +167,7 @@ describe("DateCalendar Integration", () => {
 
       render(
         <TestProviders>
-          <DateCalendar
-            selectedDate="2024-06-15"
-            onDateSelect={onDateSelect}
-          />
+          <DateCalendar selectedDate="2024-06-15" onDateSelect={onDateSelect} />
         </TestProviders>
       );
 
@@ -211,10 +198,7 @@ describe("DateCalendar Integration", () => {
 
       render(
         <TestProviders>
-          <DateCalendar
-            selectedDate="2024-06-15"
-            onDateSelect={onDateSelect}
-          />
+          <DateCalendar selectedDate="2024-06-15" onDateSelect={onDateSelect} />
         </TestProviders>
       );
 

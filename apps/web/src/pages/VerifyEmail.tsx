@@ -26,9 +26,7 @@ export function VerifyEmail() {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-          Verifying your email...
-        </p>
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Verifying your email...</p>
       </div>
     );
   }
@@ -44,28 +42,17 @@ export function VerifyEmail() {
           >
             Verification failed
           </h1>
-          <p
-            className={`cursor-default ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <p className={`cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             This verification link is invalid or has expired
           </p>
         </div>
 
         <Card padding="lg">
-          <p
-            className={`text-center mb-6 ${
-              isDark ? "text-gray-300" : "text-gray-700"
-            }`}
-          >
+          <p className={`text-center mb-6 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
             Please try signing up again to receive a new verification email.
           </p>
           <div className="text-center">
-            <Link
-              to="/signup"
-              className="text-orange-500 hover:text-orange-600 font-medium"
-            >
+            <Link to="/signup" className="text-orange-500 hover:text-orange-600 font-medium">
               Sign up
             </Link>
           </div>
@@ -85,21 +72,13 @@ export function VerifyEmail() {
         >
           Email verified
         </h1>
-        <p
-          className={`cursor-default ${
-            isDark ? "text-gray-400" : "text-gray-600"
-          }`}
-        >
+        <p className={`cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
           Your account is now active
         </p>
       </div>
 
       <Card padding="lg">
-        <p
-          className={`text-center mb-6 ${
-            isDark ? "text-gray-300" : "text-gray-700"
-          }`}
-        >
+        <p className={`text-center mb-6 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
           You can now access all features. Start by creating your first kitchen!
         </p>
         <Link to="/dashboard">

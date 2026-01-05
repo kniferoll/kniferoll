@@ -14,10 +14,7 @@ export function useHeader() {
  * Uses useLayoutEffect to set before paint.
  * Updates when any dependency changes.
  */
-export function useHeaderConfig(
-  config: HeaderConfig,
-  deps: React.DependencyList = []
-) {
+export function useHeaderConfig(config: HeaderConfig, deps: React.DependencyList = []) {
   const { setHeader } = useHeader();
   const configRef = useRef(config);
   configRef.current = config;

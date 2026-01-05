@@ -114,9 +114,10 @@ describe("suggestionUtils", () => {
     });
 
     it("excludes suggestions already in current items", () => {
-      const currentItems = [
-        { id: "item-1", description: "Carrots" },
-      ] as Array<{ id: string; description: string }>;
+      const currentItems = [{ id: "item-1", description: "Carrots" }] as Array<{
+        id: string;
+        description: string;
+      }>;
       const result = rankSuggestions(mockSuggestions, new Set(), currentItems as never, 3);
       expect(result.find((s) => s.description === "Carrots")).toBeUndefined();
     });
@@ -139,9 +140,10 @@ describe("suggestionUtils", () => {
     });
 
     it("is case-insensitive when filtering duplicates", () => {
-      const currentItems = [
-        { id: "item-1", description: "CARROTS" },
-      ] as Array<{ id: string; description: string }>;
+      const currentItems = [{ id: "item-1", description: "CARROTS" }] as Array<{
+        id: string;
+        description: string;
+      }>;
       const result = rankSuggestions(mockSuggestions, new Set(), currentItems as never, 3);
       expect(result.find((s) => s.description?.toLowerCase() === "carrots")).toBeUndefined();
     });

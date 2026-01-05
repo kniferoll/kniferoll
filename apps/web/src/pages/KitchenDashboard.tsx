@@ -55,7 +55,11 @@ export function KitchenDashboard() {
     selectedShift,
     setSelectedShift,
   } = useKitchenStore();
-  const { stations, isInitialLoading: stationsLoading, refetch: refetchStations } = useStations(kitchenId);
+  const {
+    stations,
+    isInitialLoading: stationsLoading,
+    refetch: refetchStations,
+  } = useStations(kitchenId);
   const { createStation, loading: createStationLoading } = useCreateStation();
   const { limits, canCreateStation } = usePlanLimits();
   const { handleCheckout } = useStripeCheckout();
@@ -68,9 +72,7 @@ export function KitchenDashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showInviteUpgradeModal, setShowInviteUpgradeModal] = useState(false);
   const [canAddStation, setCanAddStation] = useState<boolean | null>(null);
-  const [kitchenShifts, setKitchenShifts] = useState<
-    Array<{ id: string; name: string }>
-  >([]);
+  const [kitchenShifts, setKitchenShifts] = useState<Array<{ id: string; name: string }>>([]);
   const [shiftDays, setShiftDays] = useState<
     Map<number, { is_open: boolean; shift_ids: string[] }>
   >(new Map());
@@ -115,9 +117,7 @@ export function KitchenDashboard() {
   // Configure header: Back | Logo + Kitchen Name | Avatar Menu
   useHeaderConfig(
     {
-      startContent: (
-        <BackButton onClick={() => navigate("/dashboard")} label="Back" />
-      ),
+      startContent: <BackButton onClick={() => navigate("/dashboard")} label="Back" />,
       centerContent: (
         <div className="flex items-center gap-2">
           <Logo size="sm" showText={false} />
@@ -131,14 +131,7 @@ export function KitchenDashboard() {
         </div>
       ),
       endContent: (
-        <NavLinks
-          end={
-            <UserAvatarMenu
-              kitchenId={kitchenId}
-              onInvite={handleInviteClick}
-            />
-          }
-        />
+        <NavLinks end={<UserAvatarMenu kitchenId={kitchenId} onInvite={handleInviteClick} />} />
       ),
     },
     [currentKitchen?.name, isDark, navigate, kitchenId, handleInviteClick]
@@ -212,7 +205,6 @@ export function KitchenDashboard() {
     if (availableShifts.length > 0) {
       const isCurrentShiftAvailable = availableShifts.includes(selectedShift);
       if (!isCurrentShiftAvailable) {
-         
         setSelectedShift(availableShifts[0]);
       }
     }
@@ -224,7 +216,6 @@ export function KitchenDashboard() {
 
   // Reset closed alert dismissed state when date changes
   useEffect(() => {
-     
     setClosedAlertDismissed(false);
   }, [selectedDate]);
 
@@ -234,14 +225,13 @@ export function KitchenDashboard() {
   // Check if user can create stations in this kitchen
   useEffect(() => {
     if (!kitchenId) {
-       
       setCanAddStation(null);
       return;
     }
 
     const checkCanAdd = async () => {
       const result = await canCreateStation(kitchenId);
-       
+
       setCanAddStation(result);
     };
 
@@ -251,7 +241,6 @@ export function KitchenDashboard() {
   // Fetch progress data for all stations
   useEffect(() => {
     if (!stations.length || !selectedShiftId) {
-
       setProgress([]);
 
       setIsProgressLoading(false);
@@ -281,19 +270,11 @@ export function KitchenDashboard() {
 
         // Group items by station and compute progress
         const progressData: StationProgress[] = stations.map((station) => {
-          const stationItems = (items || []).filter(
-            (item) => item.station_id === station.id
-          );
+          const stationItems = (items || []).filter((item) => item.station_id === station.id);
           const total = stationItems.length;
-          const completed = stationItems.filter(
-            (i) => i.status === "complete"
-          ).length;
-          const partial = stationItems.filter(
-            (i) => i.status === "in_progress"
-          ).length;
-          const pending = stationItems.filter(
-            (i) => i.status === "pending" || !i.status
-          ).length;
+          const completed = stationItems.filter((i) => i.status === "complete").length;
+          const partial = stationItems.filter((i) => i.status === "in_progress").length;
+          const pending = stationItems.filter((i) => i.status === "pending" || !i.status).length;
 
           return {
             stationId: station.id,
@@ -340,9 +321,7 @@ export function KitchenDashboard() {
   if (!user || !kitchenId) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className={isDark ? "text-slate-400" : "text-stone-600"}>
-          Loading...
-        </p>
+        <p className={isDark ? "text-slate-400" : "text-stone-600"}>Loading...</p>
       </div>
     );
   }
@@ -350,9 +329,7 @@ export function KitchenDashboard() {
   if (!currentKitchen || currentKitchen.id !== kitchenId) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <p className={isDark ? "text-slate-400" : "text-stone-600"}>
-          Loading kitchen...
-        </p>
+        <p className={isDark ? "text-slate-400" : "text-stone-600"}>Loading kitchen...</p>
       </div>
     );
   }
@@ -399,11 +376,7 @@ export function KitchenDashboard() {
               onDateSelect={setSelectedDate}
               closedDays={closedDaysArray}
             />
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleInviteClick}
-            >
+            <Button variant="primary" size="sm" onClick={handleInviteClick}>
               <span className="flex items-center gap-2">
                 <TeamIcon className="w-4 h-4" />
                 Invite Team
@@ -447,8 +420,7 @@ export function KitchenDashboard() {
                   : undefined
               }
             >
-              <span className="font-medium">{currentKitchen?.name}</span> is
-              closed on this day.
+              <span className="font-medium">{currentKitchen?.name}</span> is closed on this day.
             </DismissibleAlert>
           </div>
         )}

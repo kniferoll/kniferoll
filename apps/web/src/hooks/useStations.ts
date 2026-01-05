@@ -13,33 +13,36 @@ export function useStations(kitchenId: string | undefined) {
   const [error, setError] = useState<Error | null>(null);
   const [currentKitchenId, setCurrentKitchenId] = useState<string | undefined>(undefined);
 
-  const fetchStations = useCallback(async (showLoading = false) => {
-    if (!kitchenId) {
-      setStations([]);
-      setIsInitialLoading(false);
-      return;
-    }
-
-    try {
-      if (showLoading) {
-        setIsInitialLoading(true);
+  const fetchStations = useCallback(
+    async (showLoading = false) => {
+      if (!kitchenId) {
+        setStations([]);
+        setIsInitialLoading(false);
+        return;
       }
-      setError(null);
 
-      const { data, error: err } = await supabase
-        .from("stations")
-        .select("*")
-        .eq("kitchen_id", kitchenId)
-        .order("display_order", { ascending: true });
+      try {
+        if (showLoading) {
+          setIsInitialLoading(true);
+        }
+        setError(null);
 
-      if (err) throw err;
-      setStations(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      setIsInitialLoading(false);
-    }
-  }, [kitchenId]);
+        const { data, error: err } = await supabase
+          .from("stations")
+          .select("*")
+          .eq("kitchen_id", kitchenId)
+          .order("display_order", { ascending: true });
+
+        if (err) throw err;
+        setStations(data || []);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setIsInitialLoading(false);
+      }
+    },
+    [kitchenId]
+  );
 
   useEffect(() => {
     if (!kitchenId) {
@@ -72,10 +75,7 @@ export function useCreateStation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const createStation = async (
-    kitchenId: string,
-    name: string
-  ): Promise<Station | null> => {
+  const createStation = async (kitchenId: string, name: string): Promise<Station | null> => {
     try {
       setLoading(true);
       setError(null);
@@ -152,10 +152,7 @@ export function useDeleteStation() {
       setLoading(true);
       setError(null);
 
-      const { error: err } = await supabase
-        .from("stations")
-        .delete()
-        .eq("id", stationId);
+      const { error: err } = await supabase.from("stations").delete().eq("id", stationId);
 
       if (err) throw err;
       return true;

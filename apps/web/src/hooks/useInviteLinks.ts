@@ -128,10 +128,7 @@ export function useJoinViaInviteLink() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const joinViaInviteLink = async (
-    token: string,
-    userId: string
-  ): Promise<boolean> => {
+  const joinViaInviteLink = async (token: string, userId: string): Promise<boolean> => {
     try {
       setLoading(true);
       setError(null);
@@ -150,18 +147,15 @@ export function useJoinViaInviteLink() {
         throw new Error("Invite link has reached max uses");
 
       const now = new Date();
-      if (new Date(inviteLink.expires_at) < now)
-        throw new Error("Invite link has expired");
+      if (new Date(inviteLink.expires_at) < now) throw new Error("Invite link has expired");
 
       // Add user to kitchen
-      const { error: memberError } = await supabase
-        .from("kitchen_members")
-        .insert({
-          kitchen_id: inviteLink.kitchen_id,
-          user_id: userId,
-          role: "member",
-          can_invite: false,
-        });
+      const { error: memberError } = await supabase.from("kitchen_members").insert({
+        kitchen_id: inviteLink.kitchen_id,
+        user_id: userId,
+        role: "member",
+        can_invite: false,
+      });
 
       if (memberError) throw memberError;
 

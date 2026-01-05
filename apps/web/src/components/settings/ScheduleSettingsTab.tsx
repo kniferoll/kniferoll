@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDarkModeContext } from "@/context";
-import {
-  useKitchenShifts,
-  useKitchenShiftActions,
-  DAYS_OF_WEEK,
-} from "@/hooks";
+import { useKitchenShifts, useKitchenShiftActions, DAYS_OF_WEEK } from "@/hooks";
 import { Alert } from "../ui/Alert";
 import { Button } from "../ui/Button";
 import { FormInput } from "../ui/FormInput";
@@ -15,10 +11,7 @@ interface ScheduleSettingsTabProps {
   isOwner: boolean;
 }
 
-export function ScheduleSettingsTab({
-  kitchenId,
-  isOwner,
-}: ScheduleSettingsTabProps) {
+export function ScheduleSettingsTab({ kitchenId, isOwner }: ScheduleSettingsTabProps) {
   const { isDark } = useDarkModeContext();
   const { shifts, shiftDays, loading } = useKitchenShifts(kitchenId);
   const { addShift, deleteShift, reorderShifts, updateShiftDay } =
@@ -49,9 +42,7 @@ export function ScheduleSettingsTab({
     const openDays = shiftDays.filter((d) => d.is_open);
     if (openDays.length === 0) return;
 
-    const firstDayShifts = JSON.stringify(
-      [...(openDays[0].shift_ids || [])].sort()
-    );
+    const firstDayShifts = JSON.stringify([...(openDays[0].shift_ids || [])].sort());
     const allSame = openDays.every(
       (d) => JSON.stringify([...(d.shift_ids || [])].sort()) === firstDayShifts
     );
@@ -135,11 +126,7 @@ export function ScheduleSettingsTab({
 
     if (movement !== 0) {
       const newIndex = touchDragIndex + movement;
-      if (
-        newIndex >= 0 &&
-        newIndex < localShifts.length &&
-        newIndex !== touchDragIndex
-      ) {
+      if (newIndex >= 0 && newIndex < localShifts.length && newIndex !== touchDragIndex) {
         const newShifts = [...localShifts];
         const [item] = newShifts.splice(touchDragIndex, 1);
         newShifts.splice(newIndex, 0, item);
@@ -197,16 +184,10 @@ export function ScheduleSettingsTab({
         title="Kitchen Shifts"
         description="Define and reorder your kitchen's shifts"
       >
-        <div
-          className={`rounded-xl p-4 ${
-            isDark ? "bg-slate-800" : "bg-stone-50"
-          }`}
-        >
+        <div className={`rounded-xl p-4 ${isDark ? "bg-slate-800" : "bg-stone-50"}`}>
           <div className="space-y-2 mb-4">
             {loading ? (
-              <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-                Loading shifts...
-              </p>
+              <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading shifts...</p>
             ) : localShifts.length === 0 ? (
               <p className={isDark ? "text-gray-400" : "text-gray-600"}>
                 No shifts configured. Add your first shift below.
@@ -214,11 +195,7 @@ export function ScheduleSettingsTab({
             ) : (
               <>
                 {isOwner && localShifts.length > 1 && (
-                  <p
-                    className={`text-sm mb-3 ${
-                      isDark ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
+                  <p className={`text-sm mb-3 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                     Drag to reorder shifts
                   </p>
                 )}
@@ -234,20 +211,10 @@ export function ScheduleSettingsTab({
                         ? (e) => handleTouchStart(e, index)
                         : undefined
                     }
-                    onTouchMove={
-                      isOwner && localShifts.length > 1
-                        ? handleTouchMove
-                        : undefined
-                    }
-                    onTouchEnd={
-                      isOwner && localShifts.length > 1
-                        ? handleTouchEnd
-                        : undefined
-                    }
+                    onTouchMove={isOwner && localShifts.length > 1 ? handleTouchMove : undefined}
+                    onTouchEnd={isOwner && localShifts.length > 1 ? handleTouchEnd : undefined}
                     className={`flex items-center justify-between p-3 rounded-lg border transition-all select-none ${
-                      isDark
-                        ? "bg-slate-900 border-slate-700"
-                        : "bg-white border-stone-200"
+                      isDark ? "bg-slate-900 border-slate-700" : "bg-white border-stone-200"
                     } ${
                       draggedIndex === index || touchDragIndex === index
                         ? "opacity-50 scale-95"
@@ -262,19 +229,11 @@ export function ScheduleSettingsTab({
                   >
                     <div className="flex items-center gap-3">
                       {isOwner && localShifts.length > 1 && (
-                        <span
-                          className={`text-sm ${
-                            isDark ? "text-gray-500" : "text-gray-400"
-                          }`}
-                        >
+                        <span className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
                           ⋮⋮
                         </span>
                       )}
-                      <span
-                        className={`font-semibold ${
-                          isDark ? "text-white" : "text-gray-900"
-                        }`}
-                      >
+                      <span className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
                         {shift.name}
                       </span>
                     </div>
@@ -296,11 +255,7 @@ export function ScheduleSettingsTab({
           </div>
 
           {isOwner && (
-            <div
-              className={`border-t pt-4 ${
-                isDark ? "border-slate-700" : "border-stone-200"
-              }`}
-            >
+            <div className={`border-t pt-4 ${isDark ? "border-slate-700" : "border-stone-200"}`}>
               <div className="flex gap-2">
                 <div className="flex-1">
                   <FormInput
@@ -310,11 +265,7 @@ export function ScheduleSettingsTab({
                     placeholder="Shift name (e.g., Late Dinner)"
                   />
                 </div>
-                <Button
-                  variant="primary"
-                  onClick={handleAddShift}
-                  disabled={!newShiftName.trim()}
-                >
+                <Button variant="primary" onClick={handleAddShift} disabled={!newShiftName.trim()}>
                   Add
                 </Button>
               </div>
@@ -324,10 +275,7 @@ export function ScheduleSettingsTab({
       </SettingsSection>
 
       {/* Operating Days */}
-      <SettingsSection
-        title="Operating Days"
-        description="Select which days your kitchen is open"
-      >
+      <SettingsSection title="Operating Days" description="Select which days your kitchen is open">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {DAYS_OF_WEEK.map((day, dayIndex) => {
             const dayConfig = shiftDays.find((d) => d.day_of_week === dayIndex);
@@ -346,19 +294,13 @@ export function ScheduleSettingsTab({
                   type="checkbox"
                   checked={isOpen}
                   onChange={(e) => {
-                    const currentShiftIds =
-                      dayConfig?.shift_ids ||
-                      localShifts.map((s) => s.id);
+                    const currentShiftIds = dayConfig?.shift_ids || localShifts.map((s) => s.id);
                     updateShiftDay(dayIndex, e.target.checked, currentShiftIds);
                   }}
                   disabled={!isOwner}
                   className="w-4 h-4 accent-orange-500"
                 />
-                <span
-                  className={`font-medium ${
-                    isDark ? "text-white" : "text-gray-900"
-                  }`}
-                >
+                <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>
                   {day}
                 </span>
               </label>
@@ -373,11 +315,7 @@ export function ScheduleSettingsTab({
           title="Shift Schedule"
           description="Configure which shifts run on each day"
         >
-          <div
-            className={`rounded-xl p-4 ${
-              isDark ? "bg-slate-800" : "bg-stone-50"
-            }`}
-          >
+          <div className={`rounded-xl p-4 ${isDark ? "bg-slate-800" : "bg-stone-50"}`}>
             {/* Schedule Mode Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <button
@@ -389,30 +327,20 @@ export function ScheduleSettingsTab({
                   scheduleMode === "same"
                     ? "border-orange-500 bg-orange-500/10"
                     : isDark
-                    ? "border-slate-700 hover:border-slate-600"
-                    : "border-stone-200 hover:border-stone-300"
+                      ? "border-slate-700 hover:border-slate-600"
+                      : "border-stone-200 hover:border-stone-300"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div
-                      className={`font-semibold ${
-                        isDark ? "text-white" : "text-gray-900"
-                      }`}
-                    >
+                    <div className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
                       Same every day
                     </div>
-                    <div
-                      className={`text-sm mt-1 ${
-                        isDark ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
+                    <div className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                       All open days run the same shifts
                     </div>
                   </div>
-                  {scheduleMode === "same" && (
-                    <span className="text-orange-500 text-xl">✓</span>
-                  )}
+                  {scheduleMode === "same" && <span className="text-orange-500 text-xl">✓</span>}
                 </div>
               </button>
 
@@ -425,30 +353,20 @@ export function ScheduleSettingsTab({
                   scheduleMode === "varies"
                     ? "border-orange-500 bg-orange-500/10"
                     : isDark
-                    ? "border-slate-700 hover:border-slate-600"
-                    : "border-stone-200 hover:border-stone-300"
+                      ? "border-slate-700 hover:border-slate-600"
+                      : "border-stone-200 hover:border-stone-300"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div
-                      className={`font-semibold ${
-                        isDark ? "text-white" : "text-gray-900"
-                      }`}
-                    >
+                    <div className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
                       Varies by day
                     </div>
-                    <div
-                      className={`text-sm mt-1 ${
-                        isDark ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
+                    <div className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                       Configure each day separately
                     </div>
                   </div>
-                  {scheduleMode === "varies" && (
-                    <span className="text-orange-500 text-xl">✓</span>
-                  )}
+                  {scheduleMode === "varies" && <span className="text-orange-500 text-xl">✓</span>}
                 </div>
               </button>
             </div>
@@ -460,26 +378,17 @@ export function ScheduleSettingsTab({
                   isDark ? "border-slate-700" : "border-stone-200"
                 }`}
               >
-                <h3
-                  className={`font-semibold mb-4 ${
-                    isDark ? "text-white" : "text-gray-900"
-                  }`}
-                >
+                <h3 className={`font-semibold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
                   Configure each day:
                 </h3>
                 {DAYS_OF_WEEK.map((day, dayIndex) => {
-                  const dayConfig = shiftDays.find(
-                    (d) => d.day_of_week === dayIndex
-                  );
+                  const dayConfig = shiftDays.find((d) => d.day_of_week === dayIndex);
                   const isOpen = dayConfig?.is_open ?? true;
                   const dayShiftIds = dayConfig?.shift_ids || [];
 
                   if (!isOpen) {
                     return (
-                      <div
-                        key={dayIndex}
-                        className="flex items-center justify-between py-2"
-                      >
+                      <div key={dayIndex} className="flex items-center justify-between py-2">
                         <span
                           className={`font-medium w-24 ${
                             isDark ? "text-gray-500" : "text-gray-400"
@@ -487,11 +396,7 @@ export function ScheduleSettingsTab({
                         >
                           {day}
                         </span>
-                        <span
-                          className={`italic ${
-                            isDark ? "text-gray-500" : "text-gray-400"
-                          }`}
-                        >
+                        <span className={`italic ${isDark ? "text-gray-500" : "text-gray-400"}`}>
                           Closed
                         </span>
                       </div>
@@ -511,20 +416,16 @@ export function ScheduleSettingsTab({
                         {localShifts.map((shift) => (
                           <button
                             key={shift.id}
-                            onClick={() =>
-                              handleToggleShiftForDay(dayIndex, shift.id)
-                            }
+                            onClick={() => handleToggleShiftForDay(dayIndex, shift.id)}
                             disabled={!isOwner}
                             className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                              isOwner
-                                ? "cursor-pointer"
-                                : "cursor-not-allowed opacity-60"
+                              isOwner ? "cursor-pointer" : "cursor-not-allowed opacity-60"
                             } ${
                               dayShiftIds.includes(shift.id)
                                 ? "bg-orange-500 text-white"
                                 : isDark
-                                ? "bg-slate-700 text-gray-300 hover:bg-slate-600"
-                                : "bg-stone-100 text-gray-700 hover:bg-stone-200"
+                                  ? "bg-slate-700 text-gray-300 hover:bg-slate-600"
+                                  : "bg-stone-100 text-gray-700 hover:bg-stone-200"
                             }`}
                           >
                             {dayShiftIds.includes(shift.id) && "✓ "}

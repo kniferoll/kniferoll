@@ -8,8 +8,7 @@ const supabaseSecretKey = Deno.env.get("SERVICE_ROLE_KEY") || "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -95,13 +94,10 @@ Deno.serve(async (req: Request) => {
     if (profileError && profileError.code !== "PGRST116") {
       // PGRST116 = no rows found, which is fine
       console.error("Error fetching user profile:", profileError);
-      return new Response(
-        JSON.stringify({ error: "Failed to fetch user profile" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Failed to fetch user profile" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     let customerId = userProfile?.stripe_customer_id;
@@ -132,13 +128,10 @@ Deno.serve(async (req: Request) => {
     // Get the price ID from environment
     const priceId = Deno.env.get("STRIPE_PRO_PRICE_ID");
     if (!priceId) {
-      return new Response(
-        JSON.stringify({ error: "Stripe price ID not configured" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Stripe price ID not configured" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Create Stripe Checkout session

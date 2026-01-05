@@ -149,14 +149,8 @@ describe("useVisualViewport", () => {
 
       unmount();
 
-      expect(mockViewport.removeEventListener).toHaveBeenCalledWith(
-        "resize",
-        expect.any(Function)
-      );
-      expect(mockViewport.removeEventListener).toHaveBeenCalledWith(
-        "scroll",
-        expect.any(Function)
-      );
+      expect(mockViewport.removeEventListener).toHaveBeenCalledWith("resize", expect.any(Function));
+      expect(mockViewport.removeEventListener).toHaveBeenCalledWith("scroll", expect.any(Function));
     });
   });
 

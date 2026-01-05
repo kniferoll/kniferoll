@@ -89,7 +89,10 @@ describe("AppLayout", () => {
       <MemoryRouter initialEntries={["/dashboard"]}>
         <Routes>
           <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<div data-testid="dashboard-content">Dashboard</div>} />
+            <Route
+              path="/dashboard"
+              element={<div data-testid="dashboard-content">Dashboard</div>}
+            />
           </Route>
         </Routes>
       </MemoryRouter>

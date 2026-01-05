@@ -14,11 +14,7 @@ vi.mock("@/lib/supabase", () => ({
 }));
 
 // Import after mocking
-import {
-  redirectToCheckout,
-  getCustomerPortalUrl,
-  redirectToCustomerPortal,
-} from "@/lib/stripe";
+import { redirectToCheckout, getCustomerPortalUrl, redirectToCustomerPortal } from "@/lib/stripe";
 
 describe("stripe", () => {
   let originalLocation: Location;
@@ -60,17 +56,14 @@ describe("stripe", () => {
 
       await redirectToCheckout(checkoutOptions);
 
-      expect(mockSupabase.functions.invoke).toHaveBeenCalledWith(
-        "create-checkout-session",
-        {
-          body: {
-            userId: "user-123",
-            planTier: "pro",
-            successUrl: "https://example.com/success",
-            cancelUrl: "https://example.com/cancel",
-          },
-        }
-      );
+      expect(mockSupabase.functions.invoke).toHaveBeenCalledWith("create-checkout-session", {
+        body: {
+          userId: "user-123",
+          planTier: "pro",
+          successUrl: "https://example.com/success",
+          cancelUrl: "https://example.com/cancel",
+        },
+      });
       expect(window.location.href).toBe("https://checkout.stripe.com/session123");
     });
 
@@ -89,9 +82,7 @@ describe("stripe", () => {
         error: null,
       });
 
-      await expect(redirectToCheckout(checkoutOptions)).rejects.toThrow(
-        "No checkout URL returned"
-      );
+      await expect(redirectToCheckout(checkoutOptions)).rejects.toThrow("No checkout URL returned");
     });
 
     it("throws error with default message when error has no message", async () => {

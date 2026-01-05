@@ -57,10 +57,7 @@ export function validatePassword(password: string): ValidationResult {
   return { isValid: true };
 }
 
-export function validatePasswordMatch(
-  password: string,
-  confirm: string
-): ValidationResult {
+export function validatePasswordMatch(password: string, confirm: string): ValidationResult {
   if (password !== confirm) {
     return { isValid: false, error: "Passwords do not match" };
   }

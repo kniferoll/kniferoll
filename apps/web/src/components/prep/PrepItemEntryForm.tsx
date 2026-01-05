@@ -36,9 +36,7 @@ export function PrepItemEntryForm({
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [isFormFocused, setIsFormFocused] = useState(false);
   const [orderedUnits, setOrderedUnits] = useState<KitchenUnit[]>([]);
-  const [filteredAutocomplete, setFilteredAutocomplete] = useState<
-    RecencyScoredSuggestion[]
-  >([]);
+  const [filteredAutocomplete, setFilteredAutocomplete] = useState<RecencyScoredSuggestion[]>([]);
   const descriptionInputRef = useRef<HTMLInputElement>(null);
   const quantityInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
@@ -204,11 +202,7 @@ export function PrepItemEntryForm({
 
     try {
       const parsedQuantity = quantity ? parseFloat(quantity) : null;
-      const result = await onAddItem(
-        description.trim(),
-        selectedUnitId,
-        parsedQuantity
-      );
+      const result = await onAddItem(description.trim(), selectedUnitId, parsedQuantity);
 
       // Only clear form if submission was successful (no error returned)
       if (!result?.error) {
@@ -247,9 +241,7 @@ export function PrepItemEntryForm({
               onMouseDown={(e) => e.preventDefault()}
               className="w-full px-4 py-3 text-left hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-900 dark:text-slate-100 border-b border-stone-100 dark:border-slate-700 last:border-b-0 transition-colors"
             >
-              <div className="font-medium">
-                {suggestion.description || "Unknown item"}
-              </div>
+              <div className="font-medium">{suggestion.description || "Unknown item"}</div>
               {suggestion.last_quantity && suggestion.last_unit_id && (
                 <div className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
                   Last: {suggestion.last_quantity}{" "}
@@ -316,7 +308,6 @@ export function PrepItemEntryForm({
                 required
                 autoComplete="off"
               />
-
             </div>
 
             {/* Inline Quantity Input */}
@@ -361,9 +352,7 @@ export function PrepItemEntryForm({
                 {visibleUnits.map((unit) => (
                   <Pill
                     key={unit.id}
-                    variant={
-                      selectedUnitId === unit.id ? "selected" : "default"
-                    }
+                    variant={selectedUnitId === unit.id ? "selected" : "default"}
                     onClick={() => handleQuickUnitTap(unit.id)}
                     onMouseDown={(e) => e.preventDefault()}
                     disabled={disabled || isLoading}

@@ -7,18 +7,12 @@ interface DarkModeContextType {
   toggle: () => void;
 }
 
-const DarkModeContext = createContext<DarkModeContextType | undefined>(
-  undefined
-);
+const DarkModeContext = createContext<DarkModeContextType | undefined>(undefined);
 
 export function DarkModeProvider({ children }: { children: React.ReactNode }) {
   const { isDark, toggle } = useDarkMode();
 
-  return (
-    <DarkModeContext.Provider value={{ isDark, toggle }}>
-      {children}
-    </DarkModeContext.Provider>
-  );
+  return <DarkModeContext.Provider value={{ isDark, toggle }}>{children}</DarkModeContext.Provider>;
 }
 
 export function useDarkModeContext() {

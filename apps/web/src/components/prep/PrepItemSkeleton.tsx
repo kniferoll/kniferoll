@@ -27,12 +27,13 @@ export function PrepItemSkeleton({ count = 5, isCompact = false }: PrepItemSkele
   const cardBg = isDark ? "bg-slate-900" : "bg-white";
 
   // Memoize the items array to ensure stable rendering
-  const items = useMemo(() =>
-    Array.from({ length: count }).map((_, i) => ({
-      key: i,
-      width: SKELETON_WIDTHS[i % SKELETON_WIDTHS.length],
-      delay: i * 100,
-    })),
+  const items = useMemo(
+    () =>
+      Array.from({ length: count }).map((_, i) => ({
+        key: i,
+        width: SKELETON_WIDTHS[i % SKELETON_WIDTHS.length],
+        delay: i * 100,
+      })),
     [count]
   );
 
@@ -55,10 +56,7 @@ export function PrepItemSkeleton({ count = 5, isCompact = false }: PrepItemSkele
 
           {/* Description Skeleton */}
           <div className="flex-1 min-w-0">
-            <div
-              className={`${textHeight} ${bgColor} rounded-md`}
-              style={{ width: item.width }}
-            />
+            <div className={`${textHeight} ${bgColor} rounded-md`} style={{ width: item.width }} />
           </div>
 
           {/* Badge Skeleton - hidden on mobile */}

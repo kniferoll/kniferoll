@@ -40,7 +40,9 @@ Deno.serve(async (req: Request) => {
     const contactEmail = ticket.contact?.email || ticket.email || "Unknown";
     const contactName = ticket.contact?.name || ticket.contactName || contactEmail.split("@")[0];
     const category = ticket.category || ticket.classification || "General";
-    const webUrl = ticket.webUrl || `https://desk.zoho.com/support/kniferoll/ShowHomePage.do#Cases/dv/${ticket.id}`;
+    const webUrl =
+      ticket.webUrl ||
+      `https://desk.zoho.com/support/kniferoll/ShowHomePage.do#Cases/dv/${ticket.id}`;
 
     // Determine color based on priority
     const priorityColors: Record<string, number> = {

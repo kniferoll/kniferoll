@@ -71,13 +71,8 @@ describe("supabase", () => {
       const token = getDeviceToken();
 
       // Token should be a UUID format
-      expect(token).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-      );
-      expect(window.localStorage.setItem).toHaveBeenCalledWith(
-        "kniferoll_device_token",
-        token
-      );
+      expect(token).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+      expect(window.localStorage.setItem).toHaveBeenCalledWith("kniferoll_device_token", token);
     });
 
     it("stores token in localStorage when generating new one", async () => {

@@ -37,11 +37,7 @@ interface PrepState {
   currentContext: { stationId: string; shiftDate: string; shiftId: string } | null;
 
   // Actions
-  loadPrepItems: (
-    stationId: string,
-    shiftDate: string,
-    shiftId: string
-  ) => Promise<void>;
+  loadPrepItems: (stationId: string, shiftDate: string, shiftId: string) => Promise<void>;
   addPrepItem: (
     item: PrepItemInsert,
     optimisticData?: { description: string; unit_name?: string | null }
@@ -73,7 +69,8 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     const newContext = { stationId, shiftDate, shiftId };
 
     // Check if context changed - if so, this is a fresh load
-    const isContextChange = !currentContext ||
+    const isContextChange =
+      !currentContext ||
       currentContext.stationId !== stationId ||
       currentContext.shiftDate !== shiftDate ||
       currentContext.shiftId !== shiftId;
@@ -86,7 +83,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         isRefetching: false,
         error: null,
         currentContext: newContext,
-        prepItems: [] // Clear old items immediately for context change
+        prepItems: [], // Clear old items immediately for context change
       });
     } else {
       // Same context - background refetch, don't show loading
@@ -168,7 +165,8 @@ export const usePrepStore = create<PrepState>((set, get) => ({
       const dataWithJoins = data as unknown as PrepItemWithJoins;
       const transformedItem = {
         ...data,
-        description: dataWithJoins.kitchen_items?.name || optimisticData?.description || "Unknown item",
+        description:
+          dataWithJoins.kitchen_items?.name || optimisticData?.description || "Unknown item",
         unit_name: dataWithJoins.kitchen_units?.name || optimisticData?.unit_name || null,
       };
 
@@ -206,9 +204,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     };
 
     set((state) => ({
-      prepItems: state.prepItems.map((i) =>
-        i.id === itemId ? { ...i, ...optimisticUpdates } : i
-      ),
+      prepItems: state.prepItems.map((i) => (i.id === itemId ? { ...i, ...optimisticUpdates } : i)),
     }));
 
     // Now do the async work in the background
@@ -225,10 +221,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
         ...(user ? { status_changed_by_user: user.id } : {}),
       };
 
-      const { error } = await supabase
-        .from("prep_items")
-        .update(updates)
-        .eq("id", itemId);
+      const { error } = await supabase.from("prep_items").update(updates).eq("id", itemId);
 
       if (error) {
         // Revert on error
@@ -265,10 +258,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     }));
 
     try {
-      const { error } = await supabase
-        .from("prep_items")
-        .delete()
-        .eq("id", itemId);
+      const { error } = await supabase.from("prep_items").delete().eq("id", itemId);
 
       if (error) {
         // Revert optimistic delete on error - restore the item
@@ -308,17 +298,12 @@ export const usePrepStore = create<PrepState>((set, get) => ({
     }));
 
     try {
-      const { error } = await supabase
-        .from("prep_items")
-        .update(updates)
-        .eq("id", itemId);
+      const { error } = await supabase.from("prep_items").update(updates).eq("id", itemId);
 
       if (error) {
         // Revert optimistic update on error
         set((state) => ({
-          prepItems: state.prepItems.map((i) =>
-            i.id === itemId ? originalItem : i
-          ),
+          prepItems: state.prepItems.map((i) => (i.id === itemId ? originalItem : i)),
           error: error.message,
         }));
         return { error: error.message };
@@ -329,9 +314,7 @@ export const usePrepStore = create<PrepState>((set, get) => ({
       const message = err instanceof Error ? err.message : "Unknown error";
       // Revert optimistic update on error
       set((state) => ({
-        prepItems: state.prepItems.map((i) =>
-          i.id === itemId ? originalItem : i
-        ),
+        prepItems: state.prepItems.map((i) => (i.id === itemId ? originalItem : i)),
         error: message,
       }));
       return { error: message };

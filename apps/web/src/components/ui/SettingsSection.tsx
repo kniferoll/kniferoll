@@ -18,19 +18,11 @@ export function SettingsSection({
 
   return (
     <div className={className}>
-      <h3
-        className={`text-lg font-semibold mb-2 ${
-          isDark ? "text-white" : "text-gray-900"
-        }`}
-      >
+      <h3 className={`text-lg font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
         {title}
       </h3>
       {description && (
-        <p
-          className={`text-sm mb-4 ${
-            isDark ? "text-gray-400" : "text-gray-600"
-          }`}
-        >
+        <p className={`text-sm mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
           {description}
         </p>
       )}

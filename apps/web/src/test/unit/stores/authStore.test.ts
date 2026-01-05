@@ -154,7 +154,9 @@ describe("authStore", () => {
         error: null,
       });
 
-      const result = await useAuthStore.getState().signUp("test@example.com", "password", "Test User");
+      const result = await useAuthStore
+        .getState()
+        .signUp("test@example.com", "password", "Test User");
 
       expect(result.error).toBeUndefined();
       const state = useAuthStore.getState();
@@ -187,7 +189,9 @@ describe("authStore", () => {
 
       const result = await useAuthStore.getState().signUp("test@example.com", "password", "Test");
 
-      expect(result.error).toBe("An account with this email already exists. Try signing in instead.");
+      expect(result.error).toBe(
+        "An account with this email already exists. Try signing in instead."
+      );
     });
 
     it("handles signup without immediate session (email confirmation required)", async () => {

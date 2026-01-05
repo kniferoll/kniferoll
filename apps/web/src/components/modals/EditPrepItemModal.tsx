@@ -37,9 +37,7 @@ export function EditPrepItemModal({
 }: EditPrepItemModalProps) {
   const { allUnits } = usePrepEntryStore();
   const [quantity, setQuantity] = useState(initialQuantity?.toString() ?? "");
-  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(
-    initialUnitId
-  );
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(initialUnitId);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const quantityInputRef = useRef<HTMLInputElement>(null);
@@ -81,8 +79,7 @@ export function EditPrepItemModal({
     const query = searchQuery.toLowerCase();
     return allUnits.filter(
       (unit) =>
-        unit.name.toLowerCase().includes(query) ||
-        unit.display_name?.toLowerCase().includes(query)
+        unit.name.toLowerCase().includes(query) || unit.display_name?.toLowerCase().includes(query)
     );
   }, [allUnits, searchQuery]);
 
@@ -118,8 +115,7 @@ export function EditPrepItemModal({
     setSelectedUnitId(null);
   };
 
-  const selectedUnitName =
-    allUnits.find((u) => u.id === selectedUnitId)?.name ?? initialUnitName;
+  const selectedUnitName = allUnits.find((u) => u.id === selectedUnitId)?.name ?? initialUnitName;
 
   // Check if values have changed
   const hasChanges =
@@ -210,9 +206,7 @@ export function EditPrepItemModal({
                   {units.map((unit) => (
                     <Pill
                       key={unit.id}
-                      variant={
-                        selectedUnitId === unit.id ? "selected" : "default"
-                      }
+                      variant={selectedUnitId === unit.id ? "selected" : "default"}
                       size="md"
                       onClick={() => handleUnitClick(unit)}
                       title={unit.display_name || unit.name}

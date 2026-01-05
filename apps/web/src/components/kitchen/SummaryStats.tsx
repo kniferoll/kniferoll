@@ -10,11 +10,7 @@ interface SummaryStatsProps {
  * SummaryStats - displays aggregate counts for prep items.
  * Shows completed, in-progress, and pending totals.
  */
-export function SummaryStats({
-  completed,
-  inProgress,
-  pending,
-}: SummaryStatsProps) {
+export function SummaryStats({ completed, inProgress, pending }: SummaryStatsProps) {
   const { isDark } = useDarkModeContext();
 
   return (
@@ -26,50 +22,26 @@ export function SummaryStats({
       }`}
     >
       <div className="text-center">
-        <div
-          className={`text-2xl font-bold ${
-            isDark ? "text-emerald-400" : "text-emerald-600"
-          }`}
-        >
+        <div className={`text-2xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
           {completed}
         </div>
-        <div
-          className={`text-xs font-medium ${
-            isDark ? "text-slate-500" : "text-stone-500"
-          }`}
-        >
+        <div className={`text-xs font-medium ${isDark ? "text-slate-500" : "text-stone-500"}`}>
           Completed
         </div>
       </div>
       <div className="text-center">
-        <div
-          className={`text-2xl font-bold ${
-            isDark ? "text-amber-400" : "text-amber-600"
-          }`}
-        >
+        <div className={`text-2xl font-bold ${isDark ? "text-amber-400" : "text-amber-600"}`}>
           {inProgress}
         </div>
-        <div
-          className={`text-xs font-medium ${
-            isDark ? "text-slate-500" : "text-stone-500"
-          }`}
-        >
+        <div className={`text-xs font-medium ${isDark ? "text-slate-500" : "text-stone-500"}`}>
           In Progress
         </div>
       </div>
       <div className="text-center">
-        <div
-          className={`text-2xl font-bold ${
-            isDark ? "text-slate-400" : "text-stone-600"
-          }`}
-        >
+        <div className={`text-2xl font-bold ${isDark ? "text-slate-400" : "text-stone-600"}`}>
           {pending}
         </div>
-        <div
-          className={`text-xs font-medium ${
-            isDark ? "text-slate-500" : "text-stone-500"
-          }`}
-        >
+        <div className={`text-xs font-medium ${isDark ? "text-slate-500" : "text-stone-500"}`}>
           Pending
         </div>
       </div>

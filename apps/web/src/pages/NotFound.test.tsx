@@ -45,7 +45,9 @@ describe("NotFound", () => {
   });
 
   it("shows dashboard link for authenticated users", () => {
-    vi.mocked(useAuthStore).mockReturnValue({ user: { id: "user-123" } } as ReturnType<typeof useAuthStore>);
+    vi.mocked(useAuthStore).mockReturnValue({ user: { id: "user-123" } } as ReturnType<
+      typeof useAuthStore
+    >);
 
     render(
       <MemoryRouter>
@@ -53,7 +55,10 @@ describe("NotFound", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole("link", { name: "Go to Dashboard" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Go to Dashboard" })).toHaveAttribute(
+      "href",
+      "/dashboard"
+    );
     expect(screen.getByRole("link", { name: "Homepage" })).toHaveAttribute("href", "/");
   });
 });

@@ -24,16 +24,11 @@ function SupportSettingsPanel() {
       className={`rounded-xl p-6 ${isDark ? "bg-slate-900" : "bg-white"}`}
       data-testid="support-panel"
     >
-      <h2
-        className={`text-xl font-semibold mb-4 ${
-          isDark ? "text-white" : "text-gray-900"
-        }`}
-      >
+      <h2 className={`text-xl font-semibold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
         Support
       </h2>
       <p className={`mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-        Have a question, found a bug, or want to request a feature? We&apos;re
-        here to help.
+        Have a question, found a bug, or want to request a feature? We&apos;re here to help.
       </p>
 
       <button
@@ -47,10 +42,7 @@ function SupportSettingsPanel() {
         Contact Support
       </button>
 
-      <SupportModal
-        isOpen={isSupportModalOpen}
-        onClose={() => setIsSupportModalOpen(false)}
-      />
+      <SupportModal isOpen={isSupportModalOpen} onClose={() => setIsSupportModalOpen(false)} />
     </div>
   );
 }
@@ -65,8 +57,7 @@ export function Settings() {
 
   // Get initial section from URL params or navigation state (for backwards compatibility)
   const urlSection = searchParams.get("section");
-  const locationSection = (location.state as { section?: string } | null)
-    ?.section;
+  const locationSection = (location.state as { section?: string } | null)?.section;
   const initialSection = urlSection || locationSection || "personal";
   const [activeSection, setActiveSection] = useState<string>(initialSection);
   const [memberships, setMemberships] = useState<KitchenMember[]>([]);
@@ -120,11 +111,7 @@ export function Settings() {
     {
       startContent: <BackButton onClick={() => navigate(-1)} label="Back" />,
       centerContent: (
-        <span
-          className={`text-lg font-semibold ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
-        >
+        <span className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
           Settings
         </span>
       ),
@@ -141,9 +128,7 @@ export function Settings() {
 
   // Get the selected kitchen and membership for kitchen panels
   const selectedKitchen = kitchens.find((k) => k.id === activeSection);
-  const selectedMembership = memberships.find(
-    (m) => m.kitchen_id === activeSection
-  );
+  const selectedMembership = memberships.find((m) => m.kitchen_id === activeSection);
 
   // Filter to only show kitchens where user is owner or admin
   const manageableKitchens = kitchens.filter((kitchen) => {
@@ -161,9 +146,7 @@ export function Settings() {
       "flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap";
     if (isActive) {
       return `${base} ${
-        isDark
-          ? "bg-orange-500/20 text-orange-400"
-          : "bg-orange-100 text-orange-600"
+        isDark ? "bg-orange-500/20 text-orange-400" : "bg-orange-100 text-orange-600"
       }`;
     }
     return `${base} ${
@@ -203,9 +186,7 @@ export function Settings() {
               {/* Divider */}
               {manageableKitchens.length > 0 && (
                 <div
-                  className={`flex-shrink-0 w-px mx-1 ${
-                    isDark ? "bg-slate-700" : "bg-stone-300"
-                  }`}
+                  className={`flex-shrink-0 w-px mx-1 ${isDark ? "bg-slate-700" : "bg-stone-300"}`}
                 />
               )}
 
@@ -235,15 +216,10 @@ export function Settings() {
           </div>
 
           {/* Content */}
-          <div
-            data-testid="settings-content"
-            className="flex-1 min-w-0 md:max-w-3xl"
-          >
+          <div data-testid="settings-content" className="flex-1 min-w-0 md:max-w-3xl">
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-                  Loading...
-                </p>
+                <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading...</p>
               </div>
             ) : activeSection === "personal" ? (
               <PersonalSettingsTab user={user} />

@@ -5,10 +5,7 @@ import type { PrepItem, PrepStatus } from "@kniferoll/types";
 /**
  * Hook to fetch prep items for a station on a specific date
  */
-export function usePrepItems(
-  stationId: string | undefined,
-  shiftDate: string | undefined
-) {
+export function usePrepItems(stationId: string | undefined, shiftDate: string | undefined) {
   const [prepItems, setPrepItems] = useState<PrepItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -223,10 +220,7 @@ export function useDeletePrepItem() {
       setLoading(true);
       setError(null);
 
-      const { error: err } = await supabase
-        .from("prep_items")
-        .delete()
-        .eq("id", prepItemId);
+      const { error: err } = await supabase.from("prep_items").delete().eq("id", prepItemId);
 
       if (err) throw err;
       return true;

@@ -34,17 +34,14 @@ export function FormInput({
 }: FormInputProps) {
   const { isDark } = useDarkModeContext();
   const generatedId = useId();
-  const inputId =
-    id || (label ? label.toLowerCase().replace(/\s+/g, "-") : generatedId);
+  const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : generatedId);
 
   return (
     <div>
       {label && (
         <label
           htmlFor={inputId}
-          className={`block text-sm font-medium mb-2 ${
-            isDark ? "text-gray-300" : "text-gray-700"
-          }`}
+          className={`block text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}
         >
           {label}
         </label>
@@ -70,15 +67,9 @@ export function FormInput({
               : "bg-white border-stone-300 text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
         } disabled:opacity-50 disabled:cursor-not-allowed`}
       />
-      {error && (
-        <p className="text-xs mt-1.5 text-red-500">{error}</p>
-      )}
+      {error && <p className="text-xs mt-1.5 text-red-500">{error}</p>}
       {helperText && !error && (
-        <p
-          className={`text-xs mt-1.5 ${
-            isDark ? "text-gray-500" : "text-gray-500"
-          }`}
-        >
+        <p className={`text-xs mt-1.5 ${isDark ? "text-gray-500" : "text-gray-500"}`}>
           {helperText}
         </p>
       )}

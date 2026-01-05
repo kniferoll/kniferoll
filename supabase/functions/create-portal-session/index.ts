@@ -20,8 +20,7 @@ const supabaseSecretKey = Deno.env.get("SERVICE_ROLE_KEY") || "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -97,25 +96,19 @@ Deno.serve(async (req: Request) => {
 
     if (profileError) {
       console.error("Error fetching user profile:", profileError);
-      return new Response(
-        JSON.stringify({ error: "Failed to fetch user profile" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Failed to fetch user profile" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const customerId = userProfile?.stripe_customer_id;
 
     if (!customerId) {
-      return new Response(
-        JSON.stringify({ error: "No Stripe customer found" }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      return new Response(JSON.stringify({ error: "No Stripe customer found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Create Stripe Billing Portal session

@@ -29,10 +29,7 @@ function getDisplayedSuggestions(
 ): RecencyScoredSuggestion[] {
   return allRanked
     .filter((s) => !dismissedIds.has(s.id))
-    .filter(
-      (s) =>
-        !currentItems.some((item) => item.kitchen_item_id === s.kitchen_item_id)
-    )
+    .filter((s) => !currentItems.some((item) => item.kitchen_item_id === s.kitchen_item_id))
     .slice(0, topN);
 }
 
@@ -95,12 +92,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
   addingItem: false,
   error: null,
 
-  loadSuggestionsAndUnits: async (
-    kitchenId,
-    stationId?,
-    shiftDate?,
-    shiftId?
-  ) => {
+  loadSuggestionsAndUnits: async (kitchenId, stationId?, shiftDate?, shiftId?) => {
     set({ suggestionsLoading: true, unitsLoading: true, error: null });
 
     try {
@@ -132,12 +124,11 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
               .eq("shift_id", shiftId)
           : null;
 
-      const [suggestionsResponse, unitsResponse, currentItemsResponse] =
-        await Promise.all([
-          suggestionsPromise,
-          unitsPromise,
-          currentItemsPromise,
-        ]);
+      const [suggestionsResponse, unitsResponse, currentItemsResponse] = await Promise.all([
+        suggestionsPromise,
+        unitsPromise,
+        currentItemsPromise,
+      ]);
 
       if (suggestionsResponse.error) {
         set({
@@ -146,12 +137,12 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         });
       } else {
         // Transform suggestions to include description field from kitchen_items
-        const allSuggestions = ((suggestionsResponse.data || []) as SuggestionWithKitchenItem[]).map(
-          (s) => ({
-            ...s,
-            description: s.kitchen_items?.name || "Unknown item",
-          })
-        );
+        const allSuggestions = (
+          (suggestionsResponse.data || []) as SuggestionWithKitchenItem[]
+        ).map((s) => ({
+          ...s,
+          description: s.kitchen_items?.name || "Unknown item",
+        }));
         // Transform current items to include description field from kitchen_items
         const currentItems = ((currentItemsResponse?.data || []) as PrepItemWithKitchenItem[]).map(
           (item) => ({
@@ -161,20 +152,10 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
         );
 
         // Create master list (no currentItems filter) for autocomplete
-        const masterRanked = rankSuggestions(
-          allSuggestions,
-          new Set(),
-          [],
-          null
-        );
+        const masterRanked = rankSuggestions(allSuggestions, new Set(), [], null);
 
         // Rank all suggestions
-        const allRanked = rankSuggestions(
-          allSuggestions,
-          new Set(),
-          currentItems,
-          null
-        );
+        const allRanked = rankSuggestions(allSuggestions, new Set(), currentItems, null);
 
         // Use local dismissed set (not database)
         const displayed = getDisplayedSuggestions(
@@ -447,10 +428,7 @@ export const usePrepEntryStore = create<PrepEntryState>((set, get) => ({
  * - quantity: null, unitName: "cambro" -> "cambro"
  * - quantity: 2, unitName: null -> "2"
  */
-function formatQuantityRaw(
-  quantity: number | null,
-  unitName: string | null | undefined
-): string {
+function formatQuantityRaw(quantity: number | null, unitName: string | null | undefined): string {
   if (quantity && unitName) {
     return `${quantity} ${unitName}`;
   }

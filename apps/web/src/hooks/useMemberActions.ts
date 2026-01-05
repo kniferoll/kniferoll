@@ -26,8 +26,7 @@ export function useMemberActions() {
       if (error) throw error;
       return data;
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to update member";
+      const message = err instanceof Error ? err.message : "Failed to update member";
       throw new Error(message);
     }
   };
@@ -50,8 +49,7 @@ export function useMemberActions() {
       if (error) throw error;
       return data;
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to update member";
+      const message = err instanceof Error ? err.message : "Failed to update member";
       throw new Error(message);
     }
   };
@@ -61,15 +59,11 @@ export function useMemberActions() {
    */
   const removeMember = async (memberId: string): Promise<void> => {
     try {
-      const { error } = await supabase
-        .from("kitchen_members")
-        .delete()
-        .eq("id", memberId);
+      const { error } = await supabase.from("kitchen_members").delete().eq("id", memberId);
 
       if (error) throw error;
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to remove member";
+      const message = err instanceof Error ? err.message : "Failed to remove member";
       throw new Error(message);
     }
   };

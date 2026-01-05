@@ -188,7 +188,12 @@ describe("kitchenStore", () => {
         if (table === "stations") {
           return { select: vi.fn(() => stationsChain) };
         }
-        return { select: vi.fn(() => ({ eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: null, error: null }) })) };
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: null, error: null }),
+          })),
+        };
       });
 
       mockSupabase.auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
@@ -300,7 +305,9 @@ describe("kitchenStore", () => {
         return {};
       });
 
-      const result = await useKitchenStore.getState().createKitchen("My Kitchen", ["Prep", "Grill"]);
+      const result = await useKitchenStore
+        .getState()
+        .createKitchen("My Kitchen", ["Prep", "Grill"]);
 
       expect(result.kitchenId).toBe("kitchen-1");
       expect(result.error).toBeUndefined();
@@ -365,7 +372,9 @@ describe("kitchenStore", () => {
 
       mockSupabase.from.mockReturnValue({ select: vi.fn(() => inviteChain) });
 
-      const result = await useKitchenStore.getState().joinKitchenViaInvite("invalid-token", "Guest");
+      const result = await useKitchenStore
+        .getState()
+        .joinKitchenViaInvite("invalid-token", "Guest");
 
       expect(result.error).toBe("Invalid or expired invite link");
     });

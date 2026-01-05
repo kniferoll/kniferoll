@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+.turbo
+coverage
+packages/types/src/database.ts
+pnpm-lock.yaml
+*.sql

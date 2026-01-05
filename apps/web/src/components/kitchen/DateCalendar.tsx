@@ -19,11 +19,7 @@ const DAY_NAME_TO_INDEX: Record<string, number> = {
   saturday: 6,
 };
 
-export function DateCalendar({
-  selectedDate,
-  onDateSelect,
-  closedDays = [],
-}: DateCalendarProps) {
+export function DateCalendar({ selectedDate, onDateSelect, closedDays = [] }: DateCalendarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [month, setMonth] = useState(() => toLocalDate(selectedDate));
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,10 +69,7 @@ export function DateCalendar({
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
@@ -106,9 +99,7 @@ export function DateCalendar({
       >
         <svg
           className={`w-5 h-5 transition-colors ${
-            isToday
-              ? "text-orange-500 dark:text-orange-400"
-              : "text-gray-600 dark:text-slate-400"
+            isToday ? "text-orange-500 dark:text-orange-400" : "text-gray-600 dark:text-slate-400"
           }`}
           fill="none"
           stroke="currentColor"
@@ -176,8 +167,7 @@ export function DateCalendar({
                   "rdp-selected [&>button]:bg-orange-500 [&>button]:text-white [&>button]:font-semibold [&>button]:hover:bg-orange-500 [&>button]:shadow-md [&>button]:shadow-orange-500/40",
                 disabled:
                   "rdp-disabled [&>button]:text-stone-300 [&>button]:dark:text-slate-600 [&>button]:cursor-not-allowed [&>button]:hover:bg-transparent [&>button]:hover:scale-100",
-                outside:
-                  "rdp-outside [&>button]:text-stone-300 [&>button]:dark:text-slate-600",
+                outside: "rdp-outside [&>button]:text-stone-300 [&>button]:dark:text-slate-600",
               }}
               labels={{
                 labelPrevious: () => "Previous month",

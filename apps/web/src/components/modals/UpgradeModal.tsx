@@ -63,16 +63,9 @@ export function UpgradeModal({
       </p>
 
       {features.length > 0 && (
-        <ul
-          className={`mb-8 space-y-2 ${
-            isDark ? "text-gray-300" : "text-gray-700"
-          }`}
-        >
+        <ul className={`mb-8 space-y-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
           {features.map((feature, i) => (
-            <li
-              key={i}
-              className="flex items-center gap-2 text-sm cursor-default"
-            >
+            <li key={i} className="flex items-center gap-2 text-sm cursor-default">
               <span className="text-orange-500">✓</span>
               {feature}
             </li>

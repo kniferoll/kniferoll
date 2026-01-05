@@ -180,11 +180,7 @@ describe("SettingsSidebar", () => {
     it("shows message when no kitchens available", () => {
       render(
         <TestProviders>
-          <SettingsSidebar
-            {...defaultProps}
-            kitchens={[]}
-            memberships={[]}
-          />
+          <SettingsSidebar {...defaultProps} kitchens={[]} memberships={[]} />
         </TestProviders>
       );
 

@@ -64,11 +64,7 @@ export async function signInAnonymously() {
  * Sign up with email and password
  * Note: user_profiles table is auto-created via trigger on auth.users insert
  */
-export async function signUp(
-  email: string,
-  password: string,
-  displayName?: string
-) {
+export async function signUp(email: string, password: string, displayName?: string) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -142,10 +138,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
 /**
  * Update user profile
  */
-export async function updateUserProfile(
-  userId: string,
-  updates: Partial<UserProfile>
-) {
+export async function updateUserProfile(userId: string, updates: Partial<UserProfile>) {
   const { data, error } = await supabase
     .from("user_profiles")
     .update(updates)

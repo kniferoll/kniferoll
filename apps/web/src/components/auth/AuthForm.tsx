@@ -54,13 +54,7 @@ export function AuthForm({
         >
           {title}
         </h1>
-        <p
-          className={`cursor-default ${
-            isDark ? "text-gray-400" : "text-gray-600"
-          }`}
-        >
-          {subtitle}
-        </p>
+        <p className={`cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>{subtitle}</p>
       </div>
 
       {/* Card */}
@@ -68,13 +62,7 @@ export function AuthForm({
         <form onSubmit={onSubmit} className="space-y-5">
           {error && <Alert variant="error">{error}</Alert>}
           {children}
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            fullWidth
-            disabled={loading}
-          >
+          <Button type="submit" variant="primary" size="lg" fullWidth disabled={loading}>
             {loading ? "Loading..." : submitButtonText}
           </Button>
           {secondaryLink && (
@@ -90,11 +78,7 @@ export function AuthForm({
         </form>
 
         <div className="mt-6 text-center">
-          <p
-            className={`text-sm cursor-default ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <p className={`text-sm cursor-default ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             {footerText}{" "}
             <Link
               to={footerLink.to}

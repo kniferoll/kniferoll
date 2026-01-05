@@ -3,18 +3,9 @@ import { supabase } from "@/lib";
 import type { Database } from "@kniferoll/types";
 
 type KitchenShift = Database["public"]["Tables"]["kitchen_shifts"]["Row"];
-type KitchenShiftDay =
-  Database["public"]["Tables"]["kitchen_shift_days"]["Row"];
+type KitchenShiftDay = Database["public"]["Tables"]["kitchen_shift_days"]["Row"];
 
-const DAYS_OF_WEEK = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
+const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export function useKitchenShifts(kitchenId: string | undefined) {
   const [shifts, setShifts] = useState<KitchenShift[]>([]);
@@ -71,11 +62,7 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const addShift = async (
-    name: string,
-    startTime: string = "00:00",
-    endTime: string = "23:59"
-  ) => {
+  const addShift = async (name: string, startTime: string = "00:00", endTime: string = "23:59") => {
     if (!kitchenId) throw new Error("Kitchen ID required");
 
     try {
@@ -110,10 +97,7 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
     }
   };
 
-  const updateShift = async (
-    shiftId: string,
-    updates: Partial<KitchenShift>
-  ) => {
+  const updateShift = async (shiftId: string, updates: Partial<KitchenShift>) => {
     try {
       setLoading(true);
       setError(null);
@@ -138,10 +122,7 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
       setLoading(true);
       setError(null);
 
-      const { error: err } = await supabase
-        .from("kitchen_shifts")
-        .delete()
-        .eq("id", shiftId);
+      const { error: err } = await supabase.from("kitchen_shifts").delete().eq("id", shiftId);
 
       if (err) throw err;
     } catch (err) {
@@ -183,11 +164,7 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
     }
   };
 
-  const updateShiftDay = async (
-    dayOfWeek: number,
-    isOpen: boolean,
-    shiftIds: string[] = []
-  ) => {
+  const updateShiftDay = async (dayOfWeek: number, isOpen: boolean, shiftIds: string[] = []) => {
     if (!kitchenId) throw new Error("Kitchen ID required");
 
     try {
@@ -214,14 +191,12 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
         if (err) throw err;
       } else {
         // Insert
-        const { error: err } = await supabase
-          .from("kitchen_shift_days")
-          .insert({
-            kitchen_id: kitchenId,
-            day_of_week: dayOfWeek,
-            is_open: isOpen,
-            shift_ids: shiftIds,
-          });
+        const { error: err } = await supabase.from("kitchen_shift_days").insert({
+          kitchen_id: kitchenId,
+          day_of_week: dayOfWeek,
+          is_open: isOpen,
+          shift_ids: shiftIds,
+        });
 
         if (err) throw err;
       }

@@ -111,14 +111,12 @@ export function InviteJoin() {
         });
       }
 
-      const { error: memberError } = await supabase
-        .from("kitchen_members")
-        .insert({
-          kitchen_id: kitchen.id,
-          user_id: anonUser.id,
-          role: "member",
-          can_invite: false,
-        });
+      const { error: memberError } = await supabase.from("kitchen_members").insert({
+        kitchen_id: kitchen.id,
+        user_id: anonUser.id,
+        role: "member",
+        can_invite: false,
+      });
 
       if (memberError) {
         throw new Error("Failed to join kitchen");
@@ -146,14 +144,12 @@ export function InviteJoin() {
       const handleAutoJoin = async () => {
         try {
           // Try to insert - if user is already a member, we'll get a conflict error
-          const { error: memberError } = await supabase
-            .from("kitchen_members")
-            .insert({
-              kitchen_id: kitchen.id,
-              user_id: user.id,
-              role: "member",
-              can_invite: false,
-            });
+          const { error: memberError } = await supabase.from("kitchen_members").insert({
+            kitchen_id: kitchen.id,
+            user_id: user.id,
+            role: "member",
+            can_invite: false,
+          });
 
           // 23505 is unique_violation - user is already a member, just navigate
           if (memberError && memberError.code === "23505") {
@@ -183,9 +179,7 @@ export function InviteJoin() {
   if (loading) {
     return (
       <div className="w-full max-w-md mx-auto px-4 py-16 text-center">
-        <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-          Loading invite link...
-        </p>
+        <p className={isDark ? "text-gray-400" : "text-gray-600"}>Loading invite link...</p>
       </div>
     );
   }
@@ -195,11 +189,7 @@ export function InviteJoin() {
     return (
       <div className="w-full max-w-md mx-auto px-4 py-16">
         <Card padding="lg">
-          <h1
-            className={`text-2xl font-bold mb-4 ${
-              isDark ? "text-white" : "text-gray-900"
-            }`}
-          >
+          <h1 className={`text-2xl font-bold mb-4 ${isDark ? "text-white" : "text-gray-900"}`}>
             Invite Invalid
           </h1>
           <div
@@ -228,9 +218,7 @@ export function InviteJoin() {
     return (
       <div className="w-full max-w-md mx-auto px-4 py-16 text-center">
         <Card padding="lg">
-          <p className={isDark ? "text-gray-400" : "text-gray-600"}>
-            Joining {kitchen.name}...
-          </p>
+          <p className={isDark ? "text-gray-400" : "text-gray-600"}>Joining {kitchen.name}...</p>
         </Card>
       </div>
     );
@@ -240,11 +228,7 @@ export function InviteJoin() {
   return (
     <div data-testid="page-invite-join" className="w-full max-w-md mx-auto px-4 py-16">
       <div className="text-center mb-8">
-        <h1
-          className={`text-3xl font-bold mb-2 ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
-        >
+        <h1 className={`text-3xl font-bold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>
           Join {kitchen.name}
         </h1>
         <p className={isDark ? "text-gray-400" : "text-gray-600"}>
@@ -287,35 +271,16 @@ export function InviteJoin() {
           </Button>
         </form>
 
-        <div
-          className={`mt-6 pt-6 border-t ${
-            isDark ? "border-slate-700" : "border-stone-200"
-          }`}
-        >
-          <p
-            className={`text-center text-sm mb-4 ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+        <div className={`mt-6 pt-6 border-t ${isDark ? "border-slate-700" : "border-stone-200"}`}>
+          <p className={`text-center text-sm mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             Already have an account?
           </p>
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={() => navigate("/login")}
-          >
+          <Button variant="secondary" fullWidth onClick={() => navigate("/login")}>
             Sign In
           </Button>
-          <p
-            className={`mt-4 text-center text-sm ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
+          <p className={`mt-4 text-center text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             Don't have an account?{" "}
-            <Link
-              to="/signup"
-              className="text-orange-500 hover:text-orange-600 font-semibold"
-            >
+            <Link to="/signup" className="text-orange-500 hover:text-orange-600 font-semibold">
               Sign up
             </Link>
           </p>

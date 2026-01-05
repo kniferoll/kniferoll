@@ -18,9 +18,7 @@ const applyDarkMode = (dark: boolean) => {
 
   // Update theme-color meta tag for iOS PWA status bar
   const themeColor = dark ? THEME_COLORS.dark : THEME_COLORS.light;
-  let metaThemeColor = document.querySelector(
-    'meta[name="theme-color"]:not([media])'
-  );
+  let metaThemeColor = document.querySelector('meta[name="theme-color"]:not([media])');
   if (!metaThemeColor) {
     metaThemeColor = document.createElement("meta");
     metaThemeColor.setAttribute("name", "theme-color");
@@ -42,9 +40,7 @@ export function useDarkMode() {
       applyDarkMode(isDarkMode);
     } else {
       // Use system preference
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      ).matches;
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
       setIsDark(prefersDark);
       applyDarkMode(prefersDark);

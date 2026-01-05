@@ -82,7 +82,7 @@ function PrepItemListInner({
 
         return a.description.localeCompare(b.description);
       });
-       
+
       setDisplayOrder(sorted.map((item) => item.id));
       // Animate all items with sorting animation
       sorted.forEach((item, index) => {
@@ -98,7 +98,6 @@ function PrepItemListInner({
   // Handle new items being added or removed
   useEffect(() => {
     if (items.length === 0) {
-       
       setDisplayOrder([]);
       setInitialLoadDone(false);
       prevStatusRef.current = new Map();
@@ -116,9 +115,7 @@ function PrepItemListInner({
         if (statusDiff !== 0) return statusDiff;
 
         if (!a.created_at || !b.created_at) return 0;
-        return (
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        );
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       });
       setDisplayOrder(sorted.map((item) => item.id));
       // Initialize status tracking
@@ -194,10 +191,7 @@ function PrepItemListInner({
     .map((id) => itemsMap.get(id))
     .filter((item): item is PrepItem => item !== undefined);
 
-  const formatQuantityPill = (
-    quantity: number | null,
-    unitName: string | null
-  ) => {
+  const formatQuantityPill = (quantity: number | null, unitName: string | null) => {
     if (!quantity && !unitName) return null;
     if (quantity && unitName) return `${quantity} ${unitName}`;
     if (quantity) return `${quantity}`;
@@ -235,10 +229,7 @@ function PrepItemListInner({
   return (
     <div className={`${isCompact ? "space-y-1.5" : "space-y-2"} overflow-x-hidden`}>
       {displayItems.map((item) => {
-        const pillText = formatQuantityPill(
-          item.quantity,
-          item.unit_name || null
-        );
+        const pillText = formatQuantityPill(item.quantity, item.unit_name || null);
         const isDeleting = deletingItemId === item.id;
         const animationClass = getAnimationClass(item.id);
 

@@ -27,10 +27,7 @@ interface KitchenState {
     perDaySchedule?: Record<string, string[]>
   ) => Promise<{ kitchenId?: string; error?: string }>;
   loadKitchen: (id: string) => Promise<void>;
-  joinKitchenViaInvite: (
-    token: string,
-    displayName: string
-  ) => Promise<{ error?: string }>;
+  joinKitchenViaInvite: (token: string, displayName: string) => Promise<{ error?: string }>;
   setSelectedDate: (date: string) => void;
   setSelectedShift: (shift: string) => void;
   clearKitchen: () => void;
@@ -48,12 +45,7 @@ export const useKitchenStore = create<KitchenState>()(
       selectedDate: getTodayLocalDate(),
       selectedShift: "",
 
-      createKitchen: async (
-        name,
-        stationNames,
-        closedDays = [],
-        perDaySchedule
-      ) => {
+      createKitchen: async (name, stationNames, closedDays = [], perDaySchedule) => {
         set({ loading: true, error: null });
 
         try {
@@ -135,9 +127,7 @@ export const useKitchenStore = create<KitchenState>()(
             "Breakfast",
             "Lunch",
             "Dinner",
-            ...Array.from(allShifts).filter(
-              (s) => !["Breakfast", "Lunch", "Dinner"].includes(s)
-            ),
+            ...Array.from(allShifts).filter((s) => !["Breakfast", "Lunch", "Dinner"].includes(s)),
           ];
           const shiftsToCreate = shiftOrder
             .filter((s) => allShifts.has(s))
@@ -268,9 +258,7 @@ export const useKitchenStore = create<KitchenState>()(
             ...unit,
           }));
 
-          const { error: unitsError } = await supabase
-            .from("kitchen_units")
-            .insert(unitsToInsert);
+          const { error: unitsError } = await supabase.from("kitchen_units").insert(unitsToInsert);
 
           if (unitsError) {
             // Log but don't fail kitchen creation for unit seeding errors
@@ -379,10 +367,7 @@ export const useKitchenStore = create<KitchenState>()(
           }
 
           // Check if link is expired or revoked
-          if (
-            inviteLink.revoked ||
-            new Date(inviteLink.expires_at) < new Date()
-          ) {
+          if (inviteLink.revoked || new Date(inviteLink.expires_at) < new Date()) {
             set({ loading: false, error: "Invite link has expired" });
             return { error: "Invite link has expired" };
           }
@@ -433,15 +418,13 @@ export const useKitchenStore = create<KitchenState>()(
               membership = m;
               currentUser = {
                 id: authUser.id,
-                displayName:
-                  authUser.user_metadata?.name || authUser.email || displayName,
+                displayName: authUser.user_metadata?.name || authUser.email || displayName,
                 isAnonymous: false,
               };
             }
           } else {
             // Sign in as anonymous user
-            const { user: anonUser, error: anonError } =
-              await signInAnonymously();
+            const { user: anonUser, error: anonError } = await signInAnonymously();
 
             if (!anonError && anonUser) {
               // Update with display name
