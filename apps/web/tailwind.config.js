@@ -16,5 +16,5 @@ export default {
       // Animations are defined in index.css using @theme directive (Tailwind v4)
     },
   },
-  plugins: [],
+  plugins: [require("@tailwindcss/typography")],
 };

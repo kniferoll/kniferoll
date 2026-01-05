@@ -35,9 +35,10 @@ const Settings = lazyWithRetry(() =>
     default: m.Settings,
   }))
 );
-// Legal pages loaded eagerly for instant access (SEO/compliance critical)
+// Legal and help pages loaded eagerly for instant access (SEO/compliance critical)
 import { TermsOfService } from "./pages/TermsOfService";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
+import { HelpCenter } from "./pages/HelpCenter";
 const ForgotPassword = lazyWithRetry(() =>
   import("./pages/ForgotPassword").then((m) => ({
     default: m.ForgotPassword,
@@ -141,6 +142,7 @@ function App() {
               <Route path="/join/:token" element={<InviteJoin />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/help" element={<HelpCenter />} />
             </Route>
 
             {/*
