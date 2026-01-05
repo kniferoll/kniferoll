@@ -4,5 +4,6 @@ export { Logo } from "./Logo";
 export { NavLinks } from "./NavLinks";
 export { PageHeader } from "./PageHeader";
 export { PublicFooter } from "./PublicFooter";
+export { PublicMobileMenu } from "./PublicMobileMenu";
 export { ScrollToTop } from "./ScrollToTop";
 export { SectionHeader } from "./SectionHeader";
