@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { supabase } from "@/lib";
+import { supabase, captureError } from "@/lib";
 import { useKitchenStore } from "@/stores";
 import type { DbStation } from "@kniferoll/types";
 
@@ -66,7 +66,15 @@ export function useRealtimeStations(kitchenId: string | undefined) {
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR") {
+          captureError(new Error("Realtime subscription error for stations"), {
+            context: "useRealtimeStations",
+            kitchenId,
+            level: "warning",
+          });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

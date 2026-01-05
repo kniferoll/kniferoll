@@ -48,7 +48,14 @@ export function setSentryUser(userId: string | null) {
   }
 }
 
-// Manual error capture
-export function captureError(error: Error, context?: Record<string, unknown>) {
-  Sentry.captureException(error, { extra: context });
+// Manual error capture with optional severity level
+export function captureError(
+  error: Error,
+  context?: Record<string, unknown> & { level?: Sentry.SeverityLevel }
+) {
+  const { level, ...extra } = context || {};
+  Sentry.captureException(error, {
+    extra,
+    level: level || "error",
+  });
 }
