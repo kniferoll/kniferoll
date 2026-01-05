@@ -12,7 +12,8 @@ test.describe("Authentication", () => {
   test("user can log out", async ({ authenticatedPage }) => {
     const page = authenticatedPage;
     // Click the avatar button (inside the data-avatar-menu container)
-    await page.locator("[data-avatar-menu] button").click();
+    // Use .first() since there are desktop and mobile versions in the DOM
+    await page.locator("[data-avatar-menu] button").first().click();
     await page.click('text="Sign Out"');
     await expect(page).toHaveURL(/login/);
   });
