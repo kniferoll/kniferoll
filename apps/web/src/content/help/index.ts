@@ -11,11 +11,29 @@ export interface HelpGuide {
   description: string;
   content: string;
   order: number;
+  /** Optional category for grouping in sidebar */
+  category?: string;
 }
+
+export interface HelpCategory {
+  id: string;
+  title: string;
+  order: number;
+}
+
+/**
+ * Categories for grouping guides in the sidebar.
+ * Guides without a category appear at the top level.
+ */
+export const helpCategories: HelpCategory[] = [
+  { id: "basics", title: "Basics", order: 1 },
+  { id: "team", title: "Team Management", order: 2 },
+];
 
 /**
  * Help guide registry.
  * Add new guides by importing the markdown file and adding an entry here.
+ * Use the category field to group guides under a category in the sidebar.
  */
 export const helpGuides: HelpGuide[] = [
   {
@@ -23,42 +41,46 @@ export const helpGuides: HelpGuide[] = [
     title: "Getting Started",
     description: "Learn the basics of Kniferoll",
     content: gettingStartedMd,
-    order: 1,
+    order: 0,
   },
   {
     slug: "stations",
     title: "Stations",
     description: "Creating and managing work areas",
     content: stationsMd,
-    order: 2,
+    order: 1,
+    category: "basics",
   },
   {
     slug: "prep-items",
     title: "Prep Items",
     description: "Adding and completing prep tasks",
     content: prepItemsMd,
-    order: 3,
+    order: 2,
+    category: "basics",
   },
   {
     slug: "inviting-team",
     title: "Inviting Team",
     description: "Collaborate with your kitchen crew",
     content: invitingTeamMd,
-    order: 4,
+    order: 1,
+    category: "team",
   },
   {
     slug: "roles",
-    title: "Roles",
+    title: "Roles & Permissions",
     description: "Understanding permissions",
     content: rolesMd,
-    order: 5,
+    order: 2,
+    category: "team",
   },
   {
     slug: "faq",
     title: "FAQ",
     description: "Common questions answered",
     content: faqMd,
-    order: 6,
+    order: 100,
   },
 ];
 
@@ -74,4 +96,24 @@ export function getGuideBySlug(slug: string): HelpGuide | undefined {
  */
 export function getAllGuides(): HelpGuide[] {
   return [...helpGuides].sort((a, b) => a.order - b.order);
+}
+
+/**
+ * Get guides organized by category for nested sidebar display.
+ * Returns: { uncategorized: HelpGuide[], categories: { category: HelpCategory, guides: HelpGuide[] }[] }
+ */
+export function getGuidesGroupedByCategory() {
+  const uncategorized = helpGuides.filter((g) => !g.category).sort((a, b) => a.order - b.order);
+
+  const categories = helpCategories
+    .sort((a, b) => a.order - b.order)
+    .map((category) => ({
+      category,
+      guides: helpGuides
+        .filter((g) => g.category === category.id)
+        .sort((a, b) => a.order - b.order),
+    }))
+    .filter((c) => c.guides.length > 0);
+
+  return { uncategorized, categories };
 }
