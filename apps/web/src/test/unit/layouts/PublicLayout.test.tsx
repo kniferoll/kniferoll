@@ -38,6 +38,7 @@ vi.mock("@/components", () => ({
     </div>
   )),
   PublicFooter: vi.fn(() => <footer data-testid="public-footer">Footer</footer>),
+  PublicMobileMenu: vi.fn(() => <div data-testid="public-mobile-menu">Mobile Menu</div>),
   UserAvatarMenu: vi.fn(() => <div data-testid="user-avatar-menu">Avatar</div>),
   PageHeader: vi.fn(() => <header data-testid="page-header">Header</header>),
 }));
