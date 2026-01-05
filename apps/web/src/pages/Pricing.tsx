@@ -29,7 +29,7 @@ const faqs = [
   {
     question: "How do I upgrade to Pro?",
     answer:
-      "You can upgrade from your Settings page. Pro features are available immediately after upgrading.",
+      "Sign up for a free account first, then upgrade from your Settings page. Pro features are available immediately after upgrading.",
   },
   {
     question: "Can I downgrade later?",
@@ -195,7 +195,7 @@ export function Pricing() {
           />
           <PricingCard
             name="Pro"
-            price="$9"
+            price="$29"
             description="For professional kitchens that need team collaboration."
             features={[
               "Up to 5 kitchens",
@@ -204,7 +204,7 @@ export function Pricing() {
               "Create invite links",
               "All free features included",
             ]}
-            cta="Start Pro"
+            cta="Get Started"
             ctaLink="/signup"
             highlighted
           />

@@ -1,6 +1,6 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores";
-import { HeaderProvider } from "@/context";
+import { useDarkModeContext, HeaderProvider } from "@/context";
 import { useHeaderConfig } from "@/hooks";
 import {
   AuthButtons,
@@ -11,6 +11,20 @@ import {
   UserAvatarMenu,
 } from "@/components";
 import { LayoutShell } from "./LayoutShell";
+
+function PricingLink() {
+  const { isDark } = useDarkModeContext();
+  return (
+    <Link
+      to="/pricing"
+      className={`text-sm font-medium transition-colors hover:text-orange-500 ${
+        isDark ? "text-gray-300" : "text-gray-700"
+      }`}
+    >
+      Pricing
+    </Link>
+  );
+}
 
 /**
  * Inner component that sets the default public header.
@@ -27,7 +41,12 @@ function PublicLayoutInner() {
       startContent: <Logo onClick={() => navigate("/")} />,
       endContent: (
         <NavLinks
-          start={user ? <DashboardLink /> : null}
+          start={
+            <>
+              <PricingLink />
+              {user ? <DashboardLink /> : null}
+            </>
+          }
           end={user ? <UserAvatarMenu /> : <AuthButtons />}
         />
       ),
