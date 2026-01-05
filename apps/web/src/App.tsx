@@ -45,16 +45,9 @@ const Settings = lazyWithRetry(() =>
     default: m.Settings,
   }))
 );
-const TermsOfService = lazyWithRetry(() =>
-  import("./pages/TermsOfService").then((m) => ({
-    default: m.TermsOfService,
-  }))
-);
-const PrivacyPolicy = lazyWithRetry(() =>
-  import("./pages/PrivacyPolicy").then((m) => ({
-    default: m.PrivacyPolicy,
-  }))
-);
+// Legal pages loaded eagerly for instant access (SEO/compliance critical)
+import { TermsOfService } from "./pages/TermsOfService";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 const ForgotPassword = lazyWithRetry(() =>
   import("./pages/ForgotPassword").then((m) => ({
     default: m.ForgotPassword,
@@ -68,6 +61,11 @@ const ResetPassword = lazyWithRetry(() =>
 const VerifyEmail = lazyWithRetry(() =>
   import("./pages/VerifyEmail").then((m) => ({
     default: m.VerifyEmail,
+  }))
+);
+const NotFound = lazyWithRetry(() =>
+  import("./pages/NotFound").then((m) => ({
+    default: m.NotFound,
   }))
 );
 
@@ -113,7 +111,7 @@ function ErrorFallback({ resetError }: { resetError: () => void }) {
 }
 
 function App() {
-  const { initialize, user, loading } = useAuthStore();
+  const { initialize, loading } = useAuthStore();
 
   useEffect(() => {
     if ("requestIdleCallback" in window) {
@@ -172,11 +170,8 @@ function App() {
               />
             </Route>
 
-            {/* Catch all - redirect to landing or dashboard */}
-            <Route
-              path="*"
-              element={<Navigate to={user ? "/dashboard" : "/"} replace />}
-            />
+            {/* 404 - Page not found */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
         <Analytics />
