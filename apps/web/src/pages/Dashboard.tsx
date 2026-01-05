@@ -163,27 +163,30 @@ export function Dashboard() {
                 }
                 menuContent={
                   <>
-                    {["Kitchen Settings", "Manage Shifts", "Team Members"].map(
-                      (item) => (
-                        <button
-                          key={item}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSettingsMenuOpen(null);
-                            if (item === "Kitchen Settings") {
-                              navigate(`/settings?section=${kitchen.id}`);
-                            }
-                          }}
-                          className={`w-full px-4 py-3 text-left text-sm transition-colors cursor-pointer ${
-                            isDark
-                              ? "text-gray-300 hover:bg-slate-700"
-                              : "text-gray-700 hover:bg-stone-100"
-                          }`}
-                        >
-                          {item}
-                        </button>
-                      )
-                    )}
+                    {[
+                      { label: "Kitchen Settings", section: kitchen.id, tab: "" },
+                      { label: "Manage Shifts", section: kitchen.id, tab: "schedule" },
+                      { label: "Team Members", section: kitchen.id, tab: "members" },
+                    ].map((item) => (
+                      <button
+                        key={item.label}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSettingsMenuOpen(null);
+                          const url = item.tab
+                            ? `/settings?section=${item.section}&tab=${item.tab}`
+                            : `/settings?section=${item.section}`;
+                          navigate(url);
+                        }}
+                        className={`w-full px-4 py-3 text-left text-sm transition-colors cursor-pointer ${
+                          isDark
+                            ? "text-gray-300 hover:bg-slate-700"
+                            : "text-gray-700 hover:bg-stone-100"
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
                   </>
                 }
               />

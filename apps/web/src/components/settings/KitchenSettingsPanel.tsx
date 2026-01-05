@@ -26,6 +26,7 @@ interface KitchenSettingsPanelProps {
   userId: string;
   onKitchenDeleted?: () => void;
   onKitchenUpdated?: () => void;
+  initialTab?: string;
 }
 
 export function KitchenSettingsPanel({
@@ -34,12 +35,13 @@ export function KitchenSettingsPanel({
   userId,
   onKitchenDeleted,
   onKitchenUpdated,
+  initialTab,
 }: KitchenSettingsPanelProps) {
   const { isDark } = useDarkModeContext();
   const { handleCheckout } = useStripeCheckout();
   const { limits } = usePlanLimits();
 
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState(initialTab || "general");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<"stations" | "invites">(

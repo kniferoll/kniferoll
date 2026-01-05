@@ -266,6 +266,7 @@ export function Settings() {
                 userId={user.id}
                 onKitchenDeleted={handleKitchenDeleted}
                 onKitchenUpdated={refetchKitchens}
+                initialTab={searchParams.get("tab") || undefined}
               />
             ) : (
               <div className="flex items-center justify-center h-64">
