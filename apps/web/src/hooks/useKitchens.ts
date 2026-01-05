@@ -9,6 +9,9 @@ export function useKitchens(userId: string | undefined) {
   const [kitchens, setKitchens] = useState<Kitchen[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
+
+  const refetch = () => setRefetchTrigger((prev) => prev + 1);
 
   useEffect(() => {
     if (!userId) {
@@ -54,9 +57,9 @@ export function useKitchens(userId: string | undefined) {
     };
 
     fetchKitchens();
-  }, [userId]);
+  }, [userId, refetchTrigger]);
 
-  return { kitchens, loading, error };
+  return { kitchens, loading, error, refetch };
 }
 
 /**

@@ -16,6 +16,7 @@ export const PAGE_BUDGETS = {
   InviteJoin: { renders: 8, duration: 80 },
   JoinWithCode: { renders: 8, duration: 80 },
   KitchenDashboard: { renders: 15, duration: 150 },
+  KitchenSettings: { renders: 15, duration: 150 },
   Landing: { renders: 8, duration: 80 },
   Login: { renders: 6, duration: 60 },
   ResetPassword: { renders: 6, duration: 60 },
@@ -83,7 +84,10 @@ export const EXCLUDED_PAGES = ["PrivacyPolicy", "TermsOfService"] as const;
  * Get budget for a specific page or interaction.
  * Throws if budget is not defined.
  */
-export function getBudget(name: BudgetName): { renders: number; duration: number } {
+export function getBudget(name: BudgetName): {
+  renders: number;
+  duration: number;
+} {
   const budget = RENDER_BUDGETS[name];
   if (!budget) {
     throw new Error(`No budget defined for: ${name}`);

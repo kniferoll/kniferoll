@@ -39,8 +39,8 @@ export function TabList({ children }: TabListProps) {
 
   return (
     <div
-      className={`border-b flex overflow-x-auto ${
-        isDark ? "border-slate-700" : "border-stone-200"
+      className={`border-b flex overflow-x-auto scrollbar-hide -mx-px ${
+        isDark ? "border-slate-700/50" : "border-stone-200"
       }`}
     >
       {children}
@@ -61,13 +61,15 @@ export function Tab({ value, children }: TabProps) {
   return (
     <button
       onClick={() => setActiveTab(value)}
-      className={`px-6 py-4 font-semibold border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+      className={`px-3 sm:px-5 py-3 sm:py-3.5 text-sm sm:text-base font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
         isActive
-          ? "border-orange-500 text-orange-500"
+          ? `border-orange-500 ${
+              isDark ? "text-orange-400" : "text-orange-600"
+            }`
           : `border-transparent ${
               isDark
-                ? "text-gray-400 hover:text-white"
-                : "text-gray-600 hover:text-gray-900"
+                ? "text-slate-400 hover:text-slate-200"
+                : "text-gray-500 hover:text-gray-800"
             }`
       }`}
     >
@@ -86,5 +88,5 @@ export function TabPanel({ value, children }: TabPanelProps) {
 
   if (activeTab !== value) return null;
 
-  return <div className="p-8">{children}</div>;
+  return <div className="px-4 py-5 sm:p-6">{children}</div>;
 }

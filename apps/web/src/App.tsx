@@ -4,7 +4,6 @@ import {
   Routes,
   Route,
   Navigate,
-  useParams,
 } from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { Analytics } from "@vercel/analytics/react";
@@ -39,11 +38,6 @@ const KitchenDashboard = lazy(() =>
 const StationView = lazy(() =>
   import("./pages/StationView").then((m) => ({ default: m.StationView }))
 );
-const Settings = lazy(() =>
-  import("./pages/Settings").then((m) => ({
-    default: m.Settings,
-  }))
-);
 const TermsOfService = lazy(() =>
   import("./pages/TermsOfService").then((m) => ({
     default: m.TermsOfService,
@@ -69,6 +63,11 @@ const VerifyEmail = lazy(() =>
     default: m.VerifyEmail,
   }))
 );
+const Settings = lazy(() =>
+  import("./pages/Settings").then((m) => ({
+    default: m.Settings,
+  }))
+);
 
 function LoadingFallback() {
   return (
@@ -79,12 +78,6 @@ function LoadingFallback() {
       }}
     />
   );
-}
-
-// Redirect old kitchen settings URLs to new unified settings with search param
-function KitchenSettingsRedirect() {
-  const { kitchenId } = useParams<{ kitchenId: string }>();
-  return <Navigate to={`/settings?section=${kitchenId}`} replace />;
 }
 
 function ErrorFallback({ resetError }: { resetError: () => void }) {
@@ -164,10 +157,10 @@ function App() {
               <Route path="/kitchen/:kitchenId" element={<KitchenDashboard />} />
               <Route path="/station/:stationId" element={<StationView />} />
               <Route path="/settings" element={<Settings />} />
-              {/* Redirect old kitchen settings to new unified settings with section param */}
+              {/* Redirect old kitchen settings to new unified settings */}
               <Route
                 path="/kitchen/:kitchenId/settings"
-                element={<KitchenSettingsRedirect />}
+                element={<Navigate to="/settings" replace />}
               />
             </Route>
 

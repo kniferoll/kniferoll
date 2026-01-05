@@ -14,12 +14,14 @@ interface GeneralSettingsTabProps {
   kitchen: Kitchen;
   isOwner: boolean;
   onDeleted: () => void;
+  onUpdated?: () => void;
 }
 
 export function GeneralSettingsTab({
   kitchen,
   isOwner,
   onDeleted,
+  onUpdated,
 }: GeneralSettingsTabProps) {
   const { isDark } = useDarkModeContext();
   const [kitchenName, setKitchenName] = useState(kitchen.name);
@@ -49,6 +51,7 @@ export function GeneralSettingsTab({
 
       if (err) throw err;
       setSuccess("Kitchen name updated");
+      onUpdated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update");
     } finally {
@@ -87,12 +90,20 @@ export function GeneralSettingsTab({
   };
 
   return (
-    <div className="space-y-6">
-      {error && <Alert variant="error">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+    <>
+      {error && (
+        <div className="pt-4">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
+      {success && (
+        <div className="pt-4">
+          <Alert variant="success">{success}</Alert>
+        </div>
+      )}
 
       <SettingsSection title="Kitchen Name">
-        <div className="flex gap-4">
+        <div className="flex gap-2 sm:gap-3">
           <div className="flex-1">
             <FormInput
               value={kitchenName}
@@ -106,6 +117,7 @@ export function GeneralSettingsTab({
               variant="primary"
               onClick={handleSave}
               disabled={saving || kitchenName === kitchen.name}
+              className="text-sm shrink-0"
             >
               {saving ? "Saving..." : "Save"}
             </Button>
@@ -114,25 +126,26 @@ export function GeneralSettingsTab({
       </SettingsSection>
 
       {isOwner && (
-        <DangerZone>
-          <p
-            className={`text-sm mb-4 ${
-              isDark ? "text-gray-400" : "text-gray-600"
-            }`}
-          >
-            Permanently delete this kitchen and all its data. This cannot be
-            undone.
-          </p>
-          <Button
-            variant="secondary"
-            onClick={handleDelete}
-            disabled={saving}
-            className="border-red-500 text-red-500 hover:bg-red-500/10"
-          >
-            Delete Kitchen
-          </Button>
-        </DangerZone>
+        <SettingsSection title="Danger Zone">
+          <DangerZone>
+            <p
+              className={`text-xs sm:text-sm mb-3 ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              Permanently delete this kitchen and all its data.
+            </p>
+            <Button
+              variant="secondary"
+              onClick={handleDelete}
+              disabled={saving}
+              className="border-red-500 text-red-500 hover:bg-red-500/10"
+            >
+              Delete Kitchen
+            </Button>
+          </DangerZone>
+        </SettingsSection>
       )}
-    </div>
+    </>
   );
 }

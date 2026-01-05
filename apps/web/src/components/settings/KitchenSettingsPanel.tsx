@@ -25,6 +25,8 @@ interface KitchenSettingsPanelProps {
   membership: KitchenMember;
   userId: string;
   onKitchenDeleted?: () => void;
+  onKitchenUpdated?: () => void;
+  initialTab?: string;
 }
 
 export function KitchenSettingsPanel({
@@ -32,12 +34,14 @@ export function KitchenSettingsPanel({
   membership,
   userId,
   onKitchenDeleted,
+  onKitchenUpdated,
+  initialTab,
 }: KitchenSettingsPanelProps) {
   const { isDark } = useDarkModeContext();
   const { handleCheckout } = useStripeCheckout();
   const { limits } = usePlanLimits();
 
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState(initialTab || "general");
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<"stations" | "invites">(
@@ -51,14 +55,14 @@ export function KitchenSettingsPanel({
   return (
     <div data-testid="kitchen-settings-panel">
       <h2
-        className={`text-lg md:text-xl font-bold mb-4 md:mb-6 truncate ${
+        className={`text-xl sm:text-2xl font-bold mb-3 sm:mb-4 truncate ${
           isDark ? "text-white" : "text-gray-900"
         }`}
       >
         {kitchen.name}
       </h2>
 
-      <Card padding="none">
+      <Card padding="none" className="overflow-hidden">
         <Tabs value={activeTab} onChange={setActiveTab}>
           <TabList>
             <Tab value="general">General</Tab>
@@ -73,16 +77,14 @@ export function KitchenSettingsPanel({
                 kitchen={kitchen}
                 isOwner={isOwner}
                 onDeleted={onKitchenDeleted || (() => {})}
+                onUpdated={onKitchenUpdated}
               />
             </div>
           </TabPanel>
 
           <TabPanel value="schedule">
             <div data-testid="schedule-tab-content">
-              <ScheduleSettingsTab
-                kitchenId={kitchen.id}
-                isOwner={isOwner}
-              />
+              <ScheduleSettingsTab kitchenId={kitchen.id} isOwner={isOwner} />
             </div>
           </TabPanel>
 
@@ -150,7 +152,9 @@ export function KitchenSettingsPanel({
           try {
             await handleCheckout();
           } catch (error) {
-            captureError(error as Error, { context: "KitchenSettingsPanel.checkout" });
+            captureError(error as Error, {
+              context: "KitchenSettingsPanel.checkout",
+            });
           }
         }}
       />

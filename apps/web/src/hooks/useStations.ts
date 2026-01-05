@@ -11,35 +11,40 @@ export function useStations(kitchenId: string | undefined) {
   const [stations, setStations] = useState<Station[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [currentKitchenId, setCurrentKitchenId] = useState<string | undefined>(undefined);
+  const [currentKitchenId, setCurrentKitchenId] = useState<string | undefined>(
+    undefined
+  );
 
-  const fetchStations = useCallback(async (showLoading = false) => {
-    if (!kitchenId) {
-      setStations([]);
-      setIsInitialLoading(false);
-      return;
-    }
-
-    try {
-      if (showLoading) {
-        setIsInitialLoading(true);
+  const fetchStations = useCallback(
+    async (showLoading = false) => {
+      if (!kitchenId) {
+        setStations([]);
+        setIsInitialLoading(false);
+        return;
       }
-      setError(null);
 
-      const { data, error: err } = await supabase
-        .from("stations")
-        .select("*")
-        .eq("kitchen_id", kitchenId)
-        .order("display_order", { ascending: true });
+      try {
+        if (showLoading) {
+          setIsInitialLoading(true);
+        }
+        setError(null);
 
-      if (err) throw err;
-      setStations(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      setIsInitialLoading(false);
-    }
-  }, [kitchenId]);
+        const { data, error: err } = await supabase
+          .from("stations")
+          .select("*")
+          .eq("kitchen_id", kitchenId)
+          .order("display_order", { ascending: true });
+
+        if (err) throw err;
+        setStations(data || []);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setIsInitialLoading(false);
+      }
+    },
+    [kitchenId]
+  );
 
   useEffect(() => {
     if (!kitchenId) {
@@ -62,7 +67,13 @@ export function useStations(kitchenId: string | undefined) {
   const refetch = useCallback(() => fetchStations(false), [fetchStations]);
 
   // For backwards compatibility, also expose `loading` as alias
-  return { stations, loading: isInitialLoading, isInitialLoading, error, refetch };
+  return {
+    stations,
+    loading: isInitialLoading,
+    isInitialLoading,
+    error,
+    refetch,
+  };
 }
 
 /**
@@ -169,4 +180,66 @@ export function useDeleteStation() {
   };
 
   return { deleteStation, loading, error };
+}
+
+/**
+ * Hook to hide a station (set is_hidden = true)
+ */
+export function useHideStation() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const hideStation = async (stationId: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { error: err } = await supabase
+        .from("stations")
+        .update({ is_hidden: true })
+        .eq("id", stationId);
+
+      if (err) throw err;
+      return true;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { hideStation, loading, error };
+}
+
+/**
+ * Hook to unhide a station (set is_hidden = false)
+ */
+export function useUnhideStation() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const unhideStation = async (stationId: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { error: err } = await supabase
+        .from("stations")
+        .update({ is_hidden: false })
+        .eq("id", stationId);
+
+      if (err) throw err;
+      return true;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { unhideStation, loading, error };
 }

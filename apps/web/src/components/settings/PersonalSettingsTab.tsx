@@ -9,6 +9,29 @@ import { PasswordRequirements } from "../ui/PasswordRequirements";
 import { SettingsSection } from "../ui/SettingsSection";
 import type { User } from "@supabase/supabase-js";
 
+// Simple helper to format account creation date
+function formatMemberSince(dateStr: string | undefined): string {
+  if (!dateStr) return "Unknown";
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 1) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
+  }
+  if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return `${months} month${months > 1 ? "s" : ""} ago`;
+  }
+  const years = Math.floor(diffDays / 365);
+  return `${years} year${years > 1 ? "s" : ""} ago`;
+}
+
 interface PersonalSettingsTabProps {
   user: User;
 }
@@ -138,7 +161,36 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
       {error && <Alert variant="error">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
 
-      <SettingsSection title="Profile">
+      <SettingsSection
+        title="Profile"
+        headerAction={
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-xs ${
+                isDark ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              Dark
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isDark ? "true" : "false"}
+              aria-label="Toggle dark mode"
+              onClick={toggle}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                isDark ? "bg-orange-500" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                  isDark ? "translate-x-4.5" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+        }
+      >
         <div className="space-y-4">
           <FormInput
             label="Display Name"
@@ -167,43 +219,44 @@ export function PersonalSettingsTab({ user }: PersonalSettingsTabProps) {
         </div>
       </SettingsSection>
 
-      <SettingsSection title="Preferences">
+      <SettingsSection title="Account Details">
         <div
-          className={`flex items-center justify-between p-4 rounded-xl ${
+          className={`p-4 rounded-xl space-y-3 ${
             isDark ? "bg-slate-800" : "bg-stone-50"
           }`}
         >
-          <div>
-            <p
-              className={`font-medium ${
+          <div className="flex items-center justify-between">
+            <span
+              className={`text-sm ${
+                isDark ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              Member since
+            </span>
+            <span
+              className={`text-sm font-medium ${
                 isDark ? "text-white" : "text-gray-900"
               }`}
             >
-              Dark Mode
-            </p>
-            <p
+              {formatMemberSince(user.created_at)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span
               className={`text-sm ${
-                isDark ? "text-gray-400" : "text-gray-600"
+                isDark ? "text-gray-400" : "text-gray-500"
               }`}
             >
-              Use dark theme throughout the app
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={isDark ? "true" : "false"}
-            onClick={toggle}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-              isDark ? "bg-orange-500" : "bg-gray-300"
-            }`}
-          >
+              Account ID
+            </span>
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                isDark ? "translate-x-6" : "translate-x-1"
+              className={`text-xs font-mono ${
+                isDark ? "text-gray-500" : "text-gray-400"
               }`}
-            />
-          </button>
+            >
+              {user.id.slice(0, 8)}...{user.id.slice(-4)}
+            </span>
+          </div>
         </div>
       </SettingsSection>
 

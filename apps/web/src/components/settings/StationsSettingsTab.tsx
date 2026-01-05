@@ -6,6 +6,8 @@ import { Alert } from "../ui/Alert";
 import { Button } from "../ui/Button";
 import { FormInput } from "../ui/FormInput";
 import { SettingsSection } from "../ui/SettingsSection";
+import { ConfirmDeleteStationModal } from "../modals/ConfirmDeleteStationModal";
+import { ConfirmHideStationModal } from "../modals/ConfirmHideStationModal";
 import type { Database } from "@kniferoll/types";
 
 type Station = Database["public"]["Tables"]["stations"]["Row"];
@@ -29,8 +31,15 @@ export function StationsSettingsTab({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [hideModalOpen, setHideModalOpen] = useState(false);
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null);
+
+  // Only count active (non-hidden) stations towards limit
+  const activeStations = stations.filter((s) => !s.is_hidden);
   const maxStations = limits?.maxStationsPerKitchen || 1;
-  const isAtLimit = stations.length >= maxStations;
+  const isAtLimit = activeStations.length >= maxStations;
 
   useEffect(() => {
     loadStations();
@@ -86,12 +95,18 @@ export function StationsSettingsTab({
     }
   };
 
-  const handleDelete = async (stationId: string) => {
-    if (
-      !confirm("Delete this station? Items in this station will be deleted.")
-    ) {
-      return;
-    }
+  const handleDeleteClick = (station: Station) => {
+    setSelectedStation(station);
+    setDeleteModalOpen(true);
+  };
+
+  const handleHideClick = (station: Station) => {
+    setSelectedStation(station);
+    setHideModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedStation) return;
 
     setSaving(true);
     setError("");
@@ -101,55 +116,131 @@ export function StationsSettingsTab({
       const { error: err } = await supabase
         .from("stations")
         .delete()
-        .eq("id", stationId);
+        .eq("id", selectedStation.id);
 
       if (err) throw err;
       await loadStations();
       setSuccess("Station deleted");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete station");
+      throw err;
     } finally {
       setSaving(false);
     }
   };
 
+  const handleHide = async () => {
+    if (!selectedStation) return;
+
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const { error: err } = await supabase
+        .from("stations")
+        .update({ is_hidden: true })
+        .eq("id", selectedStation.id);
+
+      if (err) throw err;
+      await loadStations();
+      setSuccess("Station hidden");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to hide station");
+      throw err;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUnhide = async (station: Station) => {
+    setSaving(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const { error: err } = await supabase
+        .from("stations")
+        .update({ is_hidden: false })
+        .eq("id", station.id);
+
+      if (err) throw err;
+      await loadStations();
+      setSuccess("Station restored");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to restore station"
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Separate active and hidden stations
+  const hiddenStations = stations.filter((s) => s.is_hidden);
+
   return (
-    <div className="space-y-6">
-      {error && <Alert variant="error">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+    <>
+      {error && (
+        <div className="pt-4">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
+      {success && (
+        <div className="pt-4">
+          <Alert variant="success">{success}</Alert>
+        </div>
+      )}
 
       <SettingsSection
-        title={`Current Stations (${stations.length}/${maxStations})`}
+        title={`Current Stations`}
         description="Manage your kitchen's prep stations"
       >
-        <div className="space-y-2">
-          {stations.length === 0 ? (
-            <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+        <div className="space-y-1.5">
+          {activeStations.length === 0 ? (
+            <p
+              className={`text-sm ${
+                isDark ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
               No stations yet. Add your first station below.
             </p>
           ) : (
-            stations.map((station) => (
+            activeStations.map((station) => (
               <div
                 key={station.id}
-                className={`flex items-center justify-between p-4 rounded-xl ${
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg ${
                   isDark ? "bg-slate-800" : "bg-stone-50"
                 }`}
               >
                 <span
-                  className={`font-medium ${
+                  className={`text-sm font-medium truncate mr-2 ${
                     isDark ? "text-white" : "text-gray-900"
                   }`}
                 >
                   {station.name}
                 </span>
                 {isOwner && (
-                  <button
-                    onClick={() => handleDelete(station.id)}
-                    disabled={saving}
-                    className="text-red-500 hover:text-red-600 font-semibold disabled:opacity-50 cursor-pointer"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex gap-3 shrink-0">
+                    <button
+                      onClick={() => handleHideClick(station)}
+                      disabled={saving}
+                      className={`text-xs font-medium disabled:opacity-50 cursor-pointer ${
+                        isDark
+                          ? "text-slate-400 hover:text-slate-300"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      Hide
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(station)}
+                      disabled={saving}
+                      className="text-xs font-medium text-red-500 hover:text-red-600 disabled:opacity-50 cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 )}
               </div>
             ))
@@ -157,15 +248,71 @@ export function StationsSettingsTab({
         </div>
       </SettingsSection>
 
+      {/* Hidden Stations Section */}
+      {hiddenStations.length > 0 && (
+        <SettingsSection
+          title="Hidden Stations"
+          description="Hidden from active use but data is preserved"
+        >
+          <div className="space-y-1.5">
+            {hiddenStations.map((station) => (
+              <div
+                key={station.id}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-lg ${
+                  isDark ? "bg-slate-800/50" : "bg-stone-100/50"
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span
+                    className={`text-sm font-medium truncate ${
+                      isDark ? "text-slate-400" : "text-gray-500"
+                    }`}
+                  >
+                    {station.name}
+                  </span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${
+                      isDark
+                        ? "bg-slate-700 text-slate-400"
+                        : "bg-stone-200 text-gray-500"
+                    }`}
+                  >
+                    Hidden
+                  </span>
+                </div>
+                {isOwner && (
+                  <div className="flex gap-3 shrink-0">
+                    <button
+                      onClick={() => handleUnhide(station)}
+                      disabled={saving}
+                      className="text-xs font-medium text-orange-500 hover:text-orange-600 disabled:opacity-50 cursor-pointer"
+                    >
+                      Unhide
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(station)}
+                      disabled={saving}
+                      className="text-xs font-medium text-red-500 hover:text-red-600 disabled:opacity-50 cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </SettingsSection>
+      )}
+
       {isOwner && (
         <SettingsSection title="Add Station">
           {isAtLimit ? (
-            <Alert variant="warning" className="mb-4">
+            <Alert variant="warning" className="mb-3 text-sm">
               You've reached the maximum number of stations for your plan.
             </Alert>
           ) : null}
 
-          <div className="flex gap-4">
+          <div className="flex gap-2 sm:gap-3">
             <div className="flex-1">
               <FormInput
                 value={newStationName}
@@ -176,14 +323,19 @@ export function StationsSettingsTab({
               />
             </div>
             {isAtLimit ? (
-              <Button variant="primary" onClick={onUpgradeClick}>
-                Upgrade to Pro
+              <Button
+                variant="primary"
+                onClick={onUpgradeClick}
+                className="text-sm shrink-0"
+              >
+                Upgrade
               </Button>
             ) : (
               <Button
                 variant="primary"
                 onClick={handleAdd}
                 disabled={saving || !newStationName.trim()}
+                className="text-sm shrink-0"
               >
                 Add
               </Button>
@@ -191,6 +343,29 @@ export function StationsSettingsTab({
           </div>
         </SettingsSection>
       )}
-    </div>
+
+      {/* Delete Modal */}
+      <ConfirmDeleteStationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedStation(null);
+        }}
+        onConfirm={handleDelete}
+        onHide={handleHide}
+        stationName={selectedStation?.name || ""}
+      />
+
+      {/* Hide Modal */}
+      <ConfirmHideStationModal
+        isOpen={hideModalOpen}
+        onClose={() => {
+          setHideModalOpen(false);
+          setSelectedStation(null);
+        }}
+        onConfirm={handleHide}
+        stationName={selectedStation?.name || ""}
+      />
+    </>
   );
 }

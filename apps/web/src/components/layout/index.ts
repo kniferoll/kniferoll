@@ -6,3 +6,5 @@ export { PageHeader } from "./PageHeader";
 export { PublicFooter } from "./PublicFooter";
 export { ScrollToTop } from "./ScrollToTop";
 export { SectionHeader } from "./SectionHeader";
+export { SettingsSidebar } from "./SettingsSidebar";
+export { SettingsLayout } from "./SettingsLayout";

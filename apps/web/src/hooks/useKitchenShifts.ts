@@ -21,6 +21,9 @@ export function useKitchenShifts(kitchenId: string | undefined) {
   const [shiftDays, setShiftDays] = useState<KitchenShiftDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
+
+  const refetch = () => setRefetchTrigger((prev) => prev + 1);
 
   useEffect(() => {
     if (!kitchenId) {
@@ -62,20 +65,16 @@ export function useKitchenShifts(kitchenId: string | undefined) {
     };
 
     fetchData();
-  }, [kitchenId]);
+  }, [kitchenId, refetchTrigger]);
 
-  return { shifts, shiftDays, loading, error };
+  return { shifts, shiftDays, loading, error, refetch };
 }
 
 export function useKitchenShiftActions(kitchenId: string | undefined) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const addShift = async (
-    name: string,
-    startTime: string = "00:00",
-    endTime: string = "23:59"
-  ) => {
+  const addShift = async (name: string): Promise<string> => {
     if (!kitchenId) throw new Error("Kitchen ID required");
 
     try {
@@ -92,15 +91,18 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
 
       const nextOrder = (existing?.[0]?.display_order ?? -1) + 1;
 
-      const { error: err } = await supabase.from("kitchen_shifts").insert({
-        kitchen_id: kitchenId,
-        name,
-        start_time: startTime,
-        end_time: endTime,
-        display_order: nextOrder,
-      });
+      const { data, error: err } = await supabase
+        .from("kitchen_shifts")
+        .insert({
+          kitchen_id: kitchenId,
+          name,
+          display_order: nextOrder,
+        })
+        .select("id")
+        .single();
 
-      if (err) throw err;
+      if (err) throw new Error(err.message);
+      return data.id;
     } catch (err) {
       const e = err instanceof Error ? err : new Error(String(err));
       setError(e);
@@ -153,27 +155,37 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
     }
   };
 
-  const reorderShifts = async (shiftIds: string[]) => {
-    if (!kitchenId) throw new Error("Kitchen ID required");
-
+  const hideShift = async (shiftId: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Update display_order for each shift
-      const updates = shiftIds.map((id, index) => ({
-        id,
-        display_order: index,
-      }));
+      const { error: err } = await supabase
+        .from("kitchen_shifts")
+        .update({ is_hidden: true })
+        .eq("id", shiftId);
 
-      for (const update of updates) {
-        const { error: err } = await supabase
-          .from("kitchen_shifts")
-          .update({ display_order: update.display_order })
-          .eq("id", update.id);
+      if (err) throw new Error(err.message);
+    } catch (err) {
+      const e = err instanceof Error ? err : new Error(String(err));
+      setError(e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (err) throw err;
-      }
+  const unhideShift = async (shiftId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { error: err } = await supabase
+        .from("kitchen_shifts")
+        .update({ is_hidden: false })
+        .eq("id", shiftId);
+
+      if (err) throw new Error(err.message);
     } catch (err) {
       const e = err instanceof Error ? err : new Error(String(err));
       setError(e);
@@ -238,7 +250,8 @@ export function useKitchenShiftActions(kitchenId: string | undefined) {
     addShift,
     updateShift,
     deleteShift,
-    reorderShifts,
+    hideShift,
+    unhideShift,
     updateShiftDay,
     loading,
     error,
