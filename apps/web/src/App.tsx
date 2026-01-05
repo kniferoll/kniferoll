@@ -35,10 +35,11 @@ const Settings = lazyWithRetry(() =>
     default: m.Settings,
   }))
 );
-// Legal and help pages loaded eagerly for instant access (SEO/compliance critical)
+// Legal, help, and pricing pages loaded eagerly for instant access (SEO/compliance critical)
 import { TermsOfService } from "./pages/TermsOfService";
 import { PrivacyPolicy } from "./pages/PrivacyPolicy";
 import { HelpCenter } from "./pages/HelpCenter";
+import { Pricing } from "./pages/Pricing";
 const ForgotPassword = lazyWithRetry(() =>
   import("./pages/ForgotPassword").then((m) => ({
     default: m.ForgotPassword,
@@ -143,6 +144,7 @@ function App() {
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/help" element={<HelpCenter />} />
+              <Route path="/pricing" element={<Pricing />} />
             </Route>
 
             {/*

@@ -80,6 +80,7 @@ export type BudgetName = keyof typeof RENDER_BUDGETS;
 export const EXCLUDED_PAGES = [
   "HelpCenter",
   "NotFound",
+  "Pricing",
   "PrivacyPolicy",
   "TermsOfService",
 ] as const;
