@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /kitchen/
+Disallow: /station/
+Disallow: /settings
+Disallow: /join/
+Disallow: /reset-password
+Disallow: /verify-email
+
+Sitemap: https://www.kniferoll.io/sitemap.xml
