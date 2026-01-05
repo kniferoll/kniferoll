@@ -23,6 +23,9 @@ export function PublicFooter() {
             isDark ? "text-gray-400" : "text-gray-500"
           }`}
         >
+          <Link to="/help" className="hover:text-orange-500 transition-colors">
+            Help
+          </Link>
           <a href="mailto:support@kniferoll.io" className="hover:text-orange-500 transition-colors">
             Support
           </a>
