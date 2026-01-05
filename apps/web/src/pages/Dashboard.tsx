@@ -164,9 +164,21 @@ export function Dashboard() {
                 menuContent={
                   <>
                     {[
-                      { label: "Kitchen Settings", section: kitchen.id, tab: "" },
-                      { label: "Manage Shifts", section: kitchen.id, tab: "schedule" },
-                      { label: "Team Members", section: kitchen.id, tab: "members" },
+                      {
+                        label: "Kitchen Settings",
+                        section: kitchen.id,
+                        tab: "",
+                      },
+                      {
+                        label: "Manage Shifts",
+                        section: kitchen.id,
+                        tab: "schedule",
+                      },
+                      {
+                        label: "Team Members",
+                        section: kitchen.id,
+                        tab: "members",
+                      },
                     ].map((item) => (
                       <button
                         key={item.label}
