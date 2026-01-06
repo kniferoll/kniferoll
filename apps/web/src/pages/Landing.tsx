@@ -12,6 +12,7 @@ import {
   UnitsIcon,
   ShieldIcon,
   CalendarIcon,
+  DiscordIcon,
 } from "@/components";
 import { preloadLogin, preloadSignup } from "@/lib/preload";
 // Data
@@ -141,6 +142,28 @@ export function Landing() {
             {features.map((feature, i) => (
               <FeatureCard key={i} {...feature} />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Discord Community */}
+      <section>
+        <div className="max-w-3xl mx-auto px-6 md:px-10 py-12 text-center">
+          <SectionHeader
+            title="Questions?"
+            subtitle="Join the Kniferoll Discord to ask questions, share feedback, and connect with other chefs."
+          />
+
+          <div className="mt-8">
+            <a
+              href="https://discord.gg/2z9MVqw9eH"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-base font-semibold transition-all bg-[#5865F2] hover:bg-[#4752C4] text-white shadow-lg shadow-[#5865F2]/30 hover:shadow-xl hover:shadow-[#5865F2]/40 hover:-translate-y-0.5"
+            >
+              <DiscordIcon size={20} />
+              Join the Discord
+            </a>
           </div>
         </div>
       </section>

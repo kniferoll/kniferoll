@@ -7,6 +7,7 @@ export { ClockIcon } from "./ClockIcon";
 export { CompactIcon } from "./CompactIcon";
 export { CopyIcon } from "./CopyIcon";
 export { DeviceIcon } from "./DeviceIcon";
+export { DiscordIcon } from "./DiscordIcon";
 export { ForwardIcon } from "./ForwardIcon";
 export { InProgressIcon } from "./InProgressIcon";
 export { KniferollIcon } from "./KniferollIcon";

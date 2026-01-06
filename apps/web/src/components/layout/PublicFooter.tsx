@@ -32,6 +32,14 @@ export function PublicFooter() {
           <a href="mailto:support@kniferoll.io" className="hover:text-orange-500 transition-colors">
             Support
           </a>
+          <a
+            href="https://discord.gg/2z9MVqw9eH"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-orange-500 transition-colors"
+          >
+            Discord
+          </a>
           <Link to="/privacy" className="hover:text-orange-500 transition-colors">
             Privacy
           </Link>
