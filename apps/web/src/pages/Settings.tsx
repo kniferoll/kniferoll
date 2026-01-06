@@ -4,7 +4,7 @@ import { useDarkModeContext } from "@/context";
 import { useAuthStore } from "@/stores";
 import { useKitchens, useHeaderConfig } from "@/hooks";
 import { supabase, captureError } from "@/lib";
-import { BackButton, SupportModal } from "@/components";
+import { BackButton, SupportModal, CreateAccountModal } from "@/components";
 import {
   SettingsSidebar,
   PersonalSettingsTab,
@@ -15,10 +15,15 @@ import type { Database } from "@kniferoll/types";
 
 type KitchenMember = Database["public"]["Tables"]["kitchen_members"]["Row"];
 
-function SupportSettingsPanel() {
+interface SupportSettingsPanelProps {
+  isAnonymous: boolean;
+}
+
+function SupportSettingsPanel({ isAnonymous }: SupportSettingsPanelProps) {
   const navigate = useNavigate();
   const { isDark } = useDarkModeContext();
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
 
   return (
     <div
@@ -29,7 +34,7 @@ function SupportSettingsPanel() {
         Support
       </h2>
 
-      {/* Help Center */}
+      {/* Help Center - always available */}
       <div className="mb-6">
         <h3 className={`text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
           Help Center
@@ -49,27 +54,51 @@ function SupportSettingsPanel() {
         </button>
       </div>
 
-      {/* Contact Support */}
+      {/* Contact Support - only for registered users */}
       <div className={`pt-6 border-t ${isDark ? "border-slate-700" : "border-gray-200"}`}>
-        <h3 className={`text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-          Contact Us
-        </h3>
-        <p className={`text-sm mb-3 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-          Have a question, found a bug, or want to request a feature?
-        </p>
-        <button
-          onClick={() => setIsSupportModalOpen(true)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-            isDark
-              ? "bg-orange-500 hover:bg-orange-600 text-white"
-              : "bg-orange-500 hover:bg-orange-600 text-white"
-          }`}
-        >
-          Contact Support
-        </button>
+        {isAnonymous ? (
+          <>
+            <h3
+              className={`text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}
+            >
+              Contact Us
+            </h3>
+            <p className={`text-sm mb-3 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              Create an account to contact support. We need your email address to respond to your
+              messages.
+            </p>
+            <button
+              onClick={() => setIsCreateAccountModalOpen(true)}
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Create Account
+            </button>
+          </>
+        ) : (
+          <>
+            <h3
+              className={`text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}
+            >
+              Contact Us
+            </h3>
+            <p className={`text-sm mb-3 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              Have a question, found a bug, or want to request a feature?
+            </p>
+            <button
+              onClick={() => setIsSupportModalOpen(true)}
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Contact Support
+            </button>
+          </>
+        )}
       </div>
 
       <SupportModal isOpen={isSupportModalOpen} onClose={() => setIsSupportModalOpen(false)} />
+      <CreateAccountModal
+        isOpen={isCreateAccountModalOpen}
+        onClose={() => setIsCreateAccountModalOpen(false)}
+      />
     </div>
   );
 }
@@ -256,7 +285,7 @@ export function Settings() {
               </div>
             ) : activeSection === "support" ? (
               <div data-testid="support-settings-panel">
-                <SupportSettingsPanel />
+                <SupportSettingsPanel isAnonymous={user.is_anonymous ?? false} />
               </div>
             ) : selectedKitchen && selectedMembership ? (
               <KitchenSettingsPanel
