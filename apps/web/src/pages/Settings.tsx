@@ -4,7 +4,7 @@ import { useDarkModeContext } from "@/context";
 import { useAuthStore } from "@/stores";
 import { useKitchens, useHeaderConfig } from "@/hooks";
 import { supabase, captureError } from "@/lib";
-import { BackButton, SupportModal, CreateAccountModal } from "@/components";
+import { BackButton, SupportModal, CreateAccountModal, DiscordIcon } from "@/components";
 import {
   SettingsSidebar,
   PersonalSettingsTab,
@@ -35,7 +35,7 @@ function SupportSettingsPanel({ isAnonymous }: SupportSettingsPanelProps) {
       </h2>
 
       {/* Help Center - always available */}
-      <div className="mb-6">
+      <div className="pb-6">
         <h3 className={`text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
           Help Center
         </h3>
@@ -52,6 +52,29 @@ function SupportSettingsPanel({ isAnonymous }: SupportSettingsPanelProps) {
         >
           Visit Help Center
         </button>
+      </div>
+
+      {/* Discord Community */}
+      <div className={`pt-6 border-t ${isDark ? "border-slate-700" : "border-gray-200"}`}>
+        <h3 className={`text-sm font-medium mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+          Discord Community
+        </h3>
+        <p className={`text-sm mb-3 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          Join the Kniferoll Discord to ask questions, share feedback, and connect with other chefs.
+        </p>
+        <a
+          href="https://discord.gg/2z9MVqw9eH"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            isDark
+              ? "bg-[#5865F2] hover:bg-[#4752C4] text-white"
+              : "bg-[#5865F2] hover:bg-[#4752C4] text-white"
+          }`}
+        >
+          <DiscordIcon size={18} />
+          Join Discord
+        </a>
       </div>
 
       {/* Contact Support - only for registered users */}
