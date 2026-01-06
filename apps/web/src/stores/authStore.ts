@@ -59,6 +59,7 @@ interface AuthState {
   pendingPasswordReset: boolean;
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signInWithGoogle: () => Promise<{ error?: string }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<{ error?: string }>;
@@ -133,6 +134,24 @@ export const useAuthStore = create<AuthState>()(
           return { error: undefined };
         } catch {
           return { error: "Invalid email or password" };
+        }
+      },
+
+      signInWithGoogle: async () => {
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo: `${window.location.origin}/dashboard`,
+            },
+          });
+
+          if (error) {
+            return { error: error.message };
+          }
+          return { error: undefined };
+        } catch {
+          return { error: "Failed to sign in with Google. Please try again." };
         }
       },
 

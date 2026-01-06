@@ -21,6 +21,7 @@ interface AuthFormProps {
     text: string;
     to: string;
   };
+  oauthSection?: ReactNode;
 }
 
 /**
@@ -40,6 +41,7 @@ export function AuthForm({
   footerText,
   footerLink,
   secondaryLink,
+  oauthSection,
 }: AuthFormProps) {
   const { isDark } = useDarkModeContext();
 
@@ -59,6 +61,25 @@ export function AuthForm({
 
       {/* Card */}
       <Card padding="lg">
+        {oauthSection && (
+          <>
+            {oauthSection}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div
+                  className={`w-full border-t ${isDark ? "border-slate-600" : "border-gray-200"}`}
+                />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span
+                  className={`px-3 ${isDark ? "bg-slate-800 text-gray-400" : "bg-white text-gray-500"}`}
+                >
+                  or continue with email
+                </span>
+              </div>
+            </div>
+          </>
+        )}
         <form onSubmit={onSubmit} className="space-y-5">
           {error && <Alert variant="error">{error}</Alert>}
           {children}

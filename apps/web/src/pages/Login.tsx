@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores";
 import { useDarkModeContext } from "@/context";
 import { preloadDashboard } from "@/lib/preload";
 import { validateEmail } from "@/lib";
-import { FormInput, AuthForm } from "@/components";
+import { FormInput, AuthForm, GoogleAuthButton } from "@/components";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -15,11 +15,23 @@ export function Login() {
   const { signIn, user } = useAuthStore();
   const { isDark } = useDarkModeContext();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Preload dashboard - user will likely go there after login
   useEffect(() => {
     preloadDashboard();
   }, []);
+
+  // Check for OAuth errors in URL hash (Supabase returns errors there)
+  useEffect(() => {
+    const hashParams = new URLSearchParams(location.hash.slice(1));
+    const errorDescription = hashParams.get("error_description");
+    if (errorDescription) {
+      setError(decodeURIComponent(errorDescription));
+      // Clear the hash from URL
+      window.history.replaceState(null, "", location.pathname);
+    }
+  }, [location]);
 
   useEffect(() => {
     if (user) {
@@ -73,6 +85,7 @@ export function Login() {
         footerText="Don't have an account?"
         footerLink={{ text: "Sign up", to: "/signup" }}
         secondaryLink={{ text: "Forgot password?", to: "/forgot-password" }}
+        oauthSection={<GoogleAuthButton onError={setError} />}
       >
         <FormInput
           id="email"

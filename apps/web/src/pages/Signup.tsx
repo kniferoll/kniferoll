@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores";
 import { useDarkModeContext } from "@/context";
 import { preloadDashboard } from "@/lib/preload";
 import { validateEmail, validatePassword } from "@/lib";
-import { AuthForm, FormInput, PasswordRequirements } from "@/components";
+import { AuthForm, FormInput, GoogleAuthButton, PasswordRequirements } from "@/components";
 import { Card } from "@/components/ui/Card";
 
 export function Signup() {
@@ -131,6 +131,7 @@ export function Signup() {
         error={error}
         footerText="Already have an account?"
         footerLink={{ text: "Sign in", to: "/login" }}
+        oauthSection={<GoogleAuthButton onError={setError} />}
       >
         <FormInput
           id="name"
